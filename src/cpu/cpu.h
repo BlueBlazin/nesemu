@@ -197,6 +197,38 @@ class Cpu {
   void RorAbsoluteX();
   void Ror(uint16_t addr);
 
+  /* Flag Instructions */
+  void Clc();
+  void Cld();
+  void Cli();
+  void Clv();
+  void Sec();
+  void Sed();
+  void Sei();
+  void UpdateFlag(bool& flag, bool value);
+
+  /* CMP */
+  void CmpImmediate();
+  void CmpZeroPage();
+  void CmpZeroPageX();
+  void CmpAbsolute();
+  void CmpAbsoluteX();
+  void CmpAbsoluteY();
+  void CmpIndirectX();
+  void CmpIndirectY();
+
+  /* CPX */
+  void CpxImmediate();
+  void CpxZeroPage();
+  void CpxAbsolute();
+
+  /* CPY */
+  void CpyImmediate();
+  void CpyZeroPage();
+  void CpyAbsolute();
+
+  void Cmp(uint8_t reg, uint8_t value);
+
   void Push(uint8_t value);
   uint8_t Pop();
   void UpdateNZV(uint8_t old, uint8_t byte);

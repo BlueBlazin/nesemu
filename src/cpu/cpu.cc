@@ -1017,6 +1017,139 @@ void Cpu::Ror(uint16_t addr) {
   UpdateNZ(value);
 }
 
+/*================================================================
+  Comparisons
+================================================================*/
+void Cpu::Cmp(uint8_t reg, uint8_t value) {
+  uint8_t old = reg;
+  reg += value;
+  flag_C = reg < old;
+  reg += static_cast<uint16_t>(flag_C);
+  flag_C = flag_C || (reg < old);
+  UpdateNZ(reg);
+}
+
+/******************************************************************
+  CMP
+******************************************************************/
+void Cpu::CmpImmediate() { Cmp(A, ~Fetch()); }
+
+void Cpu::CmpZeroPage() {
+  uint16_t addr = static_cast<uint16_t>(Fetch());
+  Cmp(A, ~ReadMemory(addr));
+}
+
+void Cpu::CmpZeroPageX() {
+  uint16_t addr = static_cast<uint16_t>(Fetch()) + static_cast<uint16_t>(X);
+  AddCycles(1);
+  Cmp(A, ~ReadMemory(addr));
+}
+
+void Cpu::CmpAbsolute() {
+  uint16_t lo = static_cast<uint16_t>(Fetch());
+  uint16_t hi = static_cast<uint16_t>(Fetch());
+  uint16_t addr = (hi << 8) | lo;
+  Cmp(A, ~ReadMemory(addr));
+}
+
+void Cpu::CmpAbsoluteX() {
+  uint16_t lo = static_cast<uint16_t>(Fetch());
+  uint16_t hi = static_cast<uint16_t>(Fetch());
+  uint16_t addr = (hi << 8) | lo;
+  if ((addr / 256) < ((addr + static_cast<uint16_t>(X))) / 256) {
+    AddCycles(1);
+  }
+  Cmp(A, ~ReadMemory(addr + static_cast<uint16_t>(X)));
+}
+
+void Cpu::CmpAbsoluteY() {
+  uint16_t lo = static_cast<uint16_t>(Fetch());
+  uint16_t hi = static_cast<uint16_t>(Fetch());
+  uint16_t addr = (hi << 8) | lo;
+  if ((addr / 256) < ((addr + static_cast<uint16_t>(Y))) / 256) {
+    AddCycles(1);
+  }
+  Cmp(A, ~ReadMemory(addr + static_cast<uint16_t>(Y)));
+}
+
+void Cpu::CmpIndirectX() {
+  uint16_t indirect_addr = static_cast<uint16_t>(Fetch() + X);
+  AddCycles(1);
+  uint16_t lo = static_cast<uint16_t>(ReadMemory(indirect_addr));
+  uint16_t hi = static_cast<uint16_t>(ReadMemory(indirect_addr + 1));
+  uint16_t addr = (hi << 8) | lo;
+  Cmp(A, ~ReadMemory(addr));
+}
+
+void Cpu::CmpIndirectY() {
+  uint16_t indirect_addr = static_cast<uint16_t>(Fetch());
+  uint16_t lo = static_cast<uint16_t>(ReadMemory(indirect_addr));
+  uint16_t hi = static_cast<uint16_t>(ReadMemory(indirect_addr + 1));
+  uint16_t addr = ((hi << 8) | lo);
+  if (addr / 256 <
+      (addr + static_cast<uint16_t>(Y) + static_cast<uint16_t>(flag_C)) / 256) {
+    AddCycles(1);
+  }
+  Cmp(A, ~ReadMemory(addr + static_cast<uint16_t>(Y) +
+                     static_cast<uint16_t>(flag_C)));
+}
+
+/******************************************************************
+  CPX
+******************************************************************/
+void Cpu::CpxImmediate() { Cmp(X, ~Fetch()); }
+
+void Cpu::CpxZeroPage() {
+  uint16_t addr = static_cast<uint16_t>(Fetch());
+  Cmp(X, ~ReadMemory(addr));
+}
+
+void Cpu::CpxAbsolute() {
+  uint16_t lo = static_cast<uint16_t>(Fetch());
+  uint16_t hi = static_cast<uint16_t>(Fetch());
+  uint16_t addr = (hi << 8) | lo;
+  Cmp(X, ~ReadMemory(addr));
+}
+
+/******************************************************************
+  CPY
+******************************************************************/
+void Cpu::CpyImmediate() { Cmp(Y, ~Fetch()); }
+
+void Cpu::CpyZeroPage() {
+  uint16_t addr = static_cast<uint16_t>(Fetch());
+  Cmp(Y, ~ReadMemory(addr));
+}
+
+void Cpu::CpyAbsolute() {
+  uint16_t lo = static_cast<uint16_t>(Fetch());
+  uint16_t hi = static_cast<uint16_t>(Fetch());
+  uint16_t addr = (hi << 8) | lo;
+  Cmp(Y, ~ReadMemory(addr));
+}
+
+/******************************************************************
+  Flag Instructions
+******************************************************************/
+void Cpu::Clc() { UpdateFlag(flag_C, false); }
+
+void Cpu::Cld() { UpdateFlag(flag_D, false); }
+
+void Cpu::Cli() { UpdateFlag(flag_I, false); }
+
+void Cpu::Clv() { UpdateFlag(flag_V, false); }
+
+void Cpu::Sec() { UpdateFlag(flag_C, true); }
+
+void Cpu::Sed() { UpdateFlag(flag_D, true); }
+
+void Cpu::Sei() { UpdateFlag(flag_I, true); }
+
+inline void Cpu::UpdateFlag(bool& flag, bool value) {
+  flag = value;
+  AddCycles(1);
+}
+
 /*****************************************************************
  *  Utility
  *****************************************************************/
