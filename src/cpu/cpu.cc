@@ -1151,8 +1151,133 @@ inline void Cpu::UpdateFlag(bool& flag, bool value) {
 }
 
 /*****************************************************************
+ *  Conditional Branch Instructions
+ *****************************************************************/
+void Cpu::BccRelative() {
+  int8_t offset = static_cast<int8_t>(Fetch());
+  if (!flag_C) {
+    uint16_t addr =
+        1 + static_cast<uint16_t>(static_cast<int16_t>(PC) + offset);
+    uint16_t old_PC = PC;
+    PC = addr;
+    AddCycles(old_PC / 256 != addr / 256 ? 2 : 1);
+  }
+}
+
+void Cpu::BcsRelative() {
+  int8_t offset = static_cast<int8_t>(Fetch());
+  if (flag_C) {
+    uint16_t addr =
+        1 + static_cast<uint16_t>(static_cast<int16_t>(PC) + offset);
+    uint16_t old_PC = PC;
+    PC = addr;
+    AddCycles(old_PC / 256 != addr / 256 ? 2 : 1);
+  }
+}
+
+void Cpu::BeqRelative() {
+  int8_t offset = static_cast<int8_t>(Fetch());
+  if (flag_Z) {
+    uint16_t addr =
+        1 + static_cast<uint16_t>(static_cast<int16_t>(PC) + offset);
+    uint16_t old_PC = PC;
+    PC = addr;
+    AddCycles(old_PC / 256 != addr / 256 ? 2 : 1);
+  }
+}
+
+void Cpu::BmiRelative() {
+  int8_t offset = static_cast<int8_t>(Fetch());
+  if (flag_N) {
+    uint16_t addr =
+        1 + static_cast<uint16_t>(static_cast<int16_t>(PC) + offset);
+    uint16_t old_PC = PC;
+    PC = addr;
+    AddCycles(old_PC / 256 != addr / 256 ? 2 : 1);
+  }
+}
+
+void Cpu::BneRelative() {
+  int8_t offset = static_cast<int8_t>(Fetch());
+  if (!flag_Z) {
+    uint16_t addr =
+        1 + static_cast<uint16_t>(static_cast<int16_t>(PC) + offset);
+    uint16_t old_PC = PC;
+    PC = addr;
+    AddCycles(old_PC / 256 != addr / 256 ? 2 : 1);
+  }
+}
+
+void Cpu::BplRelative() {
+  int8_t offset = static_cast<int8_t>(Fetch());
+  if (!flag_N) {
+    uint16_t addr =
+        1 + static_cast<uint16_t>(static_cast<int16_t>(PC) + offset);
+    uint16_t old_PC = PC;
+    PC = addr;
+    AddCycles(old_PC / 256 != addr / 256 ? 2 : 1);
+  }
+}
+
+void Cpu::BvcRelative() {
+  int8_t offset = static_cast<int8_t>(Fetch());
+  if (!flag_V) {
+    uint16_t addr =
+        1 + static_cast<uint16_t>(static_cast<int16_t>(PC) + offset);
+    uint16_t old_PC = PC;
+    PC = addr;
+    AddCycles(old_PC / 256 != addr / 256 ? 2 : 1);
+  }
+}
+
+void Cpu::BvsRelative() {
+  int8_t offset = static_cast<int8_t>(Fetch());
+  if (flag_V) {
+    uint16_t addr =
+        1 + static_cast<uint16_t>(static_cast<int16_t>(PC) + offset);
+    uint16_t old_PC = PC;
+    PC = addr;
+    AddCycles(old_PC / 256 != addr / 256 ? 2 : 1);
+  }
+}
+
+/*****************************************************************
+ *  Jump and Subroutine Instructions
+ *****************************************************************/
+void Cpu::JmpAbsolute() {
+  PC = static_cast<uint16_t>(Fetch()) | (static_cast<uint16_t>(Fetch()) << 8);
+}
+
+void Cpu::JmpIndirect() {
+  PC = ReadMemory(static_cast<uint16_t>(Fetch()));
+  PC |= ReadMemory(static_cast<uint16_t>(Fetch())) << 8;
+}
+
+void Cpu::JsrAbsolute() {
+  uint16_t lo = static_cast<uint16_t>(Fetch());
+  uint16_t hi = static_cast<uint16_t>(Fetch());
+  uint16_t addr = (hi << 8) | lo;
+  Push2(addr);
+  PC = addr;
+}
+
+void Cpu::RtsImplied() {
+  uint16_t lo = static_cast<uint16_t>(Pop());
+  uint16_t hi = static_cast<uint16_t>(Pop());
+  PC = ((hi << 8) | lo) + 1;
+  AddCycles(1);
+}
+
+/*****************************************************************
  *  Utility
  *****************************************************************/
+
+void Cpu::Push2(uint16_t value) {
+  WriteMemory(static_cast<uint16_t>(SP++),
+              static_cast<uint8_t>((value >> 8) & 0xFF));
+  WriteMemory(static_cast<uint16_t>(SP++), static_cast<uint8_t>(value & 0xFF));
+  AddCycles(1);
+}
 
 void Cpu::Push(uint8_t value) {
   WriteMemory(static_cast<uint16_t>(SP++), value);

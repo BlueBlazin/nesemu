@@ -7,17 +7,6 @@
 
 namespace cpu {
 
-constexpr uint8_t FLAG_N = 0x1 << 7;  // Negative
-constexpr uint8_t FLAG_V = 0x1 << 6;  // oVerflow
-                                      // unused
-constexpr uint8_t FLAG_B = 0x1 << 4;  // Break
-constexpr uint8_t FLAG_D = 0x1 << 3;  // Decimal
-constexpr uint8_t FLAG_I = 0x1 << 2;  // Interrupt
-constexpr uint8_t FLAG_Z = 0x1 << 1;  // Zero
-constexpr uint8_t FLAG_C = 0x1;       // Carry
-
-constexpr uint8_t invert(uint8_t flag) { return 0xFF ^ flag; }
-
 class Cpu {
  public:
   Cpu();
@@ -229,6 +218,24 @@ class Cpu {
 
   void Cmp(uint8_t reg, uint8_t value);
 
+  /* Conditional Branch Instructions */
+  void BccRelative();
+  void BcsRelative();
+  void BeqRelative();
+  void BmiRelative();
+  void BneRelative();
+  void BplRelative();
+  void BvcRelative();
+  void BvsRelative();
+
+  /* Jump and Subroutine Instructions */
+  void JmpAbsolute();
+  void JmpIndirect();
+  void JsrAbsolute();
+  void RtsImplied();
+
+  /* Utility methods */
+  void Push2(uint16_t value);
   void Push(uint8_t value);
   uint8_t Pop();
   void UpdateNZV(uint8_t old, uint8_t byte);
