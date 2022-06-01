@@ -1,0 +1,5 @@
+new_local_repository(
+    name = "SFML",
+    path = "/opt/homebrew",
+    build_file = "third_party/SFML/BUILD.bazel"
+)

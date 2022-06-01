@@ -1,0 +1,10 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+cc_library(
+    name = "sfml",
+    srcs = glob(["lib/libsfml-*.dylib"]),
+    hdrs = glob(["include/SFML/**/*.*"]),
+    include_prefix = "SFML",
+    strip_include_prefix = "include/SFML",
+    visibility = ["//visibility:public"],
+)
