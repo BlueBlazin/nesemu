@@ -132,6 +132,71 @@ class Cpu {
   void SbcIndirectY();
   void Sbc(uint8_t value);
 
+  /* AND */
+  void AndImmediate();
+  void AndZeroPage();
+  void AndZeroPageX();
+  void AndAbsolute();
+  void AndAbsoluteX();
+  void AndAbsoluteY();
+  void AndIndirectX();
+  void AndIndirectY();
+  void And(uint8_t value);
+
+  /* EOR */
+  void EorImmediate();
+  void EorZeroPage();
+  void EorZeroPageX();
+  void EorAbsolute();
+  void EorAbsoluteX();
+  void EorAbsoluteY();
+  void EorIndirectX();
+  void EorIndirectY();
+  void Eor(uint8_t value);
+
+  /* ORA */
+  void OraImmediate();
+  void OraZeroPage();
+  void OraZeroPageX();
+  void OraAbsolute();
+  void OraAbsoluteX();
+  void OraAbsoluteY();
+  void OraIndirectX();
+  void OraIndirectY();
+  void Ora(uint8_t value);
+
+  /* ASL */
+  void AslAccumulator();
+  void AslZeroPage();
+  void AslZeroPageX();
+  void AslAbsolute();
+  void AslAbsoluteX();
+  void Asl(uint16_t addr);
+
+  /* LSR */
+  void LsrAccumulator();
+  void LsrZeroPage();
+  void LsrZeroPageX();
+  void LsrAbsolute();
+  void LsrAbsoluteX();
+  void Lsr(uint16_t addr);
+
+  /* ROL */
+  void RolAccumulator();
+  void RolZeroPage();
+  void RolZeroPageX();
+  void RolAbsolute();
+  void RolAbsoluteX();
+  void Rol(uint16_t addr);
+
+  /* ROR */
+  void RorAccumulator();
+  void RorZeroPage();
+  void RorZeroPageX();
+  void RorAbsolute();
+  void RorAbsoluteX();
+  void Ror(uint16_t addr);
+
   void Push(uint8_t value);
   uint8_t Pop();
   void UpdateNZV(uint8_t old, uint8_t byte);
