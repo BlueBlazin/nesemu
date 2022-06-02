@@ -234,6 +234,10 @@ class Cpu {
   void JsrAbsolute();
   void RtsImplied();
 
+  /* Interrupt Instructions */
+  void Brk();
+  void Rti();
+
   /* Utility methods */
   void Push2(uint16_t value);
   void Push(uint8_t value);

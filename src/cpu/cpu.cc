@@ -333,7 +333,7 @@ void Cpu::PhaImplied() { Push(A); }
   PHP
 ******************************************************************/
 void Cpu::PhpImplied() {
-  Push(0b00000000 | (static_cast<uint8_t>(flag_N) << 7) |
+  Push((static_cast<uint8_t>(flag_N) << 7) |
        (static_cast<uint8_t>(flag_V) << 6) | (1 << 5) | (1 << 4) |
        (static_cast<uint8_t>(flag_D) << 3) |
        (static_cast<uint8_t>(flag_I) << 2) |
@@ -1262,10 +1262,40 @@ void Cpu::JsrAbsolute() {
 }
 
 void Cpu::RtsImplied() {
-  uint16_t lo = static_cast<uint16_t>(Pop());
-  uint16_t hi = static_cast<uint16_t>(Pop());
-  PC = ((hi << 8) | lo) + 1;
+  Fetch();
+  SP++;
   AddCycles(1);
+  // uint16_t lo = static_cast<uint16_t>(Pop());
+  // uint16_t hi = static_cast<uint16_t>(Pop());
+  // PC = ((hi << 8) | lo) + 1;
+
+  PC = static_cast<uint16_t>(Pop()) & 0xFF;
+  PC |= static_cast<uint16_t>(Pop()) << 8;
+  PC++;
+  AddCycles(1);
+}
+
+/*****************************************************************
+ *  Interrupt Instructions
+ *****************************************************************/
+void Cpu::Brk() {
+  uint8_t lo = static_cast<uint8_t>((PC + 2) & 0xFF);
+  uint8_t hi = static_cast<uint8_t>(((PC + 2) >> 8) & 0xFF);
+  P_ush(hi);
+  P_ush(lo);
+  uint8_t SR = (static_cast<uint8_t>(flag_N) << 7) |
+               (static_cast<uint8_t>(flag_V) << 6) | (1 << 4) |
+               (static_cast<uint8_t>(flag_D) << 3) |
+               (static_cast<uint8_t>(flag_I) << 2) |
+               (static_cast<uint8_t>(flag_Z) << 1) |
+               (static_cast<uint8_t>(flag_C) << 0);
+  P_ush(SR);
+  flag_I = true;
+  AddCycles(1);
+}
+
+void Cpu::Rti() {
+  // TODO
 }
 
 /*****************************************************************
@@ -1280,13 +1310,13 @@ void Cpu::Push2(uint16_t value) {
 }
 
 void Cpu::Push(uint8_t value) {
-  WriteMemory(static_cast<uint16_t>(SP++), value);
-  AddCycles(1);
+  WriteMemory(static_cast<uint16_t>(SP--), value);
+  // AddCycles(1);
 }
 
 uint8_t Cpu::Pop() {
-  uint8_t value = ReadMemory(static_cast<uint16_t>(SP--));
-  AddCycles(1);
+  uint8_t value = ReadMemory(static_cast<uint16_t>(SP++));
+  // AddCycles(1);
   return value;
 }
 
