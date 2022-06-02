@@ -327,12 +327,16 @@ void Cpu::TyaImplied() {
 /******************************************************************
   PHA
 ******************************************************************/
-void Cpu::PhaImplied() { Push(A); }
+void Cpu::PhaImplied() {
+  AddCycles(1);
+  Push(A);
+}
 
 /******************************************************************
   PHP
 ******************************************************************/
 void Cpu::PhpImplied() {
+  AddCycles(1);
   Push((static_cast<uint8_t>(flag_N) << 7) |
        (static_cast<uint8_t>(flag_V) << 6) | (1 << 5) | (1 << 4) |
        (static_cast<uint8_t>(flag_D) << 3) |
@@ -345,8 +349,10 @@ void Cpu::PhpImplied() {
   PLA
 ******************************************************************/
 void Cpu::PlaImplied() {
-  A = Pop();
   AddCycles(1);
+  SP++;
+  AddCycles(1);
+  A = Pull(SP);
   UpdateNZ(A);
 }
 
@@ -354,14 +360,16 @@ void Cpu::PlaImplied() {
   PLP
 ******************************************************************/
 void Cpu::PlpImplied() {
-  uint8_t status = Pop();
+  AddCycles(1);
+  SP++;
+  AddCycles(1);
+  uint8_t status = Pull(SP);
   flag_N = static_cast<bool>((status >> 7) & 0x1);
   flag_V = static_cast<bool>((status >> 6) & 0x1);
   flag_D = static_cast<bool>((status >> 3) & 0x1);
   flag_I = static_cast<bool>((status >> 2) & 0x1);
   flag_Z = static_cast<bool>((status >> 1) & 0x1);
   flag_C = static_cast<bool>((status >> 0) & 0x1);
-  AddCycles(1);
 }
 
 /******************************************************************
@@ -1245,32 +1253,51 @@ void Cpu::BvsRelative() {
  *  Jump and Subroutine Instructions
  *****************************************************************/
 void Cpu::JmpAbsolute() {
-  PC = static_cast<uint16_t>(Fetch()) | (static_cast<uint16_t>(Fetch()) << 8);
+  uint16_t lo = static_cast<uint16_t>(Fetch());
+  uint16_t hi = static_cast<uint16_t>(Fetch());
+  PC = (hi << 8) | lo;
 }
 
 void Cpu::JmpIndirect() {
-  PC = ReadMemory(static_cast<uint16_t>(Fetch()));
-  PC |= ReadMemory(static_cast<uint16_t>(Fetch())) << 8;
+  uint16_t addr_lo = Fetch();
+  uint16_t addr_hi = Fetch();
+  uint16_t latch = static_cast<uint16_t>(ReadMemory(addr_lo));
+  PC = static_cast<uint16_t>(ReadMemory(addr_hi)) << 8;
+  PC |= latch;
 }
+
+// void Cpu::JsrAbsolute() {
+//   uint16_t lo = static_cast<uint16_t>(Fetch());
+//   uint16_t hi = static_cast<uint16_t>(Fetch());
+//   uint16_t addr = (hi << 8) | lo;
+//   Push2(addr);
+//   PC = addr;
+// }
+
+// void Cpu::JsrAbsolute() {
+//   uint16_t lo = static_cast<uint16_t>(Fetch());
+//   uint16_t hi = static_cast<uint16_t>(Fetch());
+//   Push(hi);
+//   Push(lo);
+//   PC = (hi << 8) | lo;
+//   AddCycles(1);
+// }
 
 void Cpu::JsrAbsolute() {
   uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  uint16_t addr = (hi << 8) | lo;
-  Push2(addr);
-  PC = addr;
+  AddCycles(1);
+  Push(static_cast<uint8_t>(PC >> 8));
+  Push(static_cast<uint8_t>(PC & 0xFF));
+  PC = lo;
+  PC |= static_cast<uint16_t>(Fetch()) << 8;
 }
 
 void Cpu::RtsImplied() {
-  Fetch();
+  AddCycles(1);
   SP++;
   AddCycles(1);
-  // uint16_t lo = static_cast<uint16_t>(Pop());
-  // uint16_t hi = static_cast<uint16_t>(Pop());
-  // PC = ((hi << 8) | lo) + 1;
-
-  PC = static_cast<uint16_t>(Pop()) & 0xFF;
-  PC |= static_cast<uint16_t>(Pop()) << 8;
+  PC = static_cast<uint16_t>(Pull(SP++)) & 0xFF;
+  PC |= static_cast<uint16_t>(Pull(SP)) << 8;
   PC++;
   AddCycles(1);
 }
@@ -1278,47 +1305,78 @@ void Cpu::RtsImplied() {
 /*****************************************************************
  *  Interrupt Instructions
  *****************************************************************/
+// void Cpu::Brk() {
+//   uint8_t lo = static_cast<uint8_t>((PC + 2) & 0xFF);
+//   uint8_t hi = static_cast<uint8_t>(((PC + 2) >> 8) & 0xFF);
+//   P_ush(hi);
+//   P_ush(lo);
+//   uint8_t SR = (static_cast<uint8_t>(flag_N) << 7) |
+//                (static_cast<uint8_t>(flag_V) << 6) | (1 << 4) |
+//                (static_cast<uint8_t>(flag_D) << 3) |
+//                (static_cast<uint8_t>(flag_I) << 2) |
+//                (static_cast<uint8_t>(flag_Z) << 1) |
+//                (static_cast<uint8_t>(flag_C) << 0);
+//   P_ush(SR);
+//   flag_I = true;
+//   AddCycles(1);
+// }
+
 void Cpu::Brk() {
-  uint8_t lo = static_cast<uint8_t>((PC + 2) & 0xFF);
-  uint8_t hi = static_cast<uint8_t>(((PC + 2) >> 8) & 0xFF);
-  P_ush(hi);
-  P_ush(lo);
+  Fetch();
+  uint8_t lo = static_cast<uint8_t>(PC & 0xFF);
+  uint8_t hi = static_cast<uint8_t>((PC >> 8) & 0xFF);
+  flag_B = true;
+  Push(hi);
+  Push(lo);
   uint8_t SR = (static_cast<uint8_t>(flag_N) << 7) |
-               (static_cast<uint8_t>(flag_V) << 6) | (1 << 4) |
+               (static_cast<uint8_t>(flag_V) << 6) |
+               (static_cast<uint8_t>(flag_B) << 4) |
                (static_cast<uint8_t>(flag_D) << 3) |
                (static_cast<uint8_t>(flag_I) << 2) |
                (static_cast<uint8_t>(flag_Z) << 1) |
                (static_cast<uint8_t>(flag_C) << 0);
-  P_ush(SR);
-  flag_I = true;
-  AddCycles(1);
+  Push(SR);
+  PC = static_cast<uint16_t>(ReadMemory(0xFFFE));
+  PC |= static_cast<uint16_t>(ReadMemory(0xFFFF)) << 8;
 }
 
 void Cpu::Rti() {
-  // TODO
+  AddCycles(1);
+  SP++;
+  AddCycles(1);
+  uint8_t status = Pull(SP++);
+  flag_N = static_cast<bool>((status >> 7) & 0x1);
+  flag_V = static_cast<bool>((status >> 6) & 0x1);
+  flag_D = static_cast<bool>((status >> 3) & 0x1);
+  flag_I = static_cast<bool>((status >> 2) & 0x1);
+  flag_Z = static_cast<bool>((status >> 1) & 0x1);
+  flag_C = static_cast<bool>((status >> 0) & 0x1);
+
+  PC = static_cast<uint16_t>(Pull(SP++)) & 0xFF;
+  PC |= static_cast<uint16_t>(Pull(SP)) << 8;
 }
 
 /*****************************************************************
  *  Utility
  *****************************************************************/
 
-void Cpu::Push2(uint16_t value) {
-  WriteMemory(static_cast<uint16_t>(SP++),
-              static_cast<uint8_t>((value >> 8) & 0xFF));
-  WriteMemory(static_cast<uint16_t>(SP++), static_cast<uint8_t>(value & 0xFF));
-  AddCycles(1);
-}
+// void Cpu::Push2(uint16_t value) {
+//   WriteMemory(static_cast<uint16_t>(SP++),
+//               static_cast<uint8_t>((value >> 8) & 0xFF));
+//   WriteMemory(static_cast<uint16_t>(SP++), static_cast<uint8_t>(value &
+//   0xFF)); AddCycles(1);
+// }
 
 void Cpu::Push(uint8_t value) {
   WriteMemory(static_cast<uint16_t>(SP--), value);
-  // AddCycles(1);
 }
 
-uint8_t Cpu::Pop() {
-  uint8_t value = ReadMemory(static_cast<uint16_t>(SP++));
-  // AddCycles(1);
-  return value;
-}
+// uint8_t Cpu::Pop() {
+//   uint8_t value = ReadMemory(static_cast<uint16_t>(SP++));
+//   return value;
+// }
+
+uint8_t Cpu::Pull(uint8_t SP) { return ReadMemory(static_cast<uint16_t>(SP)); }
 
 inline void Cpu::UpdateNZV(uint8_t old, uint8_t byte) {
   UpdateNZ(byte);

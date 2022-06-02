@@ -239,9 +239,10 @@ class Cpu {
   void Rti();
 
   /* Utility methods */
-  void Push2(uint16_t value);
+  // void Push2(uint16_t value);
   void Push(uint8_t value);
-  uint8_t Pop();
+  // uint8_t Pop();
+  uint8_t Pull(uint8_t SP);
   void UpdateNZV(uint8_t old, uint8_t byte);
   void UpdateNZ(uint8_t byte);
   uint8_t Fetch();
