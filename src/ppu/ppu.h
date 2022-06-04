@@ -10,7 +10,7 @@ class Ppu {
  public:
   Ppu();
 
-  void Tick(uint64_t cycles);
+  void Tick(uint64_t ppu_cycles);
 
   uint8_t Read(uint16_t addr);
   void Write(uint16_t addr, uint8_t value);
@@ -19,11 +19,17 @@ class Ppu {
   uint64_t line = 0;
   uint64_t clock = 0;
   uint64_t frame = 0;
+  uint64_t cycles = 0;
 
-  // 0x2000 - 0x2007 and repeated till 0x3FFF
-  std::array<uint8_t, 8> regs = {0, 0, 0, 0, 0, 0, 0, 0};
-  // 0x4014
-  uint8_t oam_dma = 0;
+  uint8_t ppu_ctrl = 0x0;
+  uint8_t ppu_mask = 0x0;
+  uint8_t ppu_status = 0x0;
+  uint8_t oam_addr = 0x0;
+  uint8_t oam_data = 0x0;
+  uint8_t ppu_scroll = 0x0;
+  uint8_t ppu_addr = 0x0;
+  uint8_t ppu_data = 0x0;
+  uint8_t oam_dma = 0x0;
 };
 
 }  // namespace graphics
