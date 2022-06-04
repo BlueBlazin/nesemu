@@ -1,9 +1,8 @@
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
 cc_library(
-    name = "memory",
-    srcs = ["memory.cc"],
-    hdrs = ["memory.h"],
+    name = "ppu",
+    srcs = ["ppu.cc"],
+    hdrs = ["ppu.h"],
     visibility = ["//visibility:public"],
-    deps = ["//src/ppu"],
 )

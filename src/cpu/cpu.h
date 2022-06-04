@@ -187,13 +187,13 @@ class Cpu {
   void Ror(uint16_t addr);
 
   /* Flag Instructions */
-  void Clc();
-  void Cld();
-  void Cli();
-  void Clv();
-  void Sec();
-  void Sed();
-  void Sei();
+  void ClcImplied();
+  void CldImplied();
+  void CliImplied();
+  void ClvImplied();
+  void SecImplied();
+  void SedImplied();
+  void SeiImplied();
   void UpdateFlag(bool& flag, bool value);
 
   /* CMP */
@@ -235,8 +235,12 @@ class Cpu {
   void RtsImplied();
 
   /* Interrupt Instructions */
-  void Brk();
-  void Rti();
+  void BrkImplied();
+  void RtiImplied();
+
+  /* BIT */
+  void BitZeroPage();
+  void BitAbsolute();
 
   /* Utility methods */
   // void Push2(uint16_t value);
@@ -277,4 +281,4 @@ class Cpu {
 
 }  // namespace cpu
 
-#endif
+#endif  // SRC_CPU_CPU_

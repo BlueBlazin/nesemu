@@ -3,6 +3,8 @@
 
 #include <cstdint>
 
+#include "src/ppu/ppu.h"
+
 namespace memory {
 
 class Memory {
@@ -13,6 +15,8 @@ class Memory {
   void Write(uint16_t addr, uint8_t value);
 
  private:
+  graphics::Ppu ppu;
+
   /* CPU Memory map */
   /* -------------------------------------------- */
   /* 0x0000 - 0x07FF 2KB internal RAM */

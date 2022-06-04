@@ -10,14 +10,466 @@ void Cpu::Run() {
   /* fetch-decode */
   while (true) {
     switch (Fetch()) {
-      // TODO
+      case 0x00:
+        BrkImplied();
+        break;
+      case 0x01:
+        OraIndirectX();
+        break;
+      case 0x05:
+        OraZeroPage();
+        break;
+      case 0x06:
+        AslZeroPage();
+        break;
+      case 0x08:
+        PhpImplied();
+        break;
+      case 0x09:
+        OraImmediate();
+        break;
+      case 0x0A:
+        AslAccumulator();
+        break;
+      case 0x0D:
+        OraAbsolute();
+        break;
+      case 0x0E:
+        AslAbsolute();
+        break;
+      case 0x10:
+        BplRelative();
+        break;
+      case 0x11:
+        OraIndirectY();
+        break;
+      case 0x15:
+        OraZeroPageX();
+        break;
+      case 0x16:
+        AslZeroPageX();
+        break;
+      case 0x18:
+        ClcImplied();
+        break;
+      case 0x19:
+        OraAbsoluteY();
+        break;
+      case 0x1D:
+        OraAbsoluteX();
+        break;
+      case 0x1E:
+        AslAbsoluteX();
+        break;
+      case 0x20:
+        JsrAbsolute();
+        break;
+      case 0x21:
+        AndIndirectX();
+        break;
+      case 0x24:
+        BitZeroPage();
+        break;
+      case 0x25:
+        AndZeroPage();
+        break;
+      case 0x26:
+        RolZeroPage();
+        break;
+      case 0x28:
+        PlpImplied();
+        break;
+      case 0x29:
+        AndImmediate();
+        break;
+      case 0x2A:
+        RolAccumulator();
+        break;
+      case 0x2C:
+        BitAbsolute();
+        break;
+      case 0x2D:
+        AndAbsolute();
+        break;
+      case 0x2E:
+        RolAbsolute();
+        break;
+      case 0x30:
+        BmiRelative();
+        break;
+      case 0x31:
+        AndIndirectY();
+        break;
+      case 0x35:
+        AndZeroPageX();
+        break;
+      case 0x36:
+        RolZeroPageX();
+        break;
+      case 0x38:
+        SecImplied();
+        break;
+      case 0x39:
+        AndAbsoluteY();
+        break;
+      case 0x3D:
+        AndAbsoluteX();
+        break;
+      case 0x3E:
+        RolAbsoluteX();
+        break;
+      case 0x40:
+        RtiImplied();
+        break;
+      case 0x41:
+        EorIndirectX();
+        break;
+      case 0x45:
+        EorZeroPage();
+        break;
+      case 0x46:
+        LsrZeroPage();
+        break;
+      case 0x48:
+        PhaImplied();
+        break;
+      case 0x49:
+        EorImmediate();
+        break;
+      case 0x4A:
+        LsrAccumulator();
+        break;
+      case 0x4C:
+        JmpAbsolute();
+        break;
+      case 0x4D:
+        EorAbsolute();
+        break;
+      case 0x4E:
+        LsrAbsolute();
+        break;
+      case 0x50:
+        BvcRelative();
+        break;
+      case 0x51:
+        EorIndirectY();
+        break;
+      case 0x55:
+        EorZeroPageX();
+        break;
+      case 0x56:
+        LsrZeroPageX();
+        break;
+      case 0x58:
+        CliImplied();
+        break;
+      case 0x59:
+        EorAbsoluteY();
+        break;
+      case 0x5D:
+        EorAbsoluteX();
+        break;
+      case 0x5E:
+        LsrAbsoluteX();
+        break;
+      case 0x60:
+        RtsImplied();
+        break;
+      case 0x61:
+        AdcIndirectX();
+        break;
+      case 0x65:
+        AdcZeroPage();
+        break;
+      case 0x66:
+        RorZeroPage();
+        break;
+      case 0x68:
+        PlaImplied();
+        break;
+      case 0x69:
+        AdcImmediate();
+        break;
+      case 0x6A:
+        RorAccumulator();
+        break;
+      case 0x6C:
+        JmpIndirect();
+        break;
+      case 0x6D:
+        AdcAbsolute();
+        break;
+      case 0x6E:
+        RorAbsolute();
+        break;
+      case 0x70:
+        BvsRelative();
+        break;
+      case 0x71:
+        AdcIndirectY();
+        break;
+      case 0x75:
+        AdcZeroPageX();
+        break;
+      case 0x76:
+        RorZeroPageX();
+        break;
+      case 0x78:
+        SeiImplied();
+        break;
+      case 0x79:
+        AdcAbsoluteY();
+        break;
+      case 0x7D:
+        AdcAbsoluteX();
+        break;
+      case 0x7E:
+        RorAbsoluteX();
+        break;
+      case 0x81:
+        StaIndirectX();
+        break;
+      case 0x84:
+        StyZeroPage();
+        break;
+      case 0x85:
+        StaZeroPage();
+        break;
+      case 0x86:
+        StxZeroPage();
+        break;
+      case 0x88:
+        DeyImplied();
+        break;
+      case 0x8A:
+        TxaImplied();
+        break;
+      case 0x8C:
+        StyAbsolute();
+        break;
+      case 0x8D:
+        StaAbsolute();
+        break;
+      case 0x8E:
+        StxAbsolute();
+        break;
+      case 0x90:
+        BccRelative();
+        break;
+      case 0x91:
+        StaIndirectY();
+        break;
+      case 0x94:
+        StyZeroPageX();
+        break;
+      case 0x95:
+        StaZeroPageX();
+        break;
+      case 0x96:
+        StxZeroPageY();
+        break;
+      case 0x98:
+        TyaImplied();
+        break;
+      case 0x99:
+        StaAbsoluteY();
+        break;
+      case 0x9A:
+        TxsImplied();
+        break;
+      case 0x9D:
+        StaAbsoluteX();
+        break;
+      case 0xA0:
+        LdyImmediate();
+        break;
+      case 0xA1:
+        LdaIndirectX();
+        break;
+      case 0xA2:
+        LdxImmediate();
+        break;
+      case 0xA4:
+        LdyZeroPage();
+        break;
+      case 0xA5:
+        LdaZeroPage();
+        break;
+      case 0xA6:
+        LdxZeroPage();
+        break;
+      case 0xA8:
+        TayImplied();
+        break;
+      case 0xA9:
+        LdaImmediate();
+        break;
+      case 0xAA:
+        TaxImplied();
+        break;
+      case 0xAC:
+        LdyAbsolute();
+        break;
+      case 0xAD:
+        LdaAbsolute();
+        break;
+      case 0xAE:
+        LdxAbsolute();
+        break;
+      case 0xB0:
+        BcsRelative();
+        break;
+      case 0xB1:
+        LdaIndirectY();
+        break;
+      case 0xB4:
+        LdyZeroPageX();
+        break;
+      case 0xB5:
+        LdaZeroPageX();
+        break;
+      case 0xB6:
+        LdxZeroPageY();
+        break;
+      case 0xB8:
+        ClvImplied();
+        break;
+      case 0xB9:
+        LdaAbsoluteY();
+        break;
+      case 0xBA:
+        TsxImplied();
+        break;
+      case 0xBC:
+        LdyAbsoluteX();
+        break;
+      case 0xBD:
+        LdaAbsoluteX();
+        break;
+      case 0xBE:
+        LdxAbsoluteY();
+        break;
+      case 0xC0:
+        CpyImmediate();
+        break;
+      case 0xC1:
+        CmpIndirectX();
+        break;
+      case 0xC4:
+        CpyZeroPage();
+        break;
+      case 0xC5:
+        CmpZeroPage();
+        break;
+      case 0xC6:
+        DecZeroPage();
+        break;
+      case 0xC8:
+        InyImplied();
+        break;
+      case 0xC9:
+        CmpImmediate();
+        break;
+      case 0xCA:
+        DexImplied();
+        break;
+      case 0xCC:
+        CpyAbsolute();
+        break;
+      case 0xCD:
+        CmpAbsolute();
+        break;
+      case 0xCE:
+        DecAbsolute();
+        break;
+      case 0xD0:
+        BneRelative();
+        break;
+      case 0xD1:
+        CmpIndirectY();
+        break;
+      case 0xD5:
+        CmpZeroPageX();
+        break;
+      case 0xD6:
+        DecZeroPageX();
+        break;
+      case 0xD8:
+        CldImplied();
+        break;
+      case 0xD9:
+        CmpAbsoluteY();
+        break;
+      case 0xDD:
+        CmpAbsoluteX();
+        break;
+      case 0xDE:
+        DecAbsoluteX();
+        break;
+      case 0xE0:
+        CpxImmediate();
+        break;
+      case 0xE1:
+        SbcIndirectX();
+        break;
+      case 0xE4:
+        CpxZeroPage();
+        break;
+      case 0xE5:
+        SbcZeroPage();
+        break;
+      case 0xE6:
+        IncZeroPage();
+        break;
+      case 0xE8:
+        InxImplied();
+        break;
+      case 0xE9:
+        SbcImmediate();
+        break;
+      case 0xEA:
+        AddCycles(1);
+        break;
+      case 0xEC:
+        CpxAbsolute();
+        break;
+      case 0xED:
+        SbcAbsolute();
+        break;
+      case 0xEE:
+        IncAbsolute();
+        break;
+      case 0xF0:
+        BeqRelative();
+        break;
+      case 0xF1:
+        SbcIndirectY();
+        break;
+      case 0xF5:
+        SbcZeroPageX();
+        break;
+      case 0xF6:
+        IncZeroPageX();
+        break;
+      case 0xF8:
+        SedImplied();
+        break;
+      case 0xF9:
+        SbcAbsoluteY();
+        break;
+      case 0xFD:
+        SbcAbsoluteX();
+        break;
+      case 0xFE:
+        IncAbsoluteX();
+        break;
     }
   }
 }
 
-/*****************************************************************
+/*=================================================================
  *  Instructions
- *****************************************************************/
+ =================================================================*/
 
 /******************************************************************
   LDA
@@ -1139,19 +1591,19 @@ void Cpu::CpyAbsolute() {
 /******************************************************************
   Flag Instructions
 ******************************************************************/
-void Cpu::Clc() { UpdateFlag(flag_C, false); }
+void Cpu::ClcImplied() { UpdateFlag(flag_C, false); }
 
-void Cpu::Cld() { UpdateFlag(flag_D, false); }
+void Cpu::CldImplied() { UpdateFlag(flag_D, false); }
 
-void Cpu::Cli() { UpdateFlag(flag_I, false); }
+void Cpu::CliImplied() { UpdateFlag(flag_I, false); }
 
-void Cpu::Clv() { UpdateFlag(flag_V, false); }
+void Cpu::ClvImplied() { UpdateFlag(flag_V, false); }
 
-void Cpu::Sec() { UpdateFlag(flag_C, true); }
+void Cpu::SecImplied() { UpdateFlag(flag_C, true); }
 
-void Cpu::Sed() { UpdateFlag(flag_D, true); }
+void Cpu::SedImplied() { UpdateFlag(flag_D, true); }
 
-void Cpu::Sei() { UpdateFlag(flag_I, true); }
+void Cpu::SeiImplied() { UpdateFlag(flag_I, true); }
 
 inline void Cpu::UpdateFlag(bool& flag, bool value) {
   flag = value;
@@ -1266,23 +1718,6 @@ void Cpu::JmpIndirect() {
   PC |= latch;
 }
 
-// void Cpu::JsrAbsolute() {
-//   uint16_t lo = static_cast<uint16_t>(Fetch());
-//   uint16_t hi = static_cast<uint16_t>(Fetch());
-//   uint16_t addr = (hi << 8) | lo;
-//   Push2(addr);
-//   PC = addr;
-// }
-
-// void Cpu::JsrAbsolute() {
-//   uint16_t lo = static_cast<uint16_t>(Fetch());
-//   uint16_t hi = static_cast<uint16_t>(Fetch());
-//   Push(hi);
-//   Push(lo);
-//   PC = (hi << 8) | lo;
-//   AddCycles(1);
-// }
-
 void Cpu::JsrAbsolute() {
   uint16_t lo = static_cast<uint16_t>(Fetch());
   AddCycles(1);
@@ -1305,23 +1740,8 @@ void Cpu::RtsImplied() {
 /*****************************************************************
  *  Interrupt Instructions
  *****************************************************************/
-// void Cpu::Brk() {
-//   uint8_t lo = static_cast<uint8_t>((PC + 2) & 0xFF);
-//   uint8_t hi = static_cast<uint8_t>(((PC + 2) >> 8) & 0xFF);
-//   P_ush(hi);
-//   P_ush(lo);
-//   uint8_t SR = (static_cast<uint8_t>(flag_N) << 7) |
-//                (static_cast<uint8_t>(flag_V) << 6) | (1 << 4) |
-//                (static_cast<uint8_t>(flag_D) << 3) |
-//                (static_cast<uint8_t>(flag_I) << 2) |
-//                (static_cast<uint8_t>(flag_Z) << 1) |
-//                (static_cast<uint8_t>(flag_C) << 0);
-//   P_ush(SR);
-//   flag_I = true;
-//   AddCycles(1);
-// }
 
-void Cpu::Brk() {
+void Cpu::BrkImplied() {
   Fetch();
   uint8_t lo = static_cast<uint8_t>(PC & 0xFF);
   uint8_t hi = static_cast<uint8_t>((PC >> 8) & 0xFF);
@@ -1340,7 +1760,7 @@ void Cpu::Brk() {
   PC |= static_cast<uint16_t>(ReadMemory(0xFFFF)) << 8;
 }
 
-void Cpu::Rti() {
+void Cpu::RtiImplied() {
   AddCycles(1);
   SP++;
   AddCycles(1);
@@ -1360,21 +1780,9 @@ void Cpu::Rti() {
  *  Utility
  *****************************************************************/
 
-// void Cpu::Push2(uint16_t value) {
-//   WriteMemory(static_cast<uint16_t>(SP++),
-//               static_cast<uint8_t>((value >> 8) & 0xFF));
-//   WriteMemory(static_cast<uint16_t>(SP++), static_cast<uint8_t>(value &
-//   0xFF)); AddCycles(1);
-// }
-
 void Cpu::Push(uint8_t value) {
   WriteMemory(static_cast<uint16_t>(SP--), value);
 }
-
-// uint8_t Cpu::Pop() {
-//   uint8_t value = ReadMemory(static_cast<uint16_t>(SP++));
-//   return value;
-// }
 
 uint8_t Cpu::Pull(uint8_t SP) { return ReadMemory(static_cast<uint16_t>(SP)); }
 
