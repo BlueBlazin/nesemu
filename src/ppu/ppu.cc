@@ -6,15 +6,40 @@ namespace graphics {
 
 void Ppu::Tick(uint64_t cycles) {
   while (cycles > 0) {
+    DataFetcherTick();
+    PixelTick();
+    SpriteEvalTick();
+
+    cycles--;
+  }
+}
+
+void Ppu::DataFetcherTick() {
+  switch (scanline_type) {
+    case ScanlineType::PreRender:
+      break;
+    case ScanlineType::Visible:
+      return VisibleScanlineTick();
+    case ScanlineType::SpriteDataFetch:
+      break;
+    case ScanlineType::TileDataFetch:
+      break;
+    case ScanlineType::UnkFetch:
+      break;
+    case ScanlineType::PostRender:
+      break;
+    case ScanlineType::VBlank:
+      break;
+  }
+}
+
+void Ppu::VisibleScanlineTick() {
+  switch (cycle_type) {
     //
   }
 }
 
 uint8_t Ppu::Read(uint16_t addr) {
-  // if (addr <= 0x3FFF) {
-  //   return regs[(addr - 0x2000) % 8];
-  // }
-
   if (addr <= 0x3FFF) {
     switch ((addr - 0x2000) % 8) {
       case 2:
@@ -28,10 +53,6 @@ uint8_t Ppu::Read(uint16_t addr) {
 }
 
 void Ppu::Write(uint16_t addr, uint8_t value) {
-  // if (addr <= 0x3FFF) {
-  //   regs[(addr - 0x2000) % 8] = value;
-  // }
-
   if (addr <= 0x3FFF) {
     switch ((addr - 0x2000) % 8) {
       case 0:

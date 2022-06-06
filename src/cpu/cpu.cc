@@ -1081,7 +1081,7 @@ void Cpu::SbcIndirectY() {
                  static_cast<uint16_t>(flag_C)));
 }
 
-inline void Cpu::Sbc(uint8_t value) { Cpu::Adc(~value); }
+void Cpu::Sbc(uint8_t value) { Cpu::Adc(~value); }
 
 /******************************************************************
   AND
@@ -1605,7 +1605,7 @@ void Cpu::SedImplied() { UpdateFlag(flag_D, true); }
 
 void Cpu::SeiImplied() { UpdateFlag(flag_I, true); }
 
-inline void Cpu::UpdateFlag(bool& flag, bool value) {
+void Cpu::UpdateFlag(bool& flag, bool value) {
   flag = value;
   AddCycles(1);
 }
@@ -1786,14 +1786,14 @@ void Cpu::Push(uint8_t value) {
 
 uint8_t Cpu::Pull(uint8_t SP) { return ReadMemory(static_cast<uint16_t>(SP)); }
 
-inline void Cpu::UpdateNZV(uint8_t old, uint8_t byte) {
+void Cpu::UpdateNZV(uint8_t old, uint8_t byte) {
   UpdateNZ(byte);
   bool old7 = static_cast<bool>(old >> 7);
   bool new7 = static_cast<bool>(byte >> 7);
   flag_V = (!old7 && !new7 && flag_C) || (old7 && new7 && !flag_C);
 }
 
-inline void Cpu::UpdateNZ(uint8_t byte) {
+void Cpu::UpdateNZ(uint8_t byte) {
   flag_N = byte >> 7;
   flag_Z = byte == 0;
 }
@@ -1808,7 +1808,7 @@ void Cpu::WriteMemory(uint16_t addr, uint8_t value) {
   mmu.Write(addr, value);
 }
 
-inline uint8_t Cpu::Fetch() {
+uint8_t Cpu::Fetch() {
   AddCycles(1);
   return mmu.Read(PC++);
 }
