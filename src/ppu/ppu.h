@@ -54,6 +54,27 @@ enum class CycleType {
   SecondUnkByte1,
 };
 
+class PpuCtr {
+ public:
+  uint8_t AsByte() {
+    return (static_cast<uint8_t>(vblank_nmi) << 7) |
+           (static_cast<uint8_t>(select) << 6) |
+           (static_cast<uint8_t>(long_sprites) << 5) |
+           (static_cast<uint8_t>(bg_addr == 0 ? 0 : 1) << 4) |
+           (static_cast<uint8_t>(sprite_addr == 0 ? 0 : 1) << 3) |
+           (static_cast<uint8_t>(addr_inc == 1 ? 0 : 1) << 2) |
+           static_cast<uint8_t>((base_addr - 0x2000) >> 10);
+  }
+
+  uint16_t base_addr = 0x2000;
+  uint16_t addr_inc = 1;
+  uint16_t sprite_addr = 0x0000;
+  uint16_t bg_addr = 0x0000;
+  bool long_sprites = false;
+  bool select = false;
+  bool vblank_nmi = false;
+};
+
 class Ppu {
  public:
   Ppu();
