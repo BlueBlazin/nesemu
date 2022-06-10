@@ -40,45 +40,169 @@ void Ppu::VisibleScanlineTick() {
 }
 
 uint8_t Ppu::Read(uint16_t addr) {
-  if (addr <= 0x3FFF) {
-    switch ((addr - 0x2000) % 8) {
-      case 2:
-        return ppu_status;
-      case 4:
-        return oam_data;
-      case 7:
-        return ppu_data;
-    }
+  switch (addr) {
+    case 0x2002:
+      return ReadPpuStatus();
+    case 0x2004:
+      return;  // TODO
+    case 0x2007:
+      return ReadPpuData(addr);
+    default:
+      return last_write;
   }
 }
 
 void Ppu::Write(uint16_t addr, uint8_t value) {
-  if (addr <= 0x3FFF) {
-    switch ((addr - 0x2000) % 8) {
-      case 0:
-        ppu_ctrl = value;
-        break;
-      case 1:
-        ppu_mask = value;
-        break;
-      case 3:
-        oam_addr = value;
-        break;
-      case 4:
-        oam_data = value;
-        break;
-      case 5:
-        ppu_scroll = value;
-        break;
-      case 6:
-        ppu_addr = value;
-        break;
-      case 7:
-        ppu_data = value;
-        break;
-    }
-  } else if (addr == 0x4014) {
-    oam_dma = value;
+  switch (addr) {
+    case 0x2000:
+      WritePpuCtrl(value);
+      break;
+    case 0x2001:
+      WritePpuMask(value);
+      break;
+    case 0x2003:
+      oam_addr = static_cast<uint16_t>(value);
+      break;
+    case 0x2004:
+      break;  // TODO
+    case 0x2005:
+      WritePpuScroll(value);
+      break;
+    case 0x2006:
+      WritePpuAddr(value);
+      break;
+    case 0x2007:
+      WritePpuData(value);
+      break;
+    case 0x4014:
+      break;  // TODO
+  }
+
+  last_write = value;
+}
+
+void Ppu::WritePpuCtrl(uint8_t value) {
+  base_nametable_addr = CalcNametableAddr(value & 0x3);
+  vram_addr_inc = static_cast<uint16_t>((value >> 2) & 0x1);
+  sprite_table_addr = ((value >> 3) & 0x1) ? 0x1000 : 0x0;
+  pattern_table_addr = ((value >> 4) & 0x1) ? 0x1000 : 0x0;
+  long_sprites = static_cast<bool>((value >> 5) & 0x1);
+  ppu_select = static_cast<bool>((value >> 6) & 0x1);
+  generate_vblank_nmi = static_cast<bool>((value >> 7) & 0x1);
+}
+
+void Ppu::WritePpuMask(uint8_t value) {
+  greyscale = static_cast<bool>(value & 0x1);
+  show_leftmost_bg = static_cast<bool>((value >> 1) & 0x1);
+  show_leftmost_sprites = static_cast<bool>((value >> 2) & 0x1);
+  show_bg = static_cast<bool>((value >> 3) & 0x1);
+  show_sprites = static_cast<bool>((value >> 4) & 0x1);
+  emph_red = static_cast<bool>((value >> 5) & 0x1);
+  emph_green = static_cast<bool>((value >> 6) & 0x1);
+  emph_blue = static_cast<bool>((value >> 7) & 0x1);
+}
+
+uint8_t Ppu::ReadPpuStatus() {
+  uint8_t value = (static_cast<uint8_t>(in_vblank) << 7) |
+                  (static_cast<uint8_t>(sprite0_hit) << 6) |
+                  (static_cast<uint8_t>(sprite_overflow) << 5) |
+                  (last_write & 0x1F);
+
+  in_vblank = false;
+  write_toggle = false;
+
+  return value;
+}
+
+void Ppu::WritePpuScroll(uint8_t value) {
+  if (write_toggle) {
+    y_offset = static_cast<uint16_t>(value);
+  } else {
+    x_offset = static_cast<uint16_t>(value);
+  }
+
+  write_toggle = !write_toggle;
+}
+
+void Ppu::WritePpuAddr(uint8_t value) {
+  if (write_toggle) {
+    vram_addr = (vram_addr & 0xFF) | (static_cast<uint16_t>(value) << 8);
+  } else {
+    vram_addr = (vram_addr & 0xFF00) | static_cast<uint16_t>(value);
+  }
+
+  write_toggle = !write_toggle;
+}
+
+uint8_t Ppu::ReadPpuData(uint16_t addr) {
+  uint8_t value;
+
+  if (addr <= 0x3EFF) {
+    value = read_buffer;
+    vram_addr += vram_addr_inc;
+    read_buffer = ReadVram(vram_addr);
+  } else {
+    value = ReadVram(vram_addr);
+    read_buffer = value;
+    vram_addr += vram_addr_inc;
+  }
+
+  return value;
+}
+
+void Ppu::WritePpuData(uint8_t value) {
+  WriteVram(vram_addr, value);
+  vram_addr += vram_addr_inc;
+}
+
+uint16_t Ppu::CalcNametableAddr(uint8_t x) {
+  switch (x) {
+    case 0:
+      return 0x2000;
+    case 1:
+      return 0x2400;
+    case 2:
+      return 0x2800;
+    default:
+      return 0x2C00;
+  }
+}
+
+uint8_t Ppu::ReadVram(uint16_t addr) {
+  if (addr <= 0x0FFF) {
+    return pattern_table0[addr];
+  } else if (addr <= 0x1FFF) {
+    return pattern_table1[addr - 0x1000];
+  } else if (addr <= 0x23FF) {
+    return nametable0[addr - 0x2000];
+  } else if (addr <= 0x27FF) {
+    return nametable1[addr - 0x2400];
+  } else if (addr <= 0x2BFF) {
+    return nametable2[addr - 0x2800];
+  } else if (addr <= 0x2FFF) {
+    return nametable3[addr - 0x2C00];
+  } else if (addr <= 0x3F1F) {
+    return palette_ram_idxs[addr - 0x3F00];
+  } else {
+    return 0x00;
+  }
+}
+
+void Ppu::WriteVram(uint16_t addr, uint8_t value) {
+  if (addr <= 0x0FFF) {
+    pattern_table0[addr] = value;
+  } else if (addr <= 0x1FFF) {
+    pattern_table1[addr - 0x1000] = value;
+  } else if (addr <= 0x23FF) {
+    nametable0[addr - 0x2000] = value;
+  } else if (addr <= 0x27FF) {
+    nametable1[addr - 0x2400] = value;
+  } else if (addr <= 0x2BFF) {
+    nametable2[addr - 0x2800] = value;
+  } else if (addr <= 0x2FFF) {
+    nametable3[addr - 0x2C00] = value;
+  } else if (addr <= 0x3F1F) {
+    palette_ram_idxs[addr - 0x3F00] = value;
   }
 }
 
