@@ -44,7 +44,7 @@ uint8_t Ppu::Read(uint16_t addr) {
     case 0x2002:
       return ReadPpuStatus();
     case 0x2004:
-      return;  // TODO
+      return 0x00;  // TODO
     case 0x2007:
       return ReadPpuData(addr);
     default:
