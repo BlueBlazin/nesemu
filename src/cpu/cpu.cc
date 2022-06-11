@@ -1611,7 +1611,7 @@ void Cpu::UpdateFlag(bool& flag, bool value) {
 }
 
 /*****************************************************************
- *  Conditional Branch Instructions
+   Conditional Branch Instructions
  *****************************************************************/
 void Cpu::BccRelative() {
   int8_t offset = static_cast<int8_t>(Fetch());
@@ -1702,7 +1702,7 @@ void Cpu::BvsRelative() {
 }
 
 /*****************************************************************
- *  Jump and Subroutine Instructions
+   Jump and Subroutine Instructions
  *****************************************************************/
 void Cpu::JmpAbsolute() {
   uint16_t lo = static_cast<uint16_t>(Fetch());
@@ -1738,7 +1738,7 @@ void Cpu::RtsImplied() {
 }
 
 /*****************************************************************
- *  Interrupt Instructions
+   Interrupt Instructions
  *****************************************************************/
 
 void Cpu::BrkImplied() {
@@ -1777,7 +1777,18 @@ void Cpu::RtiImplied() {
 }
 
 /*****************************************************************
- *  Utility
+   BIT
+ *****************************************************************/
+void BitZeroPage() {
+  // TODO
+}
+
+void BitAbsolute() {
+  // TODO
+}
+
+/*****************************************************************
+   Utility
  *****************************************************************/
 
 void Cpu::Push(uint8_t value) {

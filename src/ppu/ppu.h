@@ -80,7 +80,9 @@ class Ppu {
     Memory and registers
   *****************************************************/
 
-  // PPU state
+  /*---------------------------------------------------
+    PPU state
+  ---------------------------------------------------*/
   uint64_t state = 0;
   // 0x0000 - 0x0FFF
   std::array<uint8_t, 4096> pattern_table0;
@@ -99,6 +101,9 @@ class Ppu {
 
   std::array<uint8_t, 256> obj_attr_memory;
 
+  /*---------------------------------------------------
+    PPU Registers
+  ---------------------------------------------------*/
   /* PPUCTRL 0x2000 */
   uint16_t base_nametable_addr = 0x2000;
   uint16_t vram_addr_inc = 1;
@@ -128,29 +133,36 @@ class Ppu {
   uint16_t oam_addr = 0x0000;
 
   /* OAMDATA 0x2004 */
-  // virtual
 
   /* PPUSCROLL 0x2005 */
   uint16_t x_offset = 0x0;
   uint16_t y_offset = 0x0;
 
   /* PPUSADDR 0x2006 */
-  uint16_t vram_addr = 0x0000;
+  // uint16_t vram_addr = 0x0000;
 
   /* PPUDATA 0x2007 */
   uint16_t vram_data = 0x0000;
 
-  /* Internal */
-  bool write_toggle = false;
-  uint8_t last_write = 0x0;
-  uint8_t read_buffer = 0x0;
+  /*---------------------------------------------------
+    Internal registers
+  ---------------------------------------------------*/
 
-  uint8_t oam_dma = 0x0;
+  // current VRAM address
+  uint16_t reg_V = 0x0000;
+  // temporary VRAM address
+  uint16_t reg_T = 0x0000;
+  // fine X scroll
+  uint16_t reg_X = 0x0000;
+  // first or second write toggle
+  Toggle reg_W = Toggle::Write1;
 
-  uint8_t x_scroll = 0x0;
-  uint8_t y_scroll = 0x0;
-
-  bool ppuaddr_in_use = false;
+  /*---------------------------------------------------
+    Internal state
+  ---------------------------------------------------*/
+  uint8_t last_write = 0x00;
+  uint8_t read_buffer = 0x00;
+  uint8_t oam_dma = 0x00;
 };
 
 }  // namespace graphics

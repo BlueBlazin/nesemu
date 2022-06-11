@@ -121,12 +121,14 @@ void Ppu::Write(uint16_t addr, uint8_t value) {
 
 void Ppu::WritePpuCtrl(uint8_t value) {
   base_nametable_addr = CalcNametableAddr(value & 0x3);
-  vram_addr_inc = static_cast<uint16_t>((value >> 2) & 0x1);
+  vram_addr_inc = static_cast<bool>((value >> 2) & 0x1) ? 32 : 1;
   sprite_table_addr = ((value >> 3) & 0x1) ? 0x1000 : 0x0;
   pattern_table_addr = ((value >> 4) & 0x1) ? 0x1000 : 0x0;
   long_sprites = static_cast<bool>((value >> 5) & 0x1);
   ppu_select = static_cast<bool>((value >> 6) & 0x1);
   generate_vblank_nmi = static_cast<bool>((value >> 7) & 0x1);
+
+  reg_T |= static_cast<uint16_t>(value & 0x3) << 10;
 }
 
 void Ppu::WritePpuMask(uint8_t value) {
@@ -147,29 +149,53 @@ uint8_t Ppu::ReadPpuStatus() {
                   (last_write & 0x1F);
 
   in_vblank = false;
-  write_toggle = false;
+  reg_W = Toggle::Write1;
 
   return value;
 }
 
-void Ppu::WritePpuScroll(uint8_t value) {
-  if (write_toggle) {
-    y_offset = static_cast<uint16_t>(value);
-  } else {
-    x_offset = static_cast<uint16_t>(value);
-  }
+// void Ppu::WritePpuScroll(uint8_t value) {
+//   if (write_toggle) {
+//     y_offset = static_cast<uint16_t>(value);
+//   } else {
+//     x_offset = static_cast<uint16_t>(value);
+//   }
 
-  write_toggle = !write_toggle;
+//   write_toggle = !write_toggle;
+// }
+
+void Ppu::WritePpuScroll(uint8_t value) {
+  if (reg_W == Toggle::Write1) {
+    reg_X = static_cast<uint16_t>(value & 0x3);
+    reg_T |= static_cast<uint16_t>(value >> 3);
+    reg_W = Toggle::Write2;
+  } else {
+    reg_T |= static_cast<uint16_t>(value & 0x7) << 12;
+    reg_T |= static_cast<uint16_t>(value & 0xF8) << 2;
+    reg_W = Toggle::Write1;
+  }
 }
 
-void Ppu::WritePpuAddr(uint8_t value) {
-  if (write_toggle) {
-    vram_addr = (vram_addr & 0xFF) | (static_cast<uint16_t>(value) << 8);
-  } else {
-    vram_addr = (vram_addr & 0xFF00) | static_cast<uint16_t>(value);
-  }
+// void Ppu::WritePpuAddr(uint8_t value) {
+//   if (write_toggle) {
+//     vram_addr = (vram_addr & 0xFF) | (static_cast<uint16_t>(value) << 8);
+//   } else {
+//     vram_addr = (vram_addr & 0xFF00) | static_cast<uint16_t>(value);
+//   }
 
-  write_toggle = !write_toggle;
+//   write_toggle = !write_toggle;
+// }
+
+void Ppu::WritePpuAddr(uint8_t value) {
+  if (reg_W == Toggle::Write1) {
+    reg_T &= 0x3FFF;
+    reg_T |= static_cast<uint16_t>(value & 0x3F) << 8;
+    reg_W = Toggle::Write2;
+  } else {
+    reg_T |= static_cast<uint16_t>(value);
+    reg_V = reg_T;
+    reg_W = Toggle::Write1;
+  }
 }
 
 uint8_t Ppu::ReadPpuData(uint16_t addr) {
@@ -177,20 +203,20 @@ uint8_t Ppu::ReadPpuData(uint16_t addr) {
 
   if (addr <= 0x3EFF) {
     value = read_buffer;
-    vram_addr += vram_addr_inc;
-    read_buffer = ReadVram(vram_addr);
+    reg_V += vram_addr_inc;
+    read_buffer = ReadVram(reg_V);
   } else {
-    value = ReadVram(vram_addr);
+    value = ReadVram(reg_V);
     read_buffer = value;
-    vram_addr += vram_addr_inc;
+    reg_V += vram_addr_inc;
   }
 
   return value;
 }
 
 void Ppu::WritePpuData(uint8_t value) {
-  WriteVram(vram_addr, value);
-  vram_addr += vram_addr_inc;
+  WriteVram(reg_V, value);
+  reg_V += vram_addr_inc;
 }
 
 uint16_t Ppu::CalcNametableAddr(uint8_t x) {

@@ -50,6 +50,11 @@ enum class CycleType {
   SecondUnkByte1,
 };
 
+enum class Toggle {
+  Write1,
+  Write2,
+};
+
 }  // namespace graphics
 
 #endif  // SRC_PPU_STATE_
