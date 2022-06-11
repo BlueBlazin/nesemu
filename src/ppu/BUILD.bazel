@@ -3,6 +3,9 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 cc_library(
     name = "ppu",
     srcs = ["ppu.cc"],
-    hdrs = ["ppu.h"],
+    hdrs = [
+        "ppu.h",
+        "state.h",
+    ],
     visibility = ["//visibility:public"],
 )

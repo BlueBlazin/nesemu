@@ -2,14 +2,17 @@
 
 #include <cstdint>
 
+#include "src/ppu/state.h"
+
 namespace graphics {
 
 void Ppu::Tick(uint64_t cycles) {
   while (cycles > 0) {
-    DataFetcherTick();
     PixelTick();
+    DataFetcherTick();
     SpriteEvalTick();
 
+    clock++;
     cycles--;
   }
 }
@@ -17,26 +20,61 @@ void Ppu::Tick(uint64_t cycles) {
 void Ppu::DataFetcherTick() {
   switch (scanline_type) {
     case ScanlineType::PreRender:
-      break;
+      return PreRenderTick();
     case ScanlineType::Visible:
-      return VisibleScanlineTick();
+      return VisibleTick();
     case ScanlineType::SpriteDataFetch:
-      break;
+      return SpriteDataFetchTick();
     case ScanlineType::TileDataFetch:
-      break;
+      return TileDataFetchTick();
     case ScanlineType::UnkFetch:
-      break;
+      return UnkFetchTick();
     case ScanlineType::PostRender:
-      break;
+      return PostRenderTick();
     case ScanlineType::VBlank:
-      break;
+      return VBlankTick();
   }
 }
 
-void Ppu::VisibleScanlineTick() {
+void Ppu::PreRenderTick() {
+  //
+}
+
+void Ppu::VisibleTick() {
   switch (cycle_type) {
-    //
+    case CycleType::Cycle0: {
+      cycle_type = CycleType::NametableByte0;
+      return;
+    }
+    case CycleType::NametableByte0: {
+      cycle_type = CycleType::NametableByte1;
+      return;
+    }
+    case CycleType::NametableByte1: {
+      cycle_type = CycleType::AttrByte0;
+      return;
+    }
   }
+}
+
+void Ppu::SpriteDataFetchTick() {
+  //
+}
+
+void Ppu::TileDataFetchTick() {
+  //
+}
+
+void Ppu::UnkFetchTick() {
+  //
+}
+
+void Ppu::PostRenderTick() {
+  //
+}
+
+void Ppu::VBlankTick() {
+  //
 }
 
 uint8_t Ppu::Read(uint16_t addr) {
