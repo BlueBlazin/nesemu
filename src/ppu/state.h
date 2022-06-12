@@ -6,9 +6,6 @@ namespace graphics {
 enum class ScanlineType {
   PreRender,
   Visible,
-  SpriteDataFetch,
-  TileDataFetch,
-  UnkFetch,
   PostRender,
   VBlank,
 };

@@ -12,7 +12,8 @@ void Ppu::Tick(uint64_t cycles) {
     DataFetcherTick();
     SpriteEvalTick();
 
-    clock++;
+    dot = dot == 340 ? 0 : dot + 1;
+
     cycles--;
   }
 }
@@ -23,12 +24,6 @@ void Ppu::DataFetcherTick() {
       return PreRenderTick();
     case ScanlineType::Visible:
       return VisibleTick();
-    case ScanlineType::SpriteDataFetch:
-      return SpriteDataFetchTick();
-    case ScanlineType::TileDataFetch:
-      return TileDataFetchTick();
-    case ScanlineType::UnkFetch:
-      return UnkFetchTick();
     case ScanlineType::PostRender:
       return PostRenderTick();
     case ScanlineType::VBlank:
@@ -42,10 +37,12 @@ void Ppu::PreRenderTick() {
 
 void Ppu::VisibleTick() {
   switch (cycle_type) {
+    /******************************************************************/
     case CycleType::Cycle0: {
       cycle_type = CycleType::NametableByte0;
       return;
     }
+    /******************************************************************/
     case CycleType::NametableByte0: {
       // Get tile address
       tile_addr = 0x2000 | (reg_V & 0x0FFF);
@@ -53,6 +50,7 @@ void Ppu::VisibleTick() {
       cycle_type = CycleType::NametableByte1;
       return;
     }
+    /******************************************************************/
     case CycleType::NametableByte1: {
       // Get nametable byte
       nametable_byte = static_cast<uint16_t>(ReadVram(tile_addr));
@@ -60,6 +58,7 @@ void Ppu::VisibleTick() {
       cycle_type = CycleType::AttrByte0;
       return;
     }
+    /******************************************************************/
     case CycleType::AttrByte0: {
       // Get attribute address
       attr_addr = 0x23C0 | (reg_V & 0x0C00) | ((reg_V >> 4) & 0x38) |
@@ -68,36 +67,111 @@ void Ppu::VisibleTick() {
       cycle_type = CycleType::AttrByte1;
       return;
     }
+    /******************************************************************/
     case CycleType::AttrByte1: {
       // TODO
       cycle_type = CycleType::PatternTileLow0;
       return;
     }
+    /******************************************************************/
     case CycleType::PatternTileLow0: {
-      bg_addr = reg_Y | (nametable_byte << 4) | pattern_table_addr;
+      uint16_t fine_y = (reg_V >> 12) & 0x7;
+      bg_addr = fine_y | (nametable_byte << 4) | pattern_table_addr;
 
       cycle_type = CycleType::PatternTileLow1;
       return;
     }
+    /******************************************************************/
     case CycleType::PatternTileLow1: {
       bg_tile_low = ReadVram(bg_addr);
 
       cycle_type = CycleType::PatternTileHigh0;
       return;
     }
+    /******************************************************************/
     case CycleType::PatternTileHigh0: {
       bg_addr |= 0x8;
 
       cycle_type = CycleType::PatternTileHigh1;
       return;
     }
+    /******************************************************************/
     case CycleType::PatternTileHigh1: {
       bg_tile_high = ReadVram(bg_addr);
       // load data into shift registers
       ShiftBg();
-      // increment reg_V Hori(v)
+      // increment reg_V hori(v)
       IncHorizontal();
-      // transition state
+      if (dot == 256) {
+        // increment reg_V vert(v) at dot 256
+        IncVertical();
+        cycle_type = CycleType::GarbageByte0;
+      } else if (dot == 336) {
+        cycle_type == CycleType::FirstUnkByte0;
+      } else {
+        cycle_type = CycleType::NametableByte0;
+      }
+      return;
+    }
+    /******************************************************************/
+    case CycleType::GarbageByte0: {
+      CopyHorizontal();
+      cycle_type = CycleType::GarbageByte1;
+      return;
+    }
+    /******************************************************************/
+    case CycleType::GarbageByte1: {
+      cycle_type = CycleType::GarbageByte2;
+      return;
+    }
+    /******************************************************************/
+    case CycleType::GarbageByte2: {
+      cycle_type = CycleType::GarbageByte3;
+      return;
+    }
+    /******************************************************************/
+    case CycleType::GarbageByte3: {
+      cycle_type = CycleType::NextSpriteTileLow0;
+      return;
+    }
+    /******************************************************************/
+    case CycleType::NextSpriteTileLow0: {
+      cycle_type = CycleType::NextSpriteTileLow1;
+      return;
+    }
+    /******************************************************************/
+    case CycleType::NextSpriteTileLow1: {
+      cycle_type = CycleType::NextSpriteTileHigh0;
+      return;
+    }
+    /******************************************************************/
+    case CycleType::NextSpriteTileHigh0: {
+      cycle_type = CycleType::NametableByte0;
+      return;
+    }
+    /******************************************************************/
+    case CycleType::FirstUnkByte0: {
+      cycle_type = CycleType::FirstUnkByte1;
+      return;
+    }
+    /******************************************************************/
+    case CycleType::FirstUnkByte1: {
+      cycle_type = CycleType::SecondUnkByte0;
+      return;
+    }
+    /******************************************************************/
+    case CycleType::SecondUnkByte0: {
+      cycle_type = CycleType::SecondUnkByte1;
+      return;
+    }
+    /******************************************************************/
+    case CycleType::SecondUnkByte1: {
+      line++;
+
+      if (line == 240) {
+        scanline_type = ScanlineType::PostRender;
+      }
+      return;
     }
   }
 }
@@ -109,6 +183,11 @@ void Ppu::ShiftBg() {
   }
 }
 
+void Ppu::CopyHorizontal() {
+  reg_V &= 0x7BE0;
+  reg_V |= (reg_T & ~0x7BE0);
+}
+
 void Ppu::IncHorizontal() {
   if ((reg_V & 0x1F) == 0x1F) {
     reg_V &= 0xFFE0;
@@ -118,16 +197,23 @@ void Ppu::IncHorizontal() {
   }
 }
 
-void Ppu::SpriteDataFetchTick() {
-  //
-}
+void Ppu::IncVertical() {
+  if ((reg_V & 0x7000) != 0x7000) {
+    reg_V += 0x1000;
+  } else {
+    reg_V &= ~0x7000;
+    uint16_t coarse_y = (reg_V & 0x3E0) >> 5;
+    if (coarse_y == 0x1D) {
+      coarse_y = 0;
+      reg_V ^= 0x800;
+    } else if (coarse_y == 0x1F) {
+      coarse_y = 0;
+    } else {
+      coarse_y++;
+    }
 
-void Ppu::TileDataFetchTick() {
-  //
-}
-
-void Ppu::UnkFetchTick() {
-  //
+    reg_V = (reg_V & ~0x3E0) | (coarse_y << 5);
+  }
 }
 
 void Ppu::PostRenderTick() {
@@ -221,7 +307,6 @@ void Ppu::WritePpuScroll(uint8_t value) {
     reg_T |= static_cast<uint16_t>(value >> 3);
     reg_W = Toggle::Write2;
   } else {
-    reg_Y = static_cast<uint16_t>(value & 0x3);
     reg_T |= static_cast<uint16_t>(value & 0x7) << 12;
     reg_T |= static_cast<uint16_t>(value & 0xF8) << 2;
     reg_W = Toggle::Write1;

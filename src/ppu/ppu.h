@@ -27,11 +27,8 @@ class Ppu {
   void SpriteEvalTick();
   void PixelTick();
 
-  void PreRenderTick();
   void VisibleTick();
-  void SpriteDataFetchTick();
-  void TileDataFetchTick();
-  void UnkFetchTick();
+  void PreRenderTick();
   void PostRenderTick();
   void VBlankTick();
 
@@ -61,7 +58,9 @@ class Ppu {
 
   void ShiftBg();
 
+  void CopyHorizontal();
   void IncHorizontal();
+  void IncVertical();
 
   uint16_t CalcNametableAddr(uint8_t x);
 
@@ -74,8 +73,8 @@ class Ppu {
   CycleType cycle_type = CycleType::Cycle0;
 
   // PPU state info
+  uint64_t dot = 0;
   uint64_t line = 0;
-  uint64_t clock = 0;
   uint64_t frame = 1;
 
   // Shift registers
@@ -108,6 +107,7 @@ class Ppu {
   std::array<uint8_t, 32> palette_ram_idxs;
 
   std::array<uint8_t, 256> obj_attr_memory;
+  std::array<uint8_t, 32> secondary_oam;
 
   /*---------------------------------------------------
     PPU Registers
@@ -162,8 +162,6 @@ class Ppu {
   uint16_t reg_T = 0x0000;
   // fine X scroll
   uint16_t reg_X = 0x0000;
-  // fine Y scroll
-  uint16_t reg_Y = 0x0000;
   // first or second write toggle
   Toggle reg_W = Toggle::Write1;
 
