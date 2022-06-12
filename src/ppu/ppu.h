@@ -55,6 +55,14 @@ class Ppu {
   uint8_t ReadPpuData(uint16_t addr);
   void WritePpuData(uint8_t value);
 
+  /*****************************************************
+    Helper methods
+  *****************************************************/
+
+  void ShiftBg();
+
+  void IncHorizontal();
+
   uint16_t CalcNametableAddr(uint8_t x);
 
   /*****************************************************
@@ -154,6 +162,8 @@ class Ppu {
   uint16_t reg_T = 0x0000;
   // fine X scroll
   uint16_t reg_X = 0x0000;
+  // fine Y scroll
+  uint16_t reg_Y = 0x0000;
   // first or second write toggle
   Toggle reg_W = Toggle::Write1;
 
@@ -163,6 +173,14 @@ class Ppu {
   uint8_t last_write = 0x00;
   uint8_t read_buffer = 0x00;
   uint8_t oam_dma = 0x00;
+
+  // nametable fetching
+  uint16_t tile_addr = 0x0;
+  uint16_t attr_addr = 0x0;
+  uint16_t nametable_byte = 0x0;
+  uint16_t bg_addr = 0x0;
+  uint8_t bg_tile_low = 0x0;
+  uint8_t bg_tile_high = 0x0;
 };
 
 }  // namespace graphics

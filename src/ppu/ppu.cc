@@ -47,13 +47,74 @@ void Ppu::VisibleTick() {
       return;
     }
     case CycleType::NametableByte0: {
+      // Get tile address
+      tile_addr = 0x2000 | (reg_V & 0x0FFF);
+
       cycle_type = CycleType::NametableByte1;
       return;
     }
     case CycleType::NametableByte1: {
+      // Get nametable byte
+      nametable_byte = static_cast<uint16_t>(ReadVram(tile_addr));
+
       cycle_type = CycleType::AttrByte0;
       return;
     }
+    case CycleType::AttrByte0: {
+      // Get attribute address
+      attr_addr = 0x23C0 | (reg_V & 0x0C00) | ((reg_V >> 4) & 0x38) |
+                  ((reg_V >> 2) & 0x07);
+
+      cycle_type = CycleType::AttrByte1;
+      return;
+    }
+    case CycleType::AttrByte1: {
+      // TODO
+      cycle_type = CycleType::PatternTileLow0;
+      return;
+    }
+    case CycleType::PatternTileLow0: {
+      bg_addr = reg_Y | (nametable_byte << 4) | pattern_table_addr;
+
+      cycle_type = CycleType::PatternTileLow1;
+      return;
+    }
+    case CycleType::PatternTileLow1: {
+      bg_tile_low = ReadVram(bg_addr);
+
+      cycle_type = CycleType::PatternTileHigh0;
+      return;
+    }
+    case CycleType::PatternTileHigh0: {
+      bg_addr |= 0x8;
+
+      cycle_type = CycleType::PatternTileHigh1;
+      return;
+    }
+    case CycleType::PatternTileHigh1: {
+      bg_tile_high = ReadVram(bg_addr);
+      // load data into shift registers
+      ShiftBg();
+      // increment reg_V Hori(v)
+      IncHorizontal();
+      // transition state
+    }
+  }
+}
+
+void Ppu::ShiftBg() {
+  for (int i = 7; i >= 0; i--) {
+    pattern_queue1.push((bg_tile_low >> i) & 0x1);
+    pattern_queue1.push((bg_tile_high >> i) & 0x1);
+  }
+}
+
+void Ppu::IncHorizontal() {
+  if ((reg_V & 0x1F) == 0x1F) {
+    reg_V &= 0xFFE0;
+    reg_V ^= 0x0400;
+  } else {
+    reg_V++;
   }
 }
 
@@ -122,8 +183,8 @@ void Ppu::Write(uint16_t addr, uint8_t value) {
 void Ppu::WritePpuCtrl(uint8_t value) {
   base_nametable_addr = CalcNametableAddr(value & 0x3);
   vram_addr_inc = static_cast<bool>((value >> 2) & 0x1) ? 32 : 1;
-  sprite_table_addr = ((value >> 3) & 0x1) ? 0x1000 : 0x0;
-  pattern_table_addr = ((value >> 4) & 0x1) ? 0x1000 : 0x0;
+  sprite_table_addr = static_cast<bool>(((value >> 3) & 0x1)) ? 0x1000 : 0x0;
+  pattern_table_addr = static_cast<bool>(((value >> 4) & 0x1)) ? 0x1000 : 0x0;
   long_sprites = static_cast<bool>((value >> 5) & 0x1);
   ppu_select = static_cast<bool>((value >> 6) & 0x1);
   generate_vblank_nmi = static_cast<bool>((value >> 7) & 0x1);
@@ -154,37 +215,18 @@ uint8_t Ppu::ReadPpuStatus() {
   return value;
 }
 
-// void Ppu::WritePpuScroll(uint8_t value) {
-//   if (write_toggle) {
-//     y_offset = static_cast<uint16_t>(value);
-//   } else {
-//     x_offset = static_cast<uint16_t>(value);
-//   }
-
-//   write_toggle = !write_toggle;
-// }
-
 void Ppu::WritePpuScroll(uint8_t value) {
   if (reg_W == Toggle::Write1) {
     reg_X = static_cast<uint16_t>(value & 0x3);
     reg_T |= static_cast<uint16_t>(value >> 3);
     reg_W = Toggle::Write2;
   } else {
+    reg_Y = static_cast<uint16_t>(value & 0x3);
     reg_T |= static_cast<uint16_t>(value & 0x7) << 12;
     reg_T |= static_cast<uint16_t>(value & 0xF8) << 2;
     reg_W = Toggle::Write1;
   }
 }
-
-// void Ppu::WritePpuAddr(uint8_t value) {
-//   if (write_toggle) {
-//     vram_addr = (vram_addr & 0xFF) | (static_cast<uint16_t>(value) << 8);
-//   } else {
-//     vram_addr = (vram_addr & 0xFF00) | static_cast<uint16_t>(value);
-//   }
-
-//   write_toggle = !write_toggle;
-// }
 
 void Ppu::WritePpuAddr(uint8_t value) {
   if (reg_W == Toggle::Write1) {
