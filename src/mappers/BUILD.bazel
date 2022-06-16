@@ -1,0 +1,16 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+cc_library(
+    name = "mappers",
+    srcs = [
+        "ines.cc",
+        "nrom.cc",
+    ],
+    hdrs = [
+        "ines.h",
+        "mapper.h",
+        "nrom.h",
+    ],
+    visibility = ["//visibility:public"],
+    deps = ["//src/ppu"],
+)

@@ -21,9 +21,9 @@ void Ppu::Tick(uint64_t cycles) {
 void Ppu::DataFetcherTick() {
   switch (scanline_type) {
     case ScanlineType::PreRender:
-      return PreRenderTick();
+      return VisibleOrPrerenderTick();
     case ScanlineType::Visible:
-      return VisibleTick();
+      return VisibleOrPrerenderTick();
     case ScanlineType::PostRender:
       return PostRenderTick();
     case ScanlineType::VBlank:
@@ -31,19 +31,22 @@ void Ppu::DataFetcherTick() {
   }
 }
 
-void Ppu::PreRenderTick() {
-  //
-}
-
-void Ppu::VisibleTick() {
+void Ppu::VisibleOrPrerenderTick() {
   switch (cycle_type) {
+    /* Cycle/Dot 0 */
     /******************************************************************/
     case CycleType::Cycle0: {
       cycle_type = CycleType::NametableByte0;
       return;
     }
+    /* Cycles/Dots 1-256 and 321-336 */
     /******************************************************************/
     case CycleType::NametableByte0: {
+      if (dot == 1 && scanline_type == ScanlineType::PreRender) {
+        in_vblank = false;
+        sprite_overflow = false;
+        sprite0_hit = false;
+      }
       // Get tile address
       tile_addr = 0x2000 | (reg_V & 0x0FFF);
 
@@ -113,9 +116,11 @@ void Ppu::VisibleTick() {
       }
       return;
     }
+    /* Cycles/Dots 257-320 */
     /******************************************************************/
     case CycleType::GarbageByte0: {
-      CopyHorizontal();
+      // hori(v) := hori(t)
+      ReloadHorizontal();
       cycle_type = CycleType::GarbageByte1;
       return;
     }
@@ -149,6 +154,7 @@ void Ppu::VisibleTick() {
       cycle_type = CycleType::NametableByte0;
       return;
     }
+    /* Cycles/Dots 337-340 */
     /******************************************************************/
     case CycleType::FirstUnkByte0: {
       cycle_type = CycleType::FirstUnkByte1;
@@ -166,13 +172,25 @@ void Ppu::VisibleTick() {
     }
     /******************************************************************/
     case CycleType::SecondUnkByte1: {
-      line++;
+      // line++;
 
-      if (line == 240) {
-        scanline_type = ScanlineType::PostRender;
-      }
+      // if (line == 240) {
+      //   if (scanline_type == ScanlineType::Visible) {
+      //     scanline_type = ScanlineType::PostRender;
+      //   } else if (scanline_type == ScanlineType::PreRender) {
+      //     scanline_type = ScanlineType::Visible;
+      //   }
+      // }
+      NextScanline();
       return;
     }
+  }
+
+  // continuously reload vert(v) during cycles 280-304 of the pre-render line
+  if (scanline_type == ScanlineType::PreRender && dot >= 280 && dot <= 304 &&
+      show_bg) {
+    // vert(v) := vert(t)
+    ReloadVertical();
   }
 }
 
@@ -183,7 +201,12 @@ void Ppu::ShiftBg() {
   }
 }
 
-void Ppu::CopyHorizontal() {
+void Ppu::ReloadVertical() {
+  reg_V &= 0x7C1F;
+  reg_V |= (reg_T & ~0x7C1F);
+}
+
+void Ppu::ReloadHorizontal() {
   reg_V &= 0x7BE0;
   reg_V |= (reg_T & ~0x7BE0);
 }
@@ -217,10 +240,22 @@ void Ppu::IncVertical() {
 }
 
 void Ppu::PostRenderTick() {
-  //
+  if (dot == 340) {
+    NextScanline();
+  }
 }
 
 void Ppu::VBlankTick() {
+  if (line == 241 and dot == 1) {
+    in_vblank = true;
+  }
+
+  if (dot == 340) {
+    NextScanline();
+  }
+}
+
+void Ppu::NextScanline() {
   //
 }
 

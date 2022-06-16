@@ -9,6 +9,12 @@
 
 namespace graphics {
 
+enum class Mirroring {
+  Horizontal,
+  Vertical,
+  FourScreen,
+};
+
 class Ppu {
  public:
   Ppu();
@@ -27,8 +33,7 @@ class Ppu {
   void SpriteEvalTick();
   void PixelTick();
 
-  void VisibleTick();
-  void PreRenderTick();
+  void VisibleOrPrerenderTick();
   void PostRenderTick();
   void VBlankTick();
 
@@ -58,9 +63,11 @@ class Ppu {
 
   void ShiftBg();
 
-  void CopyHorizontal();
+  void ReloadVertical();
+  void ReloadHorizontal();
   void IncHorizontal();
   void IncVertical();
+  void NextScanline();
 
   uint16_t CalcNametableAddr(uint8_t x);
 
