@@ -1,10 +1,18 @@
 #include "ppu.h"
 
 #include <cstdint>
+#include <memory>
 
+#include "src/mappers/mapper.h"
 #include "src/ppu/state.h"
 
 namespace graphics {
+
+Ppu::Ppu(std::shared_ptr<mappers::Mapper> mapper)
+    : cartridge(std::move(mapper)),
+      palette_ram_idxs(),
+      obj_attr_memory(),
+      secondary_oam() {}
 
 void Ppu::Tick(uint64_t cycles) {
   while (cycles > 0) {
@@ -394,19 +402,29 @@ uint16_t Ppu::CalcNametableAddr(uint8_t x) {
   }
 }
 
+// uint8_t Ppu::ReadVram(uint16_t addr) {
+//   if (addr <= 0x0FFF) {
+//     return pattern_table0[addr];
+//   } else if (addr <= 0x1FFF) {
+//     return pattern_table1[addr - 0x1000];
+//   } else if (addr <= 0x23FF) {
+//     return nametable0[addr - 0x2000];
+//   } else if (addr <= 0x27FF) {
+//     return nametable1[addr - 0x2400];
+//   } else if (addr <= 0x2BFF) {
+//     return nametable2[addr - 0x2800];
+//   } else if (addr <= 0x2FFF) {
+//     return nametable3[addr - 0x2C00];
+//   } else if (addr <= 0x3F1F) {
+//     return palette_ram_idxs[addr - 0x3F00];
+//   } else {
+//     return 0x00;
+//   }
+// }
+
 uint8_t Ppu::ReadVram(uint16_t addr) {
-  if (addr <= 0x0FFF) {
-    return pattern_table0[addr];
-  } else if (addr <= 0x1FFF) {
-    return pattern_table1[addr - 0x1000];
-  } else if (addr <= 0x23FF) {
-    return nametable0[addr - 0x2000];
-  } else if (addr <= 0x27FF) {
-    return nametable1[addr - 0x2400];
-  } else if (addr <= 0x2BFF) {
-    return nametable2[addr - 0x2800];
-  } else if (addr <= 0x2FFF) {
-    return nametable3[addr - 0x2C00];
+  if (addr <= 0x2FFF) {
+    return cartridge->PpuRead(addr);
   } else if (addr <= 0x3F1F) {
     return palette_ram_idxs[addr - 0x3F00];
   } else {
@@ -415,18 +433,8 @@ uint8_t Ppu::ReadVram(uint16_t addr) {
 }
 
 void Ppu::WriteVram(uint16_t addr, uint8_t value) {
-  if (addr <= 0x0FFF) {
-    pattern_table0[addr] = value;
-  } else if (addr <= 0x1FFF) {
-    pattern_table1[addr - 0x1000] = value;
-  } else if (addr <= 0x23FF) {
-    nametable0[addr - 0x2000] = value;
-  } else if (addr <= 0x27FF) {
-    nametable1[addr - 0x2400] = value;
-  } else if (addr <= 0x2BFF) {
-    nametable2[addr - 0x2800] = value;
-  } else if (addr <= 0x2FFF) {
-    nametable3[addr - 0x2C00] = value;
+  if (addr <= 0x2FFF) {
+    cartridge->PpuWrite(addr, value);
   } else if (addr <= 0x3F1F) {
     palette_ram_idxs[addr - 0x3F00] = value;
   }

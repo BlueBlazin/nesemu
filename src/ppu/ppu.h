@@ -3,8 +3,10 @@
 
 #include <array>
 #include <cstdint>
+#include <memory>
 #include <queue>
 
+#include "src/mappers/mapper.h"
 #include "src/ppu/state.h"
 
 namespace graphics {
@@ -17,7 +19,7 @@ enum class Mirroring {
 
 class Ppu {
  public:
-  Ppu();
+  Ppu(std::shared_ptr<mappers::Mapper> mapper);
 
   void Tick(uint64_t cycles);
 
@@ -99,17 +101,17 @@ class Ppu {
   ---------------------------------------------------*/
   uint64_t state = 0;
   // 0x0000 - 0x0FFF
-  std::array<uint8_t, 4096> pattern_table0;
+  // std::array<uint8_t, 4096> pattern_table0;
   // 0x1000 - 0x1FFF
-  std::array<uint8_t, 4096> pattern_table1;
+  // std::array<uint8_t, 4096> pattern_table1;
   // 0x2000 - 0x23FF
-  std::array<uint8_t, 1024> nametable0;
+  // std::array<uint8_t, 1024> nametable0;
   // 0x2400 - 0x27FF
-  std::array<uint8_t, 1024> nametable1;
+  // std::array<uint8_t, 1024> nametable1;
   // 0x2800 - 0x2BFF
-  std::array<uint8_t, 1024> nametable2;
+  // std::array<uint8_t, 1024> nametable2;
   // 0x2C00 - 0x2FFF
-  std::array<uint8_t, 1024> nametable3;
+  // std::array<uint8_t, 1024> nametable3;
   // 0x3F00 - 0x3F1F
   std::array<uint8_t, 32> palette_ram_idxs;
 
@@ -175,6 +177,8 @@ class Ppu {
   /*---------------------------------------------------
     Internal state
   ---------------------------------------------------*/
+  std::shared_ptr<mappers::Mapper> cartridge;
+
   uint8_t last_write = 0x00;
   uint8_t read_buffer = 0x00;
   uint8_t oam_dma = 0x00;

@@ -14,10 +14,10 @@
 #include "src/mappers/nrom.h"
 
 int main() {
-  auto nrom = mappers::ReadCartridge("nestest.nes");
+  auto nrom = mappers::ReadCartridge("contra.nes");
 
-  std::cout << static_cast<int>(nrom->CpuRead(0)) << std::endl;
-  std::cout << static_cast<int>(nrom->PpuRead(0)) << std::endl;
+  // std::cout << static_cast<int>(nrom->CpuRead(0)) << std::endl;
+  // std::cout << static_cast<int>(nrom->PpuRead(0)) << std::endl;
 
   return EXIT_SUCCESS;
 }
