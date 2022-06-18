@@ -5,5 +5,8 @@ cc_library(
     srcs = ["memory.cc"],
     hdrs = ["memory.h"],
     visibility = ["//visibility:public"],
-    deps = ["//src/ppu"],
+    deps = [
+        "//src/mappers",
+        "//src/ppu",
+    ],
 )

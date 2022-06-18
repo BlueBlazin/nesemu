@@ -1,8 +1,18 @@
 #include "memory.h"
 
 #include <cstdint>
+#include <memory>
+
+#include "src/mappers/ines.h"
+#include "src/mappers/mapper.h"
 
 namespace memory {
+
+Memory::Memory(const std::string& path)
+    : cartridge(mappers::ReadCartridge(path)), ppu(cartridge) {
+  // cartridge = mappers::ReadCartridge(path);
+  // ppu = graphics::Ppu(cartridge);
+}
 
 uint8_t Memory::Read(uint16_t addr) {
   if (addr <= 0x1FFF) {

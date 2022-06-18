@@ -2,19 +2,24 @@
 #define SRC_MEMORY_MEMORY_
 
 #include <cstdint>
+#include <memory>
+#include <string>
 
+#include "src/mappers/ines.h"
+#include "src/mappers/mapper.h"
 #include "src/ppu/ppu.h"
 
 namespace memory {
 
 class Memory {
  public:
-  Memory();
+  Memory(const std::string& path);
 
   uint8_t Read(uint16_t addr);
   void Write(uint16_t addr, uint8_t value);
 
  private:
+  std::shared_ptr<mappers::Mapper> cartridge;
   graphics::Ppu ppu;
 
   /* CPU Memory map */

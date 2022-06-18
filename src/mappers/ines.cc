@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "src/mappers/nrom.h"
+#include "src/mirroring/mirroring.h"
 
 namespace mappers {
 

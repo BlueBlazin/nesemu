@@ -8,4 +8,8 @@ cc_library(
         "state.h",
     ],
     visibility = ["//visibility:public"],
+    deps = [
+        "//src/mappers",
+        "//src/mirroring",
+    ],
 )

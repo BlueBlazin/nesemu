@@ -7,7 +7,7 @@
 
 #include "src/mappers/ines.h"
 #include "src/mappers/mapper.h"
-#include "src/ppu/ppu.h"
+#include "src/mirroring/mirroring.h"
 
 namespace mappers {
 

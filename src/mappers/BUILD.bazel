@@ -12,5 +12,5 @@ cc_library(
         "nrom.h",
     ],
     visibility = ["//visibility:public"],
-    deps = ["//src/ppu"],
+    deps = ["//src/mirroring"],
 )

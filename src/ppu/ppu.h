@@ -7,15 +7,10 @@
 #include <queue>
 
 #include "src/mappers/mapper.h"
+#include "src/mirroring/mirroring.h"
 #include "src/ppu/state.h"
 
 namespace graphics {
-
-enum class Mirroring {
-  Horizontal,
-  Vertical,
-  FourScreen,
-};
 
 class Ppu {
  public:

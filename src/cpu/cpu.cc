@@ -1,10 +1,13 @@
 #include "cpu.h"
 
 #include <cstdint>
+#include <string>
+
+#include "src/memory/memory.h"
 
 namespace cpu {
 
-Cpu::Cpu() : mmu() {}
+Cpu::Cpu(const std::string& path) : mmu(path) {}
 
 void Cpu::Run() {
   /* fetch-decode */

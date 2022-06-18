@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "src/mappers/mapper.h"
+#include "src/mirroring/mirroring.h"
 #include "src/ppu/state.h"
 
 namespace graphics {
@@ -401,26 +402,6 @@ uint16_t Ppu::CalcNametableAddr(uint8_t x) {
       return 0x2C00;
   }
 }
-
-// uint8_t Ppu::ReadVram(uint16_t addr) {
-//   if (addr <= 0x0FFF) {
-//     return pattern_table0[addr];
-//   } else if (addr <= 0x1FFF) {
-//     return pattern_table1[addr - 0x1000];
-//   } else if (addr <= 0x23FF) {
-//     return nametable0[addr - 0x2000];
-//   } else if (addr <= 0x27FF) {
-//     return nametable1[addr - 0x2400];
-//   } else if (addr <= 0x2BFF) {
-//     return nametable2[addr - 0x2800];
-//   } else if (addr <= 0x2FFF) {
-//     return nametable3[addr - 0x2C00];
-//   } else if (addr <= 0x3F1F) {
-//     return palette_ram_idxs[addr - 0x3F00];
-//   } else {
-//     return 0x00;
-//   }
-// }
 
 uint8_t Ppu::ReadVram(uint16_t addr) {
   if (addr <= 0x2FFF) {

@@ -2,6 +2,7 @@
 #define SRC_CPU_CPU_
 
 #include <cstdint>
+#include <string>
 
 #include "src/memory/memory.h"
 
@@ -9,7 +10,7 @@ namespace cpu {
 
 class Cpu {
  public:
-  Cpu();
+  Cpu(const std::string& path);
 
   void Run();
 
