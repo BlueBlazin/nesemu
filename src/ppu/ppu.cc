@@ -11,20 +11,32 @@ namespace graphics {
 
 Ppu::Ppu(std::shared_ptr<mappers::Mapper> mapper)
     : cartridge(std::move(mapper)),
+      pattern_queue1(),
+      pattern_queue2(),
+      palette_queue1(),
+      palette_queue2(),
       palette_ram_idxs(),
       obj_attr_memory(),
       secondary_oam() {}
 
 void Ppu::Tick(uint64_t cycles) {
   while (cycles > 0) {
-    PixelTick();
     DataFetcherTick();
     SpriteEvalTick();
+    PixelTick();
 
     dot = dot == 340 ? 0 : dot + 1;
 
     cycles--;
   }
+}
+
+void Ppu::SpriteEvalTick() {
+  //
+}
+
+void Ppu::PixelTick() {
+  //
 }
 
 void Ppu::DataFetcherTick() {
@@ -275,7 +287,7 @@ uint8_t Ppu::Read(uint16_t addr) {
     case 0x2002:
       return ReadPpuStatus();
     case 0x2004:
-      return 0x00;  // TODO
+      return obj_attr_memory[oam_addr];
     case 0x2007:
       return ReadPpuData(addr);
     default:
@@ -287,6 +299,8 @@ bool Ppu::NmiOccured() { return nmi_occured; }
 
 void Ppu::ClearNmi() { nmi_occured = false; }
 
+void Ppu::OamDmaWrite(uint8_t value) { obj_attr_memory[oam_addr++] = value; }
+
 void Ppu::Write(uint16_t addr, uint8_t value) {
   switch (addr) {
     case 0x2000:
@@ -296,10 +310,11 @@ void Ppu::Write(uint16_t addr, uint8_t value) {
       WritePpuMask(value);
       break;
     case 0x2003:
-      oam_addr = static_cast<uint16_t>(value);
+      oam_addr = value;
       break;
     case 0x2004:
-      break;  // TODO
+      obj_attr_memory[oam_addr++] = value;
+      break;
     case 0x2005:
       WritePpuScroll(value);
       break;
@@ -309,8 +324,6 @@ void Ppu::Write(uint16_t addr, uint8_t value) {
     case 0x2007:
       WritePpuData(value);
       break;
-    case 0x4014:
-      break;  // TODO
   }
 
   last_write = value;

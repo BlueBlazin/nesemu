@@ -13,6 +13,12 @@ enum class InterruptType {
   Irq,
 };
 
+enum class DmaState {
+  PreDma,
+  OddCycleWait,
+  Running,
+};
+
 class Cpu {
  public:
   Cpu(const std::string& path);
@@ -20,6 +26,8 @@ class Cpu {
   void Run();
 
  private:
+  void RunDma();
+
   void DecodeExecute(uint8_t opcode);
 
   /* LDA */
@@ -271,6 +279,7 @@ class Cpu {
 
   /* Internal */
   uint64_t cycles = 0;
+  DmaState dma_state = DmaState::PreDma;
 
   /* Registers */
   uint8_t A = 0x0;

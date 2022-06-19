@@ -12,6 +12,10 @@ Cpu::Cpu(const std::string& path) : mmu(path) {}
 void Cpu::Run() {
   /* fetch-decode-execute */
   while (true) {
+    if (mmu.InDma()) {
+      RunDma();
+    }
+
     DecodeExecute(Fetch());
 
     // Check for interrupts
@@ -19,6 +23,18 @@ void Cpu::Run() {
       mmu.ClearNmi();
       Interrupt(InterruptType::Nmi);
     }
+  }
+}
+
+void Cpu::RunDma() {
+  if (dma_state == DmaState::PreDma) {
+    dma_state = cycles % 2 == 1 ? DmaState::OddCycleWait : DmaState::Running;
+    AddCycles(1);
+  } else if (dma_state == DmaState::OddCycleWait) {
+    dma_state = DmaState::Running;
+    AddCycles(1);
+  } else {
+    mmu.DmaTick();
   }
 }
 

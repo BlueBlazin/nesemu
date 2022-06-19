@@ -19,11 +19,14 @@ class Ppu {
   void Tick(uint64_t cycles);
   bool NmiOccured();
   void ClearNmi();
+  void OamDmaWrite(uint8_t value);
 
   uint8_t Read(uint16_t addr);
   void Write(uint16_t addr, uint8_t value);
 
  private:
+  std::shared_ptr<mappers::Mapper> cartridge;
+
   /*****************************************************
     PPU state machine methods
   *****************************************************/
@@ -131,7 +134,7 @@ class Ppu {
   bool in_vblank = false;
 
   /* OAMADDR 0x2003 */
-  uint16_t oam_addr = 0x0000;
+  uint8_t oam_addr = 0x0;
 
   /* OAMDATA 0x2004 */
 
@@ -161,11 +164,9 @@ class Ppu {
   /*---------------------------------------------------
     Internal state
   ---------------------------------------------------*/
-  std::shared_ptr<mappers::Mapper> cartridge;
 
   uint8_t last_write = 0x00;
   uint8_t read_buffer = 0x00;
-  uint8_t oam_dma = 0x00;
 
   // nametable fetching
   uint16_t tile_addr = 0x0;
