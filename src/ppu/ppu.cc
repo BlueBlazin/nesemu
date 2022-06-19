@@ -17,7 +17,12 @@ Ppu::Ppu(std::shared_ptr<mappers::Mapper> mapper)
       palette_queue2(),
       palette_ram_idxs(),
       obj_attr_memory(),
-      secondary_oam() {}
+      secondary_oam() {
+  // Initialize screen
+  for (int i = 0; i < SCREEN_HEIGHT * SCREEN_WIDTH * SCREEN_CHANNELS; i++) {
+    screen[i] = 0xFF;
+  }
+}
 
 void Ppu::Tick(uint64_t cycles) {
   while (cycles > 0) {
@@ -32,7 +37,21 @@ void Ppu::Tick(uint64_t cycles) {
 }
 
 void Ppu::SpriteEvalTick() {
-  //
+  uint8_t bg_lo = pattern_queue1.front();
+  uint8_t bg_hi = pattern_queue2.front();
+  pattern_queue1.pop();
+  pattern_queue2.pop();
+
+  uint8_t bg = (bg_hi << 1) | bg_lo;
+
+  uint64_t idx =
+      static_cast<uint64_t>(line) * (SCREEN_WIDTH + SCREEN_CHANNELS) +
+      static_cast<uint64_t>(dot);
+
+  screen[idx + 0] = 0xFF;
+  screen[idx + 1] = 0xFF;
+  screen[idx + 2] = 0xFF;
+  screen[idx + 3] = bg == 0 ? 0 : 0xFF;
 }
 
 void Ppu::PixelTick() {
@@ -219,7 +238,7 @@ void Ppu::VisibleOrPrerenderTick() {
 void Ppu::ShiftBg() {
   for (int i = 7; i >= 0; i--) {
     pattern_queue1.push((bg_tile_low >> i) & 0x1);
-    pattern_queue1.push((bg_tile_high >> i) & 0x1);
+    pattern_queue2.push((bg_tile_high >> i) & 0x1);
   }
 }
 

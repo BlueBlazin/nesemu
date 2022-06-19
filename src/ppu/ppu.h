@@ -12,6 +12,10 @@
 
 namespace graphics {
 
+constexpr int SCREEN_WIDTH = 256;
+constexpr int SCREEN_HEIGHT = 240;
+constexpr int SCREEN_CHANNELS = 4;
+
 class Ppu {
  public:
   Ppu(std::shared_ptr<mappers::Mapper> mapper);
@@ -99,6 +103,11 @@ class Ppu {
   *****************************************************/
 
   /*---------------------------------------------------
+    Screen
+  ---------------------------------------------------*/
+  uint8_t screen[SCREEN_HEIGHT * SCREEN_WIDTH * SCREEN_CHANNELS];
+
+  /*---------------------------------------------------
     PPU state
   ---------------------------------------------------*/
   std::array<uint8_t, 32> palette_ram_idxs;
@@ -136,17 +145,9 @@ class Ppu {
   /* OAMADDR 0x2003 */
   uint8_t oam_addr = 0x0;
 
-  /* OAMDATA 0x2004 */
-
   /* PPUSCROLL 0x2005 */
   uint16_t x_offset = 0x0;
   uint16_t y_offset = 0x0;
-
-  /* PPUSADDR 0x2006 */
-  // uint16_t vram_addr = 0x0000;
-
-  /* PPUDATA 0x2007 */
-  uint16_t vram_data = 0x0000;
 
   /*---------------------------------------------------
     Internal registers
