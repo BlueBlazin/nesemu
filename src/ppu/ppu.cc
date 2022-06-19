@@ -53,6 +53,7 @@ void Ppu::VisibleOrPrerenderTick() {
     case CycleType::NametableByte0: {
       if (dot == 1 && scanline_type == ScanlineType::PreRender) {
         in_vblank = false;
+        UpdateNmi();
         sprite_overflow = false;
         sprite0_hit = false;
       }
@@ -257,6 +258,7 @@ void Ppu::PostRenderTick() {
 void Ppu::VBlankTick() {
   if (line == 241 and dot == 1) {
     in_vblank = true;
+    UpdateNmi();
   }
 
   if (dot == 340) {
@@ -280,6 +282,10 @@ uint8_t Ppu::Read(uint16_t addr) {
       return last_write;
   }
 }
+
+bool Ppu::NmiOccured() { return nmi_occured; }
+
+void Ppu::ClearNmi() { nmi_occured = false; }
 
 void Ppu::Write(uint16_t addr, uint8_t value) {
   switch (addr) {
@@ -318,6 +324,7 @@ void Ppu::WritePpuCtrl(uint8_t value) {
   long_sprites = static_cast<bool>((value >> 5) & 0x1);
   ppu_select = static_cast<bool>((value >> 6) & 0x1);
   generate_vblank_nmi = static_cast<bool>((value >> 7) & 0x1);
+  UpdateNmi();
 
   reg_T |= static_cast<uint16_t>(value & 0x3) << 10;
 }
@@ -340,6 +347,7 @@ uint8_t Ppu::ReadPpuStatus() {
                   (last_write & 0x1F);
 
   in_vblank = false;
+  UpdateNmi();
   reg_W = Toggle::Write1;
 
   return value;
@@ -402,6 +410,8 @@ uint16_t Ppu::CalcNametableAddr(uint8_t x) {
       return 0x2C00;
   }
 }
+
+void Ppu::UpdateNmi() { nmi_occured = in_vblank && generate_vblank_nmi; }
 
 uint8_t Ppu::ReadVram(uint16_t addr) {
   if (addr <= 0x2FFF) {

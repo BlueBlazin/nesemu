@@ -17,6 +17,8 @@ class Memory {
 
   uint8_t Read(uint16_t addr);
   void Write(uint16_t addr, uint8_t value);
+  bool NmiPending();
+  void ClearNmi();
 
  private:
   std::shared_ptr<mappers::Mapper> cartridge;

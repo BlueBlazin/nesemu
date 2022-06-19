@@ -17,6 +17,8 @@ class Ppu {
   Ppu(std::shared_ptr<mappers::Mapper> mapper);
 
   void Tick(uint64_t cycles);
+  bool NmiOccured();
+  void ClearNmi();
 
   uint8_t Read(uint16_t addr);
   void Write(uint16_t addr, uint8_t value);
@@ -68,6 +70,8 @@ class Ppu {
 
   uint16_t CalcNametableAddr(uint8_t x);
 
+  void UpdateNmi();
+
   /*****************************************************
     PPU state and screen data
   *****************************************************/
@@ -94,22 +98,7 @@ class Ppu {
   /*---------------------------------------------------
     PPU state
   ---------------------------------------------------*/
-  uint64_t state = 0;
-  // 0x0000 - 0x0FFF
-  // std::array<uint8_t, 4096> pattern_table0;
-  // 0x1000 - 0x1FFF
-  // std::array<uint8_t, 4096> pattern_table1;
-  // 0x2000 - 0x23FF
-  // std::array<uint8_t, 1024> nametable0;
-  // 0x2400 - 0x27FF
-  // std::array<uint8_t, 1024> nametable1;
-  // 0x2800 - 0x2BFF
-  // std::array<uint8_t, 1024> nametable2;
-  // 0x2C00 - 0x2FFF
-  // std::array<uint8_t, 1024> nametable3;
-  // 0x3F00 - 0x3F1F
   std::array<uint8_t, 32> palette_ram_idxs;
-
   std::array<uint8_t, 256> obj_attr_memory;
   std::array<uint8_t, 32> secondary_oam;
 
@@ -185,6 +174,8 @@ class Ppu {
   uint16_t bg_addr = 0x0;
   uint8_t bg_tile_low = 0x0;
   uint8_t bg_tile_high = 0x0;
+  // NMI
+  bool nmi_occured = false;
 };
 
 }  // namespace graphics

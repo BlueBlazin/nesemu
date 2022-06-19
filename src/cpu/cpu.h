@@ -8,6 +8,11 @@
 
 namespace cpu {
 
+enum class InterruptType {
+  Nmi,
+  Irq,
+};
+
 class Cpu {
  public:
   Cpu(const std::string& path);
@@ -15,6 +20,8 @@ class Cpu {
   void Run();
 
  private:
+  void DecodeExecute(uint8_t opcode);
+
   /* LDA */
   void LdaImmediate();
   void LdaZeroPage();
@@ -238,15 +245,17 @@ class Cpu {
   /* Interrupt Instructions */
   void BrkImplied();
   void RtiImplied();
+  void Interrupt(InterruptType type);
 
   /* BIT */
   void BitZeroPage();
   void BitAbsolute();
+  void Bit(uint16_t addr);
 
   /* Utility methods */
-  // void Push2(uint16_t value);
+  bool NmiPending();
+  bool IrqPending();
   void Push(uint8_t value);
-  // uint8_t Pop();
   uint8_t Pull(uint8_t SP);
   void UpdateNZV(uint8_t old, uint8_t byte);
   void UpdateNZ(uint8_t byte);
@@ -277,7 +286,7 @@ class Cpu {
   bool flag_I = false;
   bool flag_D = false;
   bool flag_V = false;
-  bool flag_B = false;
+  // bool flag_B = false;
 };
 
 }  // namespace cpu
