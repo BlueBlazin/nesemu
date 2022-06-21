@@ -3,6 +3,7 @@
 
 #include <array>
 #include <cstdint>
+#include <deque>
 #include <memory>
 #include <queue>
 
@@ -27,6 +28,8 @@ class Ppu {
 
   uint8_t Read(uint16_t addr);
   void Write(uint16_t addr, uint8_t value);
+
+  std::array<uint8_t, SCREEN_HEIGHT * SCREEN_WIDTH * SCREEN_CHANNELS> screen;
 
  private:
   std::shared_ptr<mappers::Mapper> cartridge;
@@ -89,23 +92,18 @@ class Ppu {
 
   // PPU state info
   uint64_t dot = 0;
-  uint64_t line = 0;
+  uint64_t line = 261;
   uint64_t frame = 1;
 
   // Shift registers
-  std::queue<uint8_t> pattern_queue1;
-  std::queue<uint8_t> pattern_queue2;
-  std::queue<uint8_t> palette_queue1;
-  std::queue<uint8_t> palette_queue2;
+  std::deque<uint8_t> pattern_queue1;
+  std::deque<uint8_t> pattern_queue2;
+  std::deque<uint8_t> palette_queue1;
+  std::deque<uint8_t> palette_queue2;
 
   /*****************************************************
     Memory and registers
   *****************************************************/
-
-  /*---------------------------------------------------
-    Screen
-  ---------------------------------------------------*/
-  uint8_t screen[SCREEN_HEIGHT * SCREEN_WIDTH * SCREEN_CHANNELS];
 
   /*---------------------------------------------------
     PPU state
@@ -137,17 +135,12 @@ class Ppu {
   bool emph_blue = false;
 
   /* PPUSTATUS 0x2002 */
-  uint8_t last_lo_nibble = 0x0;
   bool sprite_overflow = false;
   bool sprite0_hit = false;
   bool in_vblank = false;
 
   /* OAMADDR 0x2003 */
   uint8_t oam_addr = 0x0;
-
-  /* PPUSCROLL 0x2005 */
-  uint16_t x_offset = 0x0;
-  uint16_t y_offset = 0x0;
 
   /*---------------------------------------------------
     Internal registers

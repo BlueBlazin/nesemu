@@ -1,6 +1,8 @@
 #include "ppu.h"
 
 #include <cstdint>
+#include <deque>
+#include <iostream>
 #include <memory>
 
 #include "src/mappers/mapper.h"
@@ -10,7 +12,8 @@
 namespace graphics {
 
 Ppu::Ppu(std::shared_ptr<mappers::Mapper> mapper)
-    : cartridge(std::move(mapper)),
+    : screen(),
+      cartridge(std::move(mapper)),
       pattern_queue1(),
       pattern_queue2(),
       palette_queue1(),
@@ -20,7 +23,7 @@ Ppu::Ppu(std::shared_ptr<mappers::Mapper> mapper)
       secondary_oam() {
   // Initialize screen
   for (int i = 0; i < SCREEN_HEIGHT * SCREEN_WIDTH * SCREEN_CHANNELS; i++) {
-    screen[i] = 0xFF;
+    screen[i] = 0x00;
   }
 }
 
@@ -30,32 +33,37 @@ void Ppu::Tick(uint64_t cycles) {
     SpriteEvalTick();
     PixelTick();
 
-    dot = dot == 340 ? 0 : dot + 1;
+    // dot = dot == 340 ? 0 : dot + 1;
+    dot = (dot + 1) % 341;
 
     cycles--;
   }
 }
 
 void Ppu::SpriteEvalTick() {
-  uint8_t bg_lo = pattern_queue1.front();
-  uint8_t bg_hi = pattern_queue2.front();
-  pattern_queue1.pop();
-  pattern_queue2.pop();
+  // TODO
+}
+
+void Ppu::PixelTick() {
+  if (dot == 0 || dot > 256 || line > 239) {
+    return;
+  }
+
+  uint8_t bg_lo = pattern_queue1[static_cast<int>(reg_X)];
+  uint8_t bg_hi = pattern_queue2[static_cast<int>(reg_X)];
+  pattern_queue1.pop_front();
+  pattern_queue2.pop_front();
 
   uint8_t bg = (bg_hi << 1) | bg_lo;
 
   uint64_t idx =
-      static_cast<uint64_t>(line) * (SCREEN_WIDTH + SCREEN_CHANNELS) +
+      static_cast<uint64_t>(line) * (SCREEN_WIDTH * SCREEN_CHANNELS) +
       static_cast<uint64_t>(dot);
 
   screen[idx + 0] = 0xFF;
   screen[idx + 1] = 0xFF;
   screen[idx + 2] = 0xFF;
   screen[idx + 3] = bg == 0 ? 0 : 0xFF;
-}
-
-void Ppu::PixelTick() {
-  //
 }
 
 void Ppu::DataFetcherTick() {
@@ -151,7 +159,7 @@ void Ppu::VisibleOrPrerenderTick() {
         IncVertical();
         cycle_type = CycleType::GarbageByte0;
       } else if (dot == 336) {
-        cycle_type == CycleType::FirstUnkByte0;
+        cycle_type = CycleType::FirstUnkByte0;
       } else {
         cycle_type = CycleType::NametableByte0;
       }
@@ -214,14 +222,6 @@ void Ppu::VisibleOrPrerenderTick() {
     /******************************************************************/
     case CycleType::SecondUnkByte1: {
       // line++;
-
-      // if (line == 240) {
-      //   if (scanline_type == ScanlineType::Visible) {
-      //     scanline_type = ScanlineType::PostRender;
-      //   } else if (scanline_type == ScanlineType::PreRender) {
-      //     scanline_type = ScanlineType::Visible;
-      //   }
-      // }
       NextScanline();
       return;
     }
@@ -237,8 +237,8 @@ void Ppu::VisibleOrPrerenderTick() {
 
 void Ppu::ShiftBg() {
   for (int i = 7; i >= 0; i--) {
-    pattern_queue1.push((bg_tile_low >> i) & 0x1);
-    pattern_queue2.push((bg_tile_high >> i) & 0x1);
+    pattern_queue1.push_back((bg_tile_low >> i) & 0x1);
+    pattern_queue2.push_back((bg_tile_high >> i) & 0x1);
   }
 }
 
@@ -298,7 +298,22 @@ void Ppu::VBlankTick() {
 }
 
 void Ppu::NextScanline() {
-  //
+  line++;
+
+  if (line == 262) {
+    frame++;
+    line = 0;
+  }
+
+  if (line == 0) {
+    scanline_type = ScanlineType::Visible;
+  } else if (line == 240) {
+    scanline_type = ScanlineType::PostRender;
+  } else if (line == 241) {
+    scanline_type = ScanlineType::VBlank;
+  } else if (line == 261) {
+    scanline_type = ScanlineType::PreRender;
+  }
 }
 
 uint8_t Ppu::Read(uint16_t addr) {

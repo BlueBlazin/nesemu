@@ -1,6 +1,8 @@
 #include "cpu.h"
 
 #include <cstdint>
+#include <ios>
+#include <iostream>
 #include <string>
 
 #include "src/memory/memory.h"
@@ -9,22 +11,37 @@ namespace cpu {
 
 Cpu::Cpu(const std::string& path) : mmu(path) {}
 
+void Cpu::Startup() {
+  PC = static_cast<uint16_t>(mmu.Read(0xFFFC));
+  PC |= static_cast<uint16_t>(mmu.Read(0xFFFD)) << 8;
+  // std::cout << "initial PC: " << std::hex << PC << std::endl;
+}
+
 void Cpu::Run() {
-  /* fetch-decode-execute */
+  /* fetch-decode-execute loop */
   while (true) {
-    if (mmu.InDma()) {
-      RunDma();
-    }
-
-    DecodeExecute(Fetch());
-
-    // Check for interrupts
-    if (NmiPending()) {
-      mmu.ClearNmi();
-      Interrupt(InterruptType::Nmi);
-    }
+    Tick();
   }
 }
+
+void Cpu::Tick() {
+  if (mmu.InDma()) {
+    std::cout << "in dma" << std::endl;
+    RunDma();
+  }
+
+  std::cout << "PC: 0x" << std::hex << PC << std::endl;
+  DecodeExecute(Fetch());
+
+  // Check for interrupts
+  if (NmiPending()) {
+    std::cout << "NMI" << std::endl;
+    mmu.ClearNmi();
+    Interrupt(InterruptType::Nmi);
+  }
+}
+
+uint8_t* Cpu::GetScreen() { return mmu.GetScreen(); }
 
 void Cpu::RunDma() {
   if (dma_state == DmaState::PreDma) {
@@ -1864,7 +1881,7 @@ void Cpu::UpdateNZV(uint8_t old, uint8_t byte) {
 }
 
 void Cpu::UpdateNZ(uint8_t byte) {
-  flag_N = byte >> 7;
+  flag_N = static_cast<bool>(byte >> 7);
   flag_Z = byte == 0;
 }
 
@@ -1883,6 +1900,9 @@ uint8_t Cpu::Fetch() {
   return mmu.Read(PC++);
 }
 
-void Cpu::AddCycles(uint64_t n) { cycles += n; }
+void Cpu::AddCycles(uint64_t n) {
+  cycles += n;
+  mmu.PpuTick(3 * n);
+}
 
 }  // namespace cpu

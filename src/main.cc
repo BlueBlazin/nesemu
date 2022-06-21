@@ -13,14 +13,45 @@
 #include "src/mappers/mapper.h"
 #include "src/mappers/nrom.h"
 
-int main() {
-  auto nrom = mappers::ReadCartridge("contra.nes");
+int main(int argc, char *argv[]) {
+  cpu::Cpu cpu = cpu::Cpu(argv[1]);
+  cpu.Startup();
 
-  // std::cout << static_cast<int>(nrom->CpuRead(0)) << std::endl;
-  // std::cout << static_cast<int>(nrom->PpuRead(0)) << std::endl;
+  sf::RenderWindow window(sf::VideoMode(256, 240), "NESEmu");
+
+  sf::Event ev;
+  sf::Texture texture;
+  texture.create(256, 240);
+
+  while (window.isOpen()) {
+    bool event_polled = window.pollEvent(ev);
+
+    if (event_polled && ev.type == sf::Event::Closed) {
+      window.close();
+    } else if (event_polled && ev.type == sf::Event::KeyPressed) {
+      cpu.Tick();
+    }
+
+    // window.clear();
+
+    texture.update(cpu.GetScreen());
+    sf::Sprite sprite(texture);
+    window.draw(sprite);
+
+    window.display();
+  }
 
   return EXIT_SUCCESS;
 }
+
+// int main() {
+//   auto nrom = mappers::ReadCartridge("contra.nes");
+
+//   // std::cout << static_cast<int>(nrom->CpuRead(0)) << std::endl;
+//   // std::cout << static_cast<int>(nrom->PpuRead(0)) << std::endl;
+
+//   return EXIT_SUCCESS;
+// }
 
 // int main() {
 //   sf::RenderWindow window(sf::VideoMode(256, 240), "NESEmu");

@@ -23,7 +23,11 @@ class Cpu {
  public:
   Cpu(const std::string& path);
 
+  void Startup();
   void Run();
+  void Tick();
+
+  uint8_t* GetScreen();
 
  private:
   void RunDma();
@@ -285,17 +289,17 @@ class Cpu {
   uint8_t A = 0x0;
   uint8_t X = 0x0;
   uint8_t Y = 0x0;
-  uint8_t SP = 0xFF;
+  uint8_t SP = 0xFD;
   uint16_t PC = 0x0;
 
   /* Flags (processor status) */
   bool flag_N = false;
+  bool flag_V = false;
+  /* bool flag_B = true; not a real flag */
+  bool flag_D = false;
+  bool flag_I = true;
   bool flag_Z = false;
   bool flag_C = false;
-  bool flag_I = false;
-  bool flag_D = false;
-  bool flag_V = false;
-  // bool flag_B = false;
 };
 
 }  // namespace cpu

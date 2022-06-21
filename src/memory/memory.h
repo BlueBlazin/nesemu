@@ -21,7 +21,10 @@ class Memory {
  public:
   Memory(const std::string& path);
 
+  void PpuTick(uint64_t n);
   void DmaTick();
+
+  uint8_t* GetScreen();
 
   uint8_t Read(uint16_t addr);
   void Write(uint16_t addr, uint8_t value);

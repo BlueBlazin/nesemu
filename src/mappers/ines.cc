@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <fstream>
+#include <ios>
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -13,8 +14,16 @@
 namespace mappers {
 
 std::shared_ptr<Mapper> ReadCartridge(std::string path) {
-  std::ifstream stream(path, std::ios::binary);
-  std::istream_iterator<uint8_t> start(stream), end;
+  // std::ifstream stream1(path, std::ios::in | std::ios::binary);
+  // std::istream_iterator<char> start1(stream1), end1;
+  // std::vector<char> data2(start1, end1);
+  // std::cout << "0xFFFC: " << (unsigned int)data2[0x10 + 0x4000 - 3]
+  //           << std::endl;
+  // std::cout << "0xFFFD: " << (unsigned int)data2[0x10 + 0x4000 - 4]
+  //           << std::endl;
+
+  std::ifstream stream(path, std::ios::in | std::ios::binary);
+  std::istreambuf_iterator<char> start(stream), end;
   std::vector<uint8_t> data(start, end);
 
   uint8_t flag6 = data[6];

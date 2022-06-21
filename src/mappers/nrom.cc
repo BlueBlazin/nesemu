@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cstdint>
+#include <ios>
 #include <iostream>
 #include <vector>
 
@@ -32,15 +33,54 @@ Nrom::Nrom(INesHeader header, std::vector<uint8_t> data)
   std::cout << "vram: " << vram.size() << std::endl;
 }
 
+// uint8_t Nrom::CpuRead(uint16_t addr) {
+//   if (addr < 0x6000) {
+//     return 0x00;
+//   } else if (addr <= 0x7FFF) {
+//     return prg_ram[addr - 0x6000];
+//   } else if (addr <= 0xBFFF) {
+//     return prg_rom[addr - 0x8000];
+//   } else if (addr <= 0xFFFF) {
+//     if (nrom256) {
+//       return prg_rom[addr - 0x8000];
+//     } else {
+//       return prg_rom[(addr - 0x8000) % 0x4000];
+//     }
+//     // return prg_rom[nrom256 ? (addr - 0x8000) : ((addr - 0x8000) %
+//     0x8000)];
+//   } else {
+//     return 0x00;
+//   }
+// }
+
+// void Nrom::CpuWrite(uint16_t addr, uint8_t value) {
+//   if (addr < 0x6000) {
+//     return;
+//   } else if (addr <= 0x7FFF) {
+//     prg_ram[addr - 0x6000] = value;
+//   } else if (addr <= 0xBFFF) {
+//     prg_rom[addr - 0x8000] = value;
+//   } else if (addr <= 0xFFFF) {
+//     if (nrom256) {
+//       prg_rom[addr - 0x8000] = value;
+//     } else {
+//       prg_rom[(addr - 0x8000) % 0x4000] = value;
+//     }
+
+//     // prg_rom[nrom256 ? (addr - 0x8000) : ((addr - 0x8000) % 0x8000)] =
+//     value;
+//   } else {
+//     return;
+//   }
+// }
+
 uint8_t Nrom::CpuRead(uint16_t addr) {
   if (addr < 0x6000) {
     return 0x00;
   } else if (addr <= 0x7FFF) {
     return prg_ram[addr - 0x6000];
-  } else if (addr <= 0xBFFF) {
-    return prg_rom[addr - 0x8000];
   } else if (addr <= 0xFFFF) {
-    return prg_rom[addr - (nrom256 ? 0x8000 : 0xC000)];
+    return prg_rom[nrom256 ? (addr - 0x8000) : (addr - 0x8000) % 0x4000];
   } else {
     return 0x00;
   }
@@ -51,10 +91,8 @@ void Nrom::CpuWrite(uint16_t addr, uint8_t value) {
     return;
   } else if (addr <= 0x7FFF) {
     prg_ram[addr - 0x6000] = value;
-  } else if (addr <= 0xBFFF) {
-    prg_rom[addr - 0x8000] = value;
   } else if (addr <= 0xFFFF) {
-    prg_rom[addr - (nrom256 ? 0x8000 : 0xC000)] = value;
+    prg_rom[nrom256 ? (addr - 0x8000) : (addr - 0x8000) % 0x4000] = value;
   } else {
     return;
   }
