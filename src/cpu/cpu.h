@@ -3,6 +3,9 @@
 
 #include <cstdint>
 #include <string>
+//
+#include <fstream>
+#include <iostream>
 
 #include "src/memory/memory.h"
 
@@ -28,6 +31,7 @@ class Cpu {
   void Tick();
 
   uint8_t* GetScreen();
+  std::ofstream myfile;
 
  private:
   void RunDma();
@@ -120,6 +124,7 @@ class Cpu {
   void InyImplied();
 
   /* ADC */
+  bool Overflow(int8_t reg, int8_t value, int8_t carry);
   void AdcImmediate();
   void AdcZeroPage();
   void AdcZeroPageX();
@@ -247,6 +252,7 @@ class Cpu {
   void BplRelative();
   void BvcRelative();
   void BvsRelative();
+  void Branch(bool condition);
 
   /* Jump and Subroutine Instructions */
   void JmpAbsolute();

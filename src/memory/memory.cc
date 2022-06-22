@@ -9,7 +9,11 @@
 namespace memory {
 
 Memory::Memory(const std::string& path)
-    : cartridge(mappers::ReadCartridge(path)), ppu(cartridge), ram() {}
+    : cartridge(mappers::ReadCartridge(path)), ppu(cartridge), ram() {
+  for (int i = 0; i < ram.size(); i++) {
+    ram[i] = 0xFF;
+  }
+}
 
 void Memory::PpuTick(uint64_t n) { ppu.Tick(n); }
 
@@ -57,8 +61,8 @@ uint8_t Memory::Read(uint16_t addr) {
 }
 
 void Memory::Write(uint16_t addr, uint8_t value) {
-  std::cout << "write to: " << (unsigned int)addr
-            << ", value: " << (unsigned int)value << std::endl;
+  // std::cout << "write to: " << (unsigned int)addr
+  //           << ", value: " << (unsigned int)value << std::endl;
 
   if (addr <= 0x1FFF) {
     ram[addr % 0x800] = value;

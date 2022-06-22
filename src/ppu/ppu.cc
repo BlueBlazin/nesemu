@@ -200,7 +200,11 @@ void Ppu::VisibleOrPrerenderTick() {
     }
     /******************************************************************/
     case CycleType::NextSpriteTileHigh0: {
-      cycle_type = CycleType::NametableByte0;
+      if (dot == 320) {
+        cycle_type = CycleType::NametableByte0;
+      } else {
+        cycle_type = CycleType::GarbageByte0;
+      }
       return;
     }
     /* Cycles/Dots 337-340 */
@@ -288,6 +292,7 @@ void Ppu::PostRenderTick() {
 
 void Ppu::VBlankTick() {
   if (line == 241 and dot == 1) {
+    // std::cout << "vblank" << std::endl;
     in_vblank = true;
     UpdateNmi();
   }
@@ -299,6 +304,7 @@ void Ppu::VBlankTick() {
 
 void Ppu::NextScanline() {
   line++;
+  // std::cout << "line: " << line << std::endl;
 
   if (line == 262) {
     frame++;

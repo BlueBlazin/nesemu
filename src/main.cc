@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
 
     if (event_polled && ev.type == sf::Event::Closed) {
       window.close();
-    } else if (event_polled && ev.type == sf::Event::KeyPressed) {
+    } else if (true || event_polled && ev.type == sf::Event::KeyPressed) {
       cpu.Tick();
     }
 

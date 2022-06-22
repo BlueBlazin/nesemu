@@ -1,20 +1,31 @@
 #include "cpu.h"
 
 #include <cstdint>
+#include <cstdio>
+#include <fstream>
 #include <ios>
 #include <iostream>
+#include <sstream>
+#include <stdexcept>
 #include <string>
 
 #include "src/memory/memory.h"
 
 namespace cpu {
 
-Cpu::Cpu(const std::string& path) : mmu(path) {}
+std::string to_hex(uint16_t PC) {
+  std::ostringstream ss;
+  ss << std::hex << PC;
+  return ss.str();
+}
+
+Cpu::Cpu(const std::string& path) : mmu(path) { myfile.open("emu.log"); }
 
 void Cpu::Startup() {
-  PC = static_cast<uint16_t>(mmu.Read(0xFFFC));
-  PC |= static_cast<uint16_t>(mmu.Read(0xFFFD)) << 8;
+  // PC = static_cast<uint16_t>(mmu.Read(0xFFFC));
+  // PC |= static_cast<uint16_t>(mmu.Read(0xFFFD)) << 8;
   // std::cout << "initial PC: " << std::hex << PC << std::endl;
+  PC = 0x0C000;
 }
 
 void Cpu::Run() {
@@ -25,12 +36,15 @@ void Cpu::Run() {
 }
 
 void Cpu::Tick() {
+  myfile << to_hex(PC) << std::endl;
+
   if (mmu.InDma()) {
     std::cout << "in dma" << std::endl;
     RunDma();
   }
 
-  std::cout << "PC: 0x" << std::hex << PC << std::endl;
+  // std::cout << "PC: 0x" << std::hex << PC << std::endl;
+  std::printf("0x02: %X, 0x03: %X\n", mmu.Read(0x02), mmu.Read(0x03));
   DecodeExecute(Fetch());
 
   // Check for interrupts
@@ -1053,13 +1067,21 @@ void Cpu::AdcIndirectY() {
                  static_cast<uint16_t>(flag_C)));
 }
 
+bool Cpu::Overflow(int8_t reg, int8_t value, int8_t carry) {
+  int16_t result = static_cast<int16_t>(reg) + static_cast<int16_t>(value) +
+                   static_cast<int16_t>(carry);
+  return result < -128 || result > 127;
+}
+
 void Cpu::Adc(uint8_t value) {
-  uint8_t old = A;                     // record old A
-  A += value;                          // perform add without carry
-  flag_C = A < old;                    // test carry flag
-  A += static_cast<uint16_t>(flag_C);  // add carry
-  flag_C = flag_C || (A < old);        // test carry flag
-  UpdateNZV(old, A);                   // test NZV flags
+  uint16_t result = static_cast<uint16_t>(A) + static_cast<uint16_t>(value) +
+                    static_cast<uint16_t>(flag_C);
+  flag_V = Overflow(static_cast<int8_t>(A), static_cast<int8_t>(value),
+                    static_cast<int8_t>(flag_C));
+  flag_C = result > 0xFF;
+  A = static_cast<uint8_t>(result & 0xFF);
+  flag_Z = A == 0;
+  flag_N = static_cast<bool>(A & 0x80);
 }
 
 /******************************************************************
@@ -1127,7 +1149,10 @@ void Cpu::SbcIndirectY() {
                  static_cast<uint16_t>(flag_C)));
 }
 
-void Cpu::Sbc(uint8_t value) { Cpu::Adc(~value); }
+void Cpu::Sbc(uint8_t value) {
+  flag_C = true;
+  Cpu::Adc(value ^ 0xFF);
+}
 
 /******************************************************************
   AND
@@ -1526,36 +1551,43 @@ void Cpu::Ror(uint16_t addr) {
 /*================================================================
   Comparisons
 ================================================================*/
+// void Cpu::Cmp(uint8_t reg, uint8_t value) {
+//   uint8_t old = reg;
+//   reg += value;
+//   flag_C = reg < old;
+//   reg += static_cast<uint16_t>(flag_C);
+//   flag_C = flag_C || (reg < old);
+//   UpdateNZ(reg);
+// }
+
 void Cpu::Cmp(uint8_t reg, uint8_t value) {
-  uint8_t old = reg;
-  reg += value;
-  flag_C = reg < old;
-  reg += static_cast<uint16_t>(flag_C);
-  flag_C = flag_C || (reg < old);
-  UpdateNZ(reg);
+  flag_C = A >= value;
+  uint8_t result = A - value;
+  flag_N = static_cast<bool>(result & 0x80);
+  flag_Z = result == 0;
 }
 
 /******************************************************************
   CMP
 ******************************************************************/
-void Cpu::CmpImmediate() { Cmp(A, ~Fetch()); }
+void Cpu::CmpImmediate() { Cmp(A, Fetch()); }
 
 void Cpu::CmpZeroPage() {
   uint16_t addr = static_cast<uint16_t>(Fetch());
-  Cmp(A, ~ReadMemory(addr));
+  Cmp(A, ReadMemory(addr));
 }
 
 void Cpu::CmpZeroPageX() {
   uint16_t addr = static_cast<uint16_t>(Fetch()) + static_cast<uint16_t>(X);
   AddCycles(1);
-  Cmp(A, ~ReadMemory(addr));
+  Cmp(A, ReadMemory(addr));
 }
 
 void Cpu::CmpAbsolute() {
   uint16_t lo = static_cast<uint16_t>(Fetch());
   uint16_t hi = static_cast<uint16_t>(Fetch());
   uint16_t addr = (hi << 8) | lo;
-  Cmp(A, ~ReadMemory(addr));
+  Cmp(A, ReadMemory(addr));
 }
 
 void Cpu::CmpAbsoluteX() {
@@ -1565,7 +1597,7 @@ void Cpu::CmpAbsoluteX() {
   if ((addr / 256) < ((addr + static_cast<uint16_t>(X))) / 256) {
     AddCycles(1);
   }
-  Cmp(A, ~ReadMemory(addr + static_cast<uint16_t>(X)));
+  Cmp(A, ReadMemory(addr + static_cast<uint16_t>(X)));
 }
 
 void Cpu::CmpAbsoluteY() {
@@ -1575,7 +1607,7 @@ void Cpu::CmpAbsoluteY() {
   if ((addr / 256) < ((addr + static_cast<uint16_t>(Y))) / 256) {
     AddCycles(1);
   }
-  Cmp(A, ~ReadMemory(addr + static_cast<uint16_t>(Y)));
+  Cmp(A, ReadMemory(addr + static_cast<uint16_t>(Y)));
 }
 
 void Cpu::CmpIndirectX() {
@@ -1584,7 +1616,7 @@ void Cpu::CmpIndirectX() {
   uint16_t lo = static_cast<uint16_t>(ReadMemory(indirect_addr));
   uint16_t hi = static_cast<uint16_t>(ReadMemory(indirect_addr + 1));
   uint16_t addr = (hi << 8) | lo;
-  Cmp(A, ~ReadMemory(addr));
+  Cmp(A, ReadMemory(addr));
 }
 
 void Cpu::CmpIndirectY() {
@@ -1596,8 +1628,8 @@ void Cpu::CmpIndirectY() {
       (addr + static_cast<uint16_t>(Y) + static_cast<uint16_t>(flag_C)) / 256) {
     AddCycles(1);
   }
-  Cmp(A, ~ReadMemory(addr + static_cast<uint16_t>(Y) +
-                     static_cast<uint16_t>(flag_C)));
+  Cmp(A, ReadMemory(addr + static_cast<uint16_t>(Y) +
+                    static_cast<uint16_t>(flag_C)));
 }
 
 /******************************************************************
@@ -1659,91 +1691,26 @@ void Cpu::UpdateFlag(bool& flag, bool value) {
 /*****************************************************************
    Conditional Branch Instructions
  *****************************************************************/
-void Cpu::BccRelative() {
-  int8_t offset = static_cast<int8_t>(Fetch());
-  if (!flag_C) {
-    uint16_t addr =
-        1 + static_cast<uint16_t>(static_cast<int16_t>(PC) + offset);
-    uint16_t old_PC = PC;
-    PC = addr;
-    AddCycles(old_PC / 256 != addr / 256 ? 2 : 1);
-  }
-}
+void Cpu::BccRelative() { Branch(!flag_C); }
 
-void Cpu::BcsRelative() {
-  int8_t offset = static_cast<int8_t>(Fetch());
-  if (flag_C) {
-    uint16_t addr =
-        1 + static_cast<uint16_t>(static_cast<int16_t>(PC) + offset);
-    uint16_t old_PC = PC;
-    PC = addr;
-    AddCycles(old_PC / 256 != addr / 256 ? 2 : 1);
-  }
-}
+void Cpu::BcsRelative() { Branch(flag_C); }
 
-void Cpu::BeqRelative() {
-  int8_t offset = static_cast<int8_t>(Fetch());
-  if (flag_Z) {
-    uint16_t addr =
-        1 + static_cast<uint16_t>(static_cast<int16_t>(PC) + offset);
-    uint16_t old_PC = PC;
-    PC = addr;
-    AddCycles(old_PC / 256 != addr / 256 ? 2 : 1);
-  }
-}
+void Cpu::BeqRelative() { Branch(flag_Z); }
 
-void Cpu::BmiRelative() {
-  int8_t offset = static_cast<int8_t>(Fetch());
-  if (flag_N) {
-    uint16_t addr =
-        1 + static_cast<uint16_t>(static_cast<int16_t>(PC) + offset);
-    uint16_t old_PC = PC;
-    PC = addr;
-    AddCycles(old_PC / 256 != addr / 256 ? 2 : 1);
-  }
-}
+void Cpu::BmiRelative() { Branch(flag_N); }
 
-void Cpu::BneRelative() {
-  int8_t offset = static_cast<int8_t>(Fetch());
-  if (!flag_Z) {
-    uint16_t addr =
-        1 + static_cast<uint16_t>(static_cast<int16_t>(PC) + offset);
-    uint16_t old_PC = PC;
-    PC = addr;
-    AddCycles(old_PC / 256 != addr / 256 ? 2 : 1);
-  }
-}
+void Cpu::BneRelative() { Branch(!flag_Z); }
 
-void Cpu::BplRelative() {
-  int8_t offset = static_cast<int8_t>(Fetch());
-  if (!flag_N) {
-    uint16_t addr =
-        1 + static_cast<uint16_t>(static_cast<int16_t>(PC) + offset);
-    uint16_t old_PC = PC;
-    PC = addr;
-    AddCycles(old_PC / 256 != addr / 256 ? 2 : 1);
-  }
-}
+void Cpu::BplRelative() { Branch(!flag_N); }
 
-void Cpu::BvcRelative() {
-  int8_t offset = static_cast<int8_t>(Fetch());
-  if (!flag_V) {
-    uint16_t addr =
-        1 + static_cast<uint16_t>(static_cast<int16_t>(PC) + offset);
-    uint16_t old_PC = PC;
-    PC = addr;
-    AddCycles(old_PC / 256 != addr / 256 ? 2 : 1);
-  }
-}
+void Cpu::BvcRelative() { Branch(!flag_V); }
 
-void Cpu::BvsRelative() {
-  int8_t offset = static_cast<int8_t>(Fetch());
-  if (flag_V) {
-    uint16_t addr =
-        1 + static_cast<uint16_t>(static_cast<int16_t>(PC) + offset);
-    uint16_t old_PC = PC;
-    PC = addr;
-    AddCycles(old_PC / 256 != addr / 256 ? 2 : 1);
+void Cpu::BvsRelative() { Branch(flag_V); }
+
+void Cpu::Branch(bool condition) {
+  int16_t offset = static_cast<int16_t>(static_cast<int8_t>(Fetch()));
+  if (condition) {
+    PC = static_cast<uint16_t>(static_cast<int16_t>(PC) + offset);
   }
 }
 
@@ -1769,8 +1736,8 @@ void Cpu::JsrAbsolute() {
   AddCycles(1);
   Push(static_cast<uint8_t>(PC >> 8));
   Push(static_cast<uint8_t>(PC & 0xFF));
-  PC = lo;
-  PC |= static_cast<uint16_t>(Fetch()) << 8;
+  // PC = lo;
+  PC = (static_cast<uint16_t>(Fetch()) << 8) | lo;
 }
 
 void Cpu::RtsImplied() {
