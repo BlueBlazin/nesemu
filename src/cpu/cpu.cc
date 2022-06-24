@@ -899,36 +899,64 @@ void Cpu::PlpImplied() {
 /******************************************************************
   DEC
 ******************************************************************/
+// void Cpu::DecZeroPage() {
+//   uint16_t addr = ZeroPage();
+//   uint8_t value = ReadMemory(addr) - 1;
+//   AddCycles(1);
+//   WriteMemory(addr, value);
+//   UpdateNZ(value);
+// }
+
+// void Cpu::DecZeroPageX() {
+//   uint16_t addr = static_cast<uint16_t>(Fetch() + X);
+//   AddCycles(1);
+//   uint8_t value = ReadMemory(addr) - 1;
+//   AddCycles(1);
+//   WriteMemory(addr, value);
+//   UpdateNZ(value);
+// }
+
+// void Cpu::DecAbsolute() {
+//   uint16_t addr = Absolute();
+//   uint8_t value = ReadMemory(addr) - 1;
+//   AddCycles(1);
+//   WriteMemory(addr, value);
+//   UpdateNZ(value);
+// }
+
+// void Cpu::DecAbsoluteX() {
+//   uint16_t addr = AbsoluteX();
+//   AddCycles(1);
+//   uint8_t value = ReadMemory(addr) - 1;
+//   AddCycles(1);
+//   WriteMemory(addr, value);
+//   UpdateNZ(value);
+// }
+
 void Cpu::DecZeroPage() {
   uint16_t addr = ZeroPage();
-  uint8_t value = ReadMemory(addr) - 1;
-  AddCycles(1);
-  WriteMemory(addr, value);
-  UpdateNZ(value);
+  Dec(addr, ReadMemory(addr));
 }
 
 void Cpu::DecZeroPageX() {
-  uint16_t addr = static_cast<uint16_t>(Fetch() + X);
-  AddCycles(1);
-  uint8_t value = ReadMemory(addr) - 1;
-  AddCycles(1);
-  WriteMemory(addr, value);
-  UpdateNZ(value);
+  uint16_t addr = ZeroPageX();
+  Dec(addr, ReadMemory(addr));
 }
 
 void Cpu::DecAbsolute() {
   uint16_t addr = Absolute();
-  uint8_t value = ReadMemory(addr) - 1;
-  AddCycles(1);
-  WriteMemory(addr, value);
-  UpdateNZ(value);
+  Dec(addr, ReadMemory(addr));
 }
 
 void Cpu::DecAbsoluteX() {
   uint16_t addr = AbsoluteX();
-  AddCycles(1);
-  uint8_t value = ReadMemory(addr) - 1;
-  AddCycles(1);
+  ReadMemory(addr);
+  Dec(addr, ReadMemory(addr));
+}
+
+void Cpu::Dec(uint16_t addr, uint8_t value) {
+  WriteMemory(addr, value);
+  value--;
   WriteMemory(addr, value);
   UpdateNZ(value);
 }
@@ -954,36 +982,31 @@ void Cpu::DeyImplied() {
 /******************************************************************
   INC
 ******************************************************************/
+
 void Cpu::IncZeroPage() {
   uint16_t addr = ZeroPage();
-  uint8_t value = ReadMemory(addr) + 1;
-  AddCycles(1);
-  WriteMemory(addr, value);
-  UpdateNZ(value);
+  Inc(addr, ReadMemory(addr));
 }
 
 void Cpu::IncZeroPageX() {
-  uint16_t addr = static_cast<uint16_t>(Fetch() + X);
-  AddCycles(1);
-  uint8_t value = ReadMemory(addr) + 1;
-  AddCycles(1);
-  WriteMemory(addr, value);
-  UpdateNZ(value);
+  uint16_t addr = ZeroPageX();
+  Inc(addr, ReadMemory(addr));
 }
 
 void Cpu::IncAbsolute() {
   uint16_t addr = Absolute();
-  uint8_t value = ReadMemory(addr) + 1;
-  AddCycles(1);
-  WriteMemory(addr, value);
-  UpdateNZ(value);
+  Inc(addr, ReadMemory(addr));
 }
 
 void Cpu::IncAbsoluteX() {
   uint16_t addr = AbsoluteX();
-  AddCycles(1);
-  uint8_t value = ReadMemory(addr) + 1;
-  AddCycles(1);
+  ReadMemory(addr);
+  Inc(addr, ReadMemory(addr));
+}
+
+void Cpu::Inc(uint16_t addr, uint8_t value) {
+  WriteMemory(addr, value);
+  value++;
   WriteMemory(addr, value);
   UpdateNZ(value);
 }

@@ -117,6 +117,7 @@ class Cpu {
   void DecZeroPageX();
   void DecAbsolute();
   void DecAbsoluteX();
+  void Dec(uint16_t addr, uint8_t value);
   /* DEX */
   void DexImplied();
   /* DEY */
@@ -127,6 +128,7 @@ class Cpu {
   void IncZeroPageX();
   void IncAbsolute();
   void IncAbsoluteX();
+  void Inc(uint16_t addr, uint8_t value);
   /* INX */
   void InxImplied();
   /* INY */
