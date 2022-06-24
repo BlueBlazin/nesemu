@@ -11,7 +11,7 @@ namespace memory {
 Memory::Memory(const std::string& path)
     : cartridge(mappers::ReadCartridge(path)), ppu(cartridge), ram() {
   for (int i = 0; i < ram.size(); i++) {
-    ram[i] = 0xFF;
+    ram[i] = 0x00;
   }
 }
 

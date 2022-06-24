@@ -38,6 +38,11 @@ class Cpu {
 
   void DecodeExecute(uint8_t opcode);
 
+  uint16_t IndirectX();
+  uint16_t IndirectY();
+  uint16_t ZeroPageX();
+  uint16_t ZeroPageY();
+
   /* LDA */
   void LdaImmediate();
   void LdaZeroPage();

@@ -6,7 +6,7 @@ def debug():
         logged = [line.strip().upper() for line in f]
     
     for i in range(len(logged)):
-        if opcodes[i][0] != logged[i]:
+        if opcodes[i][0].rjust(4, '0') != logged[i].rjust(4, '0'):
             print(f"Failed on #{i}. "
                   f"Expected PC: {opcodes[i][0]}, logged: {logged[i]}. "
                   f"Bad opcode: {opcodes[i - 1][1]}")
