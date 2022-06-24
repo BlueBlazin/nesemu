@@ -531,15 +531,6 @@ void Cpu::DecodeExecute(uint8_t opcode) {
 *  Instructions
 =================================================================*/
 
-// uint16_t Cpu::IndirectX() {
-//   uint16_t ptr_addr = static_cast<uint16_t>(Fetch());
-//   uint16_t ptr = static_cast<uint16_t>(ReadMemory(ptr_addr));
-//   uint16_t lo =
-//       static_cast<uint16_t>(ReadMemory(ptr + static_cast<uint16_t>(X)));
-//   uint16_t hi =
-//       static_cast<uint16_t>(ReadMemory(ptr + static_cast<uint16_t>(X) + 1));
-//   return (hi << 8) | lo;
-// }
 uint16_t Cpu::IndirectX() {
   uint16_t ptr = static_cast<uint16_t>(Fetch());
   ReadMemory(ptr);
@@ -567,6 +558,26 @@ uint16_t Cpu::ZeroPageY() {
   return ReadMemory(addr) + static_cast<uint16_t>(Y);
 }
 
+uint16_t Cpu::ZeroPage() { return static_cast<uint16_t>(Fetch()); }
+
+uint16_t Cpu::Absolute() {
+  uint16_t lo = static_cast<uint16_t>(Fetch());
+  uint16_t hi = static_cast<uint16_t>(Fetch());
+  return (hi << 8) | lo;
+}
+
+uint16_t Cpu::AbsoluteX() {
+  uint16_t lo = static_cast<uint16_t>(Fetch());
+  uint16_t hi = static_cast<uint16_t>(Fetch());
+  return (hi << 8) | ((lo + X) & 0xFF);
+}
+
+uint16_t Cpu::AbsoluteY() {
+  uint16_t lo = static_cast<uint16_t>(Fetch());
+  uint16_t hi = static_cast<uint16_t>(Fetch());
+  return (hi << 8) | ((lo + Y) & 0xFF);
+}
+
 /******************************************************************
   LDA
 ******************************************************************/
@@ -576,7 +587,7 @@ void Cpu::LdaImmediate() {
 }
 
 void Cpu::LdaZeroPage() {
-  uint16_t addr = static_cast<uint16_t>(Fetch());
+  uint16_t addr = ZeroPage();
   A = ReadMemory(addr);
   UpdateNZ(A);
 }
@@ -588,19 +599,13 @@ void Cpu::LdaZeroPageX() {
 }
 
 void Cpu::LdaAbsolute() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  A = ReadMemory((hi << 8) | lo);
-  if (PC == 0xCE1E + 3) {
-    std::printf("Addr: %X, LDA A: %X\n", (hi << 8) | lo, A);
-  }
+  uint16_t addr = Absolute();
+  A = ReadMemory(addr);
   UpdateNZ(A);
 }
 
 void Cpu::LdaAbsoluteX() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  uint16_t addr = ((hi << 8) | lo) + static_cast<uint16_t>(X);
+  uint16_t addr = AbsoluteX();
   if (addr > 0xFF) {
     AddCycles(1);
   }
@@ -609,9 +614,7 @@ void Cpu::LdaAbsoluteX() {
 }
 
 void Cpu::LdaAbsoluteY() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  uint16_t addr = ((hi << 8) | lo) + static_cast<uint16_t>(Y);
+  uint16_t addr = AbsoluteY();
   if (addr > 0xFF) {
     AddCycles(1);
   }
@@ -645,7 +648,7 @@ void Cpu::LdxImmediate() {
 }
 
 void Cpu::LdxZeroPage() {
-  uint16_t addr = static_cast<uint16_t>(Fetch());
+  uint16_t addr = ZeroPage();
   X = ReadMemory(addr);
   UpdateNZ(X);
 }
@@ -657,16 +660,13 @@ void Cpu::LdxZeroPageY() {
 }
 
 void Cpu::LdxAbsolute() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  X = ReadMemory((hi << 8) | lo);
+  uint16_t addr = Absolute();
+  X = ReadMemory(addr);
   UpdateNZ(X);
 }
 
 void Cpu::LdxAbsoluteY() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  uint16_t addr = ((hi << 8) | lo) + static_cast<uint16_t>(Y);
+  uint16_t addr = AbsoluteY();
   if (addr > 0xFF) {
     AddCycles(1);
   }
@@ -683,7 +683,7 @@ void Cpu::LdyImmediate() {
 }
 
 void Cpu::LdyZeroPage() {
-  uint16_t addr = static_cast<uint16_t>(Fetch());
+  uint16_t addr = ZeroPage();
   Y = ReadMemory(addr);
   UpdateNZ(Y);
 }
@@ -696,16 +696,13 @@ void Cpu::LdyZeroPageX() {
 }
 
 void Cpu::LdyAbsolute() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  Y = ReadMemory((hi << 8) | lo);
+  uint16_t addr = Absolute();
+  Y = ReadMemory(addr);
   UpdateNZ(Y);
 }
 
 void Cpu::LdyAbsoluteX() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  uint16_t addr = ((hi << 8) | lo) + static_cast<uint16_t>(X);
+  uint16_t addr = AbsoluteX();
   if (addr > 0xFF) {
     AddCycles(1);
   }
@@ -717,7 +714,7 @@ void Cpu::LdyAbsoluteX() {
   STA
 ******************************************************************/
 void Cpu::StaZeroPage() {
-  uint16_t addr = static_cast<uint16_t>(Fetch());
+  uint16_t addr = ZeroPage();
   WriteMemory(addr, A);
 }
 
@@ -728,23 +725,18 @@ void Cpu::StaZeroPageX() {
 }
 
 void Cpu::StaAbsolute() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  WriteMemory((hi << 8) | lo, A);
+  uint16_t addr = Absolute();
+  WriteMemory(addr, A);
 }
 
 void Cpu::StaAbsoluteX() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  uint16_t addr = ((hi << 8) | lo) + static_cast<uint16_t>(X);
+  uint16_t addr = AbsoluteX();
   AddCycles(1);
   WriteMemory(addr, A);
 }
 
 void Cpu::StaAbsoluteY() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  uint16_t addr = ((hi << 8) | lo) + static_cast<uint16_t>(Y);
+  uint16_t addr = AbsoluteY();
   AddCycles(1);
   WriteMemory(addr, A);
 }
@@ -769,7 +761,7 @@ void Cpu::StaIndirectY() {
   STX
 ******************************************************************/
 void Cpu::StxZeroPage() {
-  uint16_t addr = static_cast<uint16_t>(Fetch());
+  uint16_t addr = ZeroPage();
   WriteMemory(addr, X);
 }
 
@@ -780,16 +772,15 @@ void Cpu::StxZeroPageY() {
 }
 
 void Cpu::StxAbsolute() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  WriteMemory((hi << 8) | lo, X);
+  uint16_t addr = Absolute();
+  WriteMemory(addr, X);
 }
 
 /******************************************************************
   STY
 ******************************************************************/
 void Cpu::StyZeroPage() {
-  uint16_t addr = static_cast<uint16_t>(Fetch());
+  uint16_t addr = ZeroPage();
   WriteMemory(addr, Y);
 }
 
@@ -800,9 +791,8 @@ void Cpu::StyZeroPageX() {
 }
 
 void Cpu::StyAbsolute() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  WriteMemory((hi << 8) | lo, Y);
+  uint16_t addr = Absolute();
+  WriteMemory(addr, Y);
 }
 
 /******************************************************************
@@ -910,7 +900,7 @@ void Cpu::PlpImplied() {
   DEC
 ******************************************************************/
 void Cpu::DecZeroPage() {
-  uint16_t addr = static_cast<uint16_t>(Fetch());
+  uint16_t addr = ZeroPage();
   uint8_t value = ReadMemory(addr) - 1;
   AddCycles(1);
   WriteMemory(addr, value);
@@ -927,9 +917,7 @@ void Cpu::DecZeroPageX() {
 }
 
 void Cpu::DecAbsolute() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  uint16_t addr = (hi << 8) | lo;
+  uint16_t addr = Absolute();
   uint8_t value = ReadMemory(addr) - 1;
   AddCycles(1);
   WriteMemory(addr, value);
@@ -937,9 +925,7 @@ void Cpu::DecAbsolute() {
 }
 
 void Cpu::DecAbsoluteX() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  uint16_t addr = ((hi << 8) | lo) + X;
+  uint16_t addr = AbsoluteX();
   AddCycles(1);
   uint8_t value = ReadMemory(addr) - 1;
   AddCycles(1);
@@ -969,7 +955,7 @@ void Cpu::DeyImplied() {
   INC
 ******************************************************************/
 void Cpu::IncZeroPage() {
-  uint16_t addr = static_cast<uint16_t>(Fetch());
+  uint16_t addr = ZeroPage();
   uint8_t value = ReadMemory(addr) + 1;
   AddCycles(1);
   WriteMemory(addr, value);
@@ -986,9 +972,7 @@ void Cpu::IncZeroPageX() {
 }
 
 void Cpu::IncAbsolute() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  uint16_t addr = (hi << 8) | lo;
+  uint16_t addr = Absolute();
   uint8_t value = ReadMemory(addr) + 1;
   AddCycles(1);
   WriteMemory(addr, value);
@@ -996,9 +980,7 @@ void Cpu::IncAbsolute() {
 }
 
 void Cpu::IncAbsoluteX() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  uint16_t addr = ((hi << 8) | lo) + X;
+  uint16_t addr = AbsoluteX();
   AddCycles(1);
   uint8_t value = ReadMemory(addr) + 1;
   AddCycles(1);
@@ -1030,7 +1012,7 @@ void Cpu::InyImplied() {
 void Cpu::AdcImmediate() { Adc(Fetch()); }
 
 void Cpu::AdcZeroPage() {
-  uint16_t addr = static_cast<uint16_t>(Fetch());
+  uint16_t addr = ZeroPage();
   Adc(ReadMemory(addr));
 }
 
@@ -1040,30 +1022,20 @@ void Cpu::AdcZeroPageX() {
 }
 
 void Cpu::AdcAbsolute() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  uint16_t addr = (hi << 8) | lo;
+  uint16_t addr = Absolute();
   Adc(ReadMemory(addr));
 }
 
 void Cpu::AdcAbsoluteX() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  uint16_t addr = (hi << 8) | lo;
-  if ((addr / 256) < ((addr + static_cast<uint16_t>(X))) / 256) {
-    AddCycles(1);
-  }
-  Adc(ReadMemory(addr + static_cast<uint16_t>(X)));
+  uint16_t addr = AbsoluteX();
+  // TODO: PAGE_BOUNDRY
+  Adc(ReadMemory(addr));
 }
 
 void Cpu::AdcAbsoluteY() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  uint16_t addr = (hi << 8) | lo;
-  if ((addr / 256) < ((addr + static_cast<uint16_t>(Y))) / 256) {
-    AddCycles(1);
-  }
-  Adc(ReadMemory(addr + static_cast<uint16_t>(Y)));
+  uint16_t addr = AbsoluteY();
+  // TODO: PAGE_BOUNDRY
+  Adc(ReadMemory(addr));
 }
 
 void Cpu::AdcIndirectX() {
@@ -1104,7 +1076,7 @@ void Cpu::Adc(uint8_t value) {
 void Cpu::SbcImmediate() { Sbc(Fetch()); }
 
 void Cpu::SbcZeroPage() {
-  uint16_t addr = static_cast<uint16_t>(Fetch());
+  uint16_t addr = ZeroPage();
   Sbc(ReadMemory(addr));
 }
 
@@ -1114,30 +1086,20 @@ void Cpu::SbcZeroPageX() {
 }
 
 void Cpu::SbcAbsolute() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  uint16_t addr = (hi << 8) | lo;
+  uint16_t addr = Absolute();
   Sbc(ReadMemory(addr));
 }
 
 void Cpu::SbcAbsoluteX() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  uint16_t addr = (hi << 8) | lo;
-  if ((addr / 256) < ((addr + static_cast<uint16_t>(X))) / 256) {
-    AddCycles(1);
-  }
-  Sbc(ReadMemory(addr + static_cast<uint16_t>(X)));
+  uint16_t addr = AbsoluteX();
+  // TODO: PAGE_BOUNDRY
+  Sbc(ReadMemory(addr));
 }
 
 void Cpu::SbcAbsoluteY() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  uint16_t addr = (hi << 8) | lo;
-  if ((addr / 256) < ((addr + static_cast<uint16_t>(Y))) / 256) {
-    AddCycles(1);
-  }
-  Sbc(ReadMemory(addr + static_cast<uint16_t>(Y)));
+  uint16_t addr = AbsoluteY();
+  // TODO: PAGE_BOUNDRY
+  Sbc(ReadMemory(addr));
 }
 
 void Cpu::SbcIndirectX() {
@@ -1166,7 +1128,7 @@ void Cpu::Sbc(uint8_t value) {
 void Cpu::AndImmediate() { And(Fetch()); }
 
 void Cpu::AndZeroPage() {
-  uint16_t addr = static_cast<uint16_t>(Fetch());
+  uint16_t addr = ZeroPage();
   And(ReadMemory(addr));
 }
 
@@ -1176,30 +1138,20 @@ void Cpu::AndZeroPageX() {
 }
 
 void Cpu::AndAbsolute() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  uint16_t addr = (hi << 8) | lo;
+  uint16_t addr = Absolute();
   And(ReadMemory(addr));
 }
 
 void Cpu::AndAbsoluteX() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  uint16_t addr = (hi << 8) | lo;
-  if ((addr / 256) < ((addr + static_cast<uint16_t>(X))) / 256) {
-    AddCycles(1);
-  }
-  And(ReadMemory(addr + static_cast<uint16_t>(X)));
+  uint16_t addr = AbsoluteX();
+  // TODO: PAGE_BOUNDRY
+  And(ReadMemory(addr));
 }
 
 void Cpu::AndAbsoluteY() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  uint16_t addr = (hi << 8) | lo;
-  if ((addr / 256) < ((addr + static_cast<uint16_t>(Y))) / 256) {
-    AddCycles(1);
-  }
-  And(ReadMemory(addr + static_cast<uint16_t>(Y)));
+  uint16_t addr = AbsoluteY();
+  // TODO: PAGE_BOUNDRY
+  And(ReadMemory(addr));
 }
 
 void Cpu::AndIndirectX() {
@@ -1228,7 +1180,7 @@ void Cpu::And(uint8_t value) {
 void Cpu::EorImmediate() { Eor(Fetch()); }
 
 void Cpu::EorZeroPage() {
-  uint16_t addr = static_cast<uint16_t>(Fetch());
+  uint16_t addr = ZeroPage();
   Eor(ReadMemory(addr));
 }
 
@@ -1238,30 +1190,20 @@ void Cpu::EorZeroPageX() {
 }
 
 void Cpu::EorAbsolute() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  uint16_t addr = (hi << 8) | lo;
+  uint16_t addr = Absolute();
   Eor(ReadMemory(addr));
 }
 
 void Cpu::EorAbsoluteX() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  uint16_t addr = (hi << 8) | lo;
-  if ((addr / 256) < ((addr + static_cast<uint16_t>(X))) / 256) {
-    AddCycles(1);
-  }
-  Eor(ReadMemory(addr + static_cast<uint16_t>(X)));
+  uint16_t addr = AbsoluteX();
+  // TODO: PAGE_BOUNDRY
+  Eor(ReadMemory(addr));
 }
 
 void Cpu::EorAbsoluteY() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  uint16_t addr = (hi << 8) | lo;
-  if ((addr / 256) < ((addr + static_cast<uint16_t>(Y))) / 256) {
-    AddCycles(1);
-  }
-  Eor(ReadMemory(addr + static_cast<uint16_t>(Y)));
+  uint16_t addr = AbsoluteY();
+  // TODO: PAGE_BOUNDRY
+  Eor(ReadMemory(addr));
 }
 
 void Cpu::EorIndirectX() {
@@ -1290,7 +1232,7 @@ void Cpu::Eor(uint8_t value) {
 void Cpu::OraImmediate() { Ora(Fetch()); }
 
 void Cpu::OraZeroPage() {
-  uint16_t addr = static_cast<uint16_t>(Fetch());
+  uint16_t addr = ZeroPage();
   Ora(ReadMemory(addr));
 }
 
@@ -1300,30 +1242,20 @@ void Cpu::OraZeroPageX() {
 }
 
 void Cpu::OraAbsolute() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  uint16_t addr = (hi << 8) | lo;
+  uint16_t addr = Absolute();
   Ora(ReadMemory(addr));
 }
 
 void Cpu::OraAbsoluteX() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  uint16_t addr = (hi << 8) | lo;
-  if ((addr / 256) < ((addr + static_cast<uint16_t>(X))) / 256) {
-    AddCycles(1);
-  }
-  Ora(ReadMemory(addr + static_cast<uint16_t>(X)));
+  uint16_t addr = AbsoluteX();
+  // TODO: PAGE_BOUNDRY
+  Ora(ReadMemory(addr));
 }
 
 void Cpu::OraAbsoluteY() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  uint16_t addr = (hi << 8) | lo;
-  if ((addr / 256) < ((addr + static_cast<uint16_t>(Y))) / 256) {
-    AddCycles(1);
-  }
-  Ora(ReadMemory(addr + static_cast<uint16_t>(Y)));
+  uint16_t addr = AbsoluteY();
+  // TODO: PAGE_BOUNDRY
+  Ora(ReadMemory(addr));
 }
 
 void Cpu::OraIndirectX() {
@@ -1357,36 +1289,30 @@ void Cpu::AslAccumulator() {
 }
 
 void Cpu::AslZeroPage() {
-  uint16_t addr = static_cast<uint16_t>(Fetch());
-  Asl(addr);
+  uint16_t addr = ZeroPage();
+  Asl(addr, ReadMemory(addr));
 }
 
 void Cpu::AslZeroPageX() {
-  uint16_t addr = static_cast<uint16_t>(Fetch()) + static_cast<uint16_t>(X);
-  AddCycles(1);
-  Asl(addr);
+  uint16_t addr = ZeroPageX();
+  Asl(addr, ReadMemory(addr));
 }
 
 void Cpu::AslAbsolute() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  uint16_t addr = (hi << 8) | lo;
-  Asl(addr);
+  uint16_t addr = Absolute();
+  Asl(addr, ReadMemory(addr));
 }
 
 void Cpu::AslAbsoluteX() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  uint16_t addr = (hi << 8) | lo;
-  AddCycles(1);
-  Asl(addr + static_cast<uint16_t>(X));
+  uint16_t addr = AbsoluteX();
+  ReadMemory(addr);
+  Asl(addr, ReadMemory(addr));
 }
 
-void Cpu::Asl(uint16_t addr) {
-  uint8_t value = ReadMemory(addr);
+void Cpu::Asl(uint16_t addr, uint8_t value) {
+  WriteMemory(addr, value);
   flag_C = static_cast<bool>(value >> 7);
   value = (value << 1) & 0xFE;
-  AddCycles(1);
   WriteMemory(addr, value);
   UpdateNZ(value);
 }
@@ -1402,33 +1328,28 @@ void Cpu::LsrAccumulator() {
 }
 
 void Cpu::LsrZeroPage() {
-  uint16_t addr = static_cast<uint16_t>(Fetch());
-  Lsr(addr);
+  uint16_t addr = ZeroPage();
+  Lsr(addr, ReadMemory(addr));
 }
 
 void Cpu::LsrZeroPageX() {
-  uint16_t addr = static_cast<uint16_t>(Fetch()) + static_cast<uint16_t>(X);
-  AddCycles(1);
-  Lsr(addr);
+  uint16_t addr = ZeroPageX();
+  Lsr(addr, ReadMemory(addr));
 }
 
 void Cpu::LsrAbsolute() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  uint16_t addr = (hi << 8) | lo;
-  Lsr(addr);
+  uint16_t addr = Absolute();
+  Lsr(addr, ReadMemory(addr));
 }
 
 void Cpu::LsrAbsoluteX() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  uint16_t addr = (hi << 8) | lo;
-  AddCycles(1);
-  Lsr(addr + static_cast<uint16_t>(X));
+  uint16_t addr = AbsoluteX();
+  ReadMemory(addr);
+  Lsr(addr, ReadMemory(addr));
 }
 
-void Cpu::Lsr(uint16_t addr) {
-  uint8_t value = ReadMemory(addr);
+void Cpu::Lsr(uint16_t addr, uint8_t value) {
+  WriteMemory(addr, value);
   flag_C = static_cast<bool>(value & 0x1);
   value = (value >> 1) & 0x7F;
   AddCycles(1);
@@ -1448,33 +1369,28 @@ void Cpu::RolAccumulator() {
 }
 
 void Cpu::RolZeroPage() {
-  uint16_t addr = static_cast<uint16_t>(Fetch());
-  Rol(addr);
+  uint16_t addr = ZeroPage();
+  Rol(addr, ReadMemory(addr));
 }
 
 void Cpu::RolZeroPageX() {
-  uint16_t addr = static_cast<uint16_t>(Fetch()) + static_cast<uint16_t>(X);
-  AddCycles(1);
-  Rol(addr);
+  uint16_t addr = ZeroPageX();
+  Rol(addr, ReadMemory(addr));
 }
 
 void Cpu::RolAbsolute() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  uint16_t addr = (hi << 8) | lo;
-  Rol(addr);
+  uint16_t addr = Absolute();
+  Rol(addr, ReadMemory(addr));
 }
 
 void Cpu::RolAbsoluteX() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  uint16_t addr = (hi << 8) | lo;
-  AddCycles(1);
-  Rol(addr + static_cast<uint16_t>(X));
+  uint16_t addr = AbsoluteX();
+  ReadMemory(addr);
+  Rol(addr, ReadMemory(addr));
 }
 
-void Cpu::Rol(uint16_t addr) {
-  uint8_t value = ReadMemory(addr);
+void Cpu::Rol(uint16_t addr, uint8_t value) {
+  WriteMemory(addr, value);
   uint8_t old_C = static_cast<uint8_t>(flag_C);
   flag_C = static_cast<bool>(A >> 7);
   value = ((value << 1) & 0xFE) | old_C;
@@ -1495,33 +1411,28 @@ void Cpu::RorAccumulator() {
 }
 
 void Cpu::RorZeroPage() {
-  uint16_t addr = static_cast<uint16_t>(Fetch());
-  Ror(addr);
+  uint16_t addr = ZeroPage();
+  Ror(addr, ReadMemory(addr));
 }
 
 void Cpu::RorZeroPageX() {
-  uint16_t addr = static_cast<uint16_t>(Fetch()) + static_cast<uint16_t>(X);
-  AddCycles(1);
-  Ror(addr);
+  uint16_t addr = ZeroPageX();
+  Ror(addr, ReadMemory(addr));
 }
 
 void Cpu::RorAbsolute() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  uint16_t addr = (hi << 8) | lo;
-  Ror(addr);
+  uint16_t addr = Absolute();
+  Ror(addr, ReadMemory(addr));
 }
 
 void Cpu::RorAbsoluteX() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  uint16_t addr = (hi << 8) | lo;
-  AddCycles(1);
-  Ror(addr + static_cast<uint16_t>(X));
+  uint16_t addr = AbsoluteX();
+  ReadMemory(addr);
+  Ror(addr, ReadMemory(addr));
 }
 
-void Cpu::Ror(uint16_t addr) {
-  uint8_t value = ReadMemory(addr);
+void Cpu::Ror(uint16_t addr, uint8_t value) {
+  WriteMemory(addr, value);
   uint8_t old_C = static_cast<uint8_t>(flag_C);
   flag_C = static_cast<bool>(A & 0x1);
   value = ((value >> 1) & 0x7F) | (old_C << 7);
@@ -1533,20 +1444,8 @@ void Cpu::Ror(uint16_t addr) {
 /*================================================================
   Comparisons
 ================================================================*/
-// void Cpu::Cmp(uint8_t reg, uint8_t value) {
-//   uint8_t old = reg;
-//   reg += value;
-//   flag_C = reg < old;
-//   reg += static_cast<uint16_t>(flag_C);
-//   flag_C = flag_C || (reg < old);
-//   UpdateNZ(reg);
-// }
 
 void Cpu::Cmp(uint8_t reg, uint8_t value) {
-  if (PC == 0xCE21 + 2) {
-    // std::cout << "A: " << (unsigned int)A << std::endl;
-    std::printf("A: %X\n", A);
-  }
   flag_C = reg >= value;
   uint8_t result = reg - value;
   flag_N = static_cast<bool>(result & 0x80);
@@ -1559,7 +1458,7 @@ void Cpu::Cmp(uint8_t reg, uint8_t value) {
 void Cpu::CmpImmediate() { Cmp(A, Fetch()); }
 
 void Cpu::CmpZeroPage() {
-  uint16_t addr = static_cast<uint16_t>(Fetch());
+  uint16_t addr = ZeroPage();
   Cmp(A, ReadMemory(addr));
 }
 
@@ -1569,38 +1468,23 @@ void Cpu::CmpZeroPageX() {
 }
 
 void Cpu::CmpAbsolute() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  uint16_t addr = (hi << 8) | lo;
+  uint16_t addr = Absolute();
   Cmp(A, ReadMemory(addr));
 }
 
 void Cpu::CmpAbsoluteX() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  uint16_t addr = (hi << 8) | lo;
-  if ((addr / 256) < ((addr + static_cast<uint16_t>(X))) / 256) {
-    AddCycles(1);
-  }
-  Cmp(A, ReadMemory(addr + static_cast<uint16_t>(X)));
+  uint16_t addr = AbsoluteX();
+  // TODO: PAGE_BOUNDRY
+  Cmp(A, ReadMemory(addr));
 }
 
 void Cpu::CmpAbsoluteY() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  uint16_t addr = (hi << 8) | lo;
-  if ((addr / 256) < ((addr + static_cast<uint16_t>(Y))) / 256) {
-    AddCycles(1);
-  }
-  Cmp(A, ReadMemory(addr + static_cast<uint16_t>(Y)));
+  uint16_t addr = AbsoluteY();
+  // TODO: PAGE_BOUNDRY
+  Cmp(A, ReadMemory(addr));
 }
 
 void Cpu::CmpIndirectX() {
-  // uint16_t indirect_addr = static_cast<uint16_t>(Fetch() + X);
-  // AddCycles(1);
-  // uint16_t lo = static_cast<uint16_t>(ReadMemory(indirect_addr));
-  // uint16_t hi = static_cast<uint16_t>(ReadMemory(indirect_addr + 1));
-  // uint16_t addr = (hi << 8) | lo;
   uint16_t addr = IndirectX();
   Cmp(A, ReadMemory(addr));
 }
@@ -1616,14 +1500,12 @@ void Cpu::CmpIndirectY() {
 void Cpu::CpxImmediate() { Cmp(X, Fetch()); }
 
 void Cpu::CpxZeroPage() {
-  uint16_t addr = static_cast<uint16_t>(Fetch());
+  uint16_t addr = ZeroPage();
   Cmp(X, ReadMemory(addr));
 }
 
 void Cpu::CpxAbsolute() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  uint16_t addr = (hi << 8) | lo;
+  uint16_t addr = Absolute();
   Cmp(X, ReadMemory(addr));
 }
 
@@ -1633,14 +1515,12 @@ void Cpu::CpxAbsolute() {
 void Cpu::CpyImmediate() { Cmp(Y, Fetch()); }
 
 void Cpu::CpyZeroPage() {
-  uint16_t addr = static_cast<uint16_t>(Fetch());
+  uint16_t addr = ZeroPage();
   Cmp(Y, ReadMemory(addr));
 }
 
 void Cpu::CpyAbsolute() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  uint16_t addr = (hi << 8) | lo;
+  uint16_t addr = Absolute();
   Cmp(Y, ReadMemory(addr));
 }
 
@@ -1695,19 +1575,7 @@ void Cpu::Branch(bool condition) {
 /*****************************************************************
    Jump and Subroutine Instructions
  *****************************************************************/
-void Cpu::JmpAbsolute() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  PC = (hi << 8) | lo;
-}
-
-// void Cpu::JmpIndirect() {
-//   uint16_t addr_lo = Fetch();
-//   uint16_t addr_hi = Fetch();
-//   uint16_t latch = static_cast<uint16_t>(ReadMemory(addr_lo));
-//   PC = static_cast<uint16_t>(ReadMemory(addr_hi)) << 8;
-//   PC |= latch;
-// }
+void Cpu::JmpAbsolute() { PC = Absolute(); }
 
 void Cpu::JmpIndirect() {
   uint16_t addr_lo = Fetch();
@@ -1801,9 +1669,8 @@ void Cpu::Interrupt(InterruptType type) {
 void Cpu::BitZeroPage() { Bit(static_cast<uint16_t>(Fetch())); }
 
 void Cpu::BitAbsolute() {
-  uint16_t lo = static_cast<uint16_t>(Fetch());
-  uint16_t hi = static_cast<uint16_t>(Fetch());
-  Bit((hi << 8) | lo);
+  uint16_t addr = Absolute();
+  Bit(addr);
 }
 
 void Cpu::Bit(uint16_t addr) {

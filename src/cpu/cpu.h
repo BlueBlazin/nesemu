@@ -42,6 +42,10 @@ class Cpu {
   uint16_t IndirectY();
   uint16_t ZeroPageX();
   uint16_t ZeroPageY();
+  uint16_t ZeroPage();
+  uint16_t Absolute();
+  uint16_t AbsoluteX();
+  uint16_t AbsoluteY();
 
   /* LDA */
   void LdaImmediate();
@@ -190,7 +194,7 @@ class Cpu {
   void AslZeroPageX();
   void AslAbsolute();
   void AslAbsoluteX();
-  void Asl(uint16_t addr);
+  void Asl(uint16_t addr, uint8_t value);
 
   /* LSR */
   void LsrAccumulator();
@@ -198,7 +202,7 @@ class Cpu {
   void LsrZeroPageX();
   void LsrAbsolute();
   void LsrAbsoluteX();
-  void Lsr(uint16_t addr);
+  void Lsr(uint16_t addr, uint8_t value);
 
   /* ROL */
   void RolAccumulator();
@@ -206,7 +210,7 @@ class Cpu {
   void RolZeroPageX();
   void RolAbsolute();
   void RolAbsoluteX();
-  void Rol(uint16_t addr);
+  void Rol(uint16_t addr, uint8_t value);
 
   /* ROR */
   void RorAccumulator();
@@ -214,7 +218,7 @@ class Cpu {
   void RorZeroPageX();
   void RorAbsolute();
   void RorAbsoluteX();
-  void Ror(uint16_t addr);
+  void Ror(uint16_t addr, uint8_t value);
 
   /* Flag Instructions */
   void ClcImplied();
