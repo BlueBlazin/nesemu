@@ -63,6 +63,7 @@ class Cpu {
   void LdxZeroPageY();
   void LdxAbsolute();
   void LdxAbsoluteY();
+  void Ldx(uint16_t addr);
 
   /* LDY */
   void LdyImmediate();
@@ -70,6 +71,7 @@ class Cpu {
   void LdyZeroPageX();
   void LdyAbsolute();
   void LdyAbsoluteX();
+  void Ldy(uint16_t addr);
 
   /* STA */
   void StaZeroPage();

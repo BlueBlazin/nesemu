@@ -70,12 +70,18 @@ void Cpu::RunDma() {
 }
 
 void Cpu::DecodeExecute(uint8_t opcode) {
+  if (PC == 0xC6BD + 1) {
+    std::printf("Opcode: %X, A: %X, fetch(): %X\n", opcode, A, mmu.Read(PC));
+  }
   switch (opcode) {
     case 0x00:
       BrkImplied();
       break;
     case 0x01:
       OraIndirectX();
+      break;
+    case 0x04:
+      ZeroPage();
       break;
     case 0x05:
       OraZeroPage();
@@ -92,6 +98,9 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0x0A:
       AslAccumulator();
       break;
+    case 0x0C:
+      Absolute();
+      break;
     case 0x0D:
       OraAbsolute();
       break;
@@ -104,6 +113,9 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0x11:
       OraIndirectY();
       break;
+    case 0x14:
+      ZeroPageX();
+      break;
     case 0x15:
       OraZeroPageX();
       break;
@@ -115,6 +127,9 @@ void Cpu::DecodeExecute(uint8_t opcode) {
       break;
     case 0x19:
       OraAbsoluteY();
+      break;
+    case 0x1C:
+      AbsoluteX();
       break;
     case 0x1D:
       OraAbsoluteX();
@@ -161,6 +176,9 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0x31:
       AndIndirectY();
       break;
+    case 0x34:
+      ZeroPageX();
+      break;
     case 0x35:
       AndZeroPageX();
       break;
@@ -173,6 +191,9 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0x39:
       AndAbsoluteY();
       break;
+    case 0x3C:
+      AbsoluteX();
+      break;
     case 0x3D:
       AndAbsoluteX();
       break;
@@ -184,6 +205,9 @@ void Cpu::DecodeExecute(uint8_t opcode) {
       break;
     case 0x41:
       EorIndirectX();
+      break;
+    case 0x44:
+      ZeroPage();
       break;
     case 0x45:
       EorZeroPage();
@@ -215,6 +239,9 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0x51:
       EorIndirectY();
       break;
+    case 0x54:
+      ZeroPageX();
+      break;
     case 0x55:
       EorZeroPageX();
       break;
@@ -227,6 +254,9 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0x59:
       EorAbsoluteY();
       break;
+    case 0x5C:
+      AbsoluteX();
+      break;
     case 0x5D:
       EorAbsoluteX();
       break;
@@ -238,6 +268,9 @@ void Cpu::DecodeExecute(uint8_t opcode) {
       break;
     case 0x61:
       AdcIndirectX();
+      break;
+    case 0x64:
+      ZeroPage();
       break;
     case 0x65:
       AdcZeroPage();
@@ -269,6 +302,9 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0x71:
       AdcIndirectY();
       break;
+    case 0x74:
+      ZeroPageX();
+      break;
     case 0x75:
       AdcZeroPageX();
       break;
@@ -281,14 +317,23 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0x79:
       AdcAbsoluteY();
       break;
+    case 0x7C:
+      AbsoluteX();
+      break;
     case 0x7D:
       AdcAbsoluteX();
       break;
     case 0x7E:
       RorAbsoluteX();
       break;
+    case 0x80:
+      Fetch();
+      break;
     case 0x81:
       StaIndirectX();
+      break;
+    case 0x82:
+      Fetch();
       break;
     case 0x84:
       StyZeroPage();
@@ -301,6 +346,9 @@ void Cpu::DecodeExecute(uint8_t opcode) {
       break;
     case 0x88:
       DeyImplied();
+      break;
+    case 0x89:
+      Fetch();
       break;
     case 0x8A:
       TxaImplied();
@@ -416,6 +464,9 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0xC1:
       CmpIndirectX();
       break;
+    case 0xC2:
+      Fetch();
+      break;
     case 0xC4:
       CpyZeroPage();
       break;
@@ -449,6 +500,9 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0xD1:
       CmpIndirectY();
       break;
+    case 0xD4:
+      ZeroPageX();
+      break;
     case 0xD5:
       CmpZeroPageX();
       break;
@@ -461,6 +515,9 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0xD9:
       CmpAbsoluteY();
       break;
+    case 0xDC:
+      AbsoluteX();
+      break;
     case 0xDD:
       CmpAbsoluteX();
       break;
@@ -472,6 +529,9 @@ void Cpu::DecodeExecute(uint8_t opcode) {
       break;
     case 0xE1:
       SbcIndirectX();
+      break;
+    case 0xE2:
+      Fetch();
       break;
     case 0xE4:
       CpxZeroPage();
@@ -506,6 +566,9 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0xF1:
       SbcIndirectY();
       break;
+    case 0xF4:
+      ZeroPageX();
+      break;
     case 0xF5:
       SbcZeroPageX();
       break;
@@ -517,6 +580,9 @@ void Cpu::DecodeExecute(uint8_t opcode) {
       break;
     case 0xF9:
       SbcAbsoluteY();
+      break;
+    case 0xFC:
+      AbsoluteX();
       break;
     case 0xFD:
       SbcAbsoluteX();
@@ -550,12 +616,14 @@ uint16_t Cpu::IndirectY() {
 
 uint16_t Cpu::ZeroPageX() {
   uint16_t addr = static_cast<uint16_t>(Fetch());
-  return ReadMemory(addr) + static_cast<uint16_t>(X);
+  ReadMemory(addr);
+  return (addr + static_cast<uint16_t>(X)) & 0xFF;
 }
 
 uint16_t Cpu::ZeroPageY() {
   uint16_t addr = static_cast<uint16_t>(Fetch());
-  return ReadMemory(addr) + static_cast<uint16_t>(Y);
+  ReadMemory(addr);
+  return (addr + static_cast<uint16_t>(Y)) & 0xFF;
 }
 
 uint16_t Cpu::ZeroPage() { return static_cast<uint16_t>(Fetch()); }
@@ -569,13 +637,15 @@ uint16_t Cpu::Absolute() {
 uint16_t Cpu::AbsoluteX() {
   uint16_t lo = static_cast<uint16_t>(Fetch());
   uint16_t hi = static_cast<uint16_t>(Fetch());
-  return (hi << 8) | ((lo + X) & 0xFF);
+  // return (hi << 8) | ((lo + X) & 0xFF);
+  return ((hi << 8) | lo) + static_cast<uint16_t>(X);
 }
 
 uint16_t Cpu::AbsoluteY() {
   uint16_t lo = static_cast<uint16_t>(Fetch());
   uint16_t hi = static_cast<uint16_t>(Fetch());
-  return (hi << 8) | ((lo + Y) & 0xFF);
+  // return (hi << 8) | ((lo + Y) & 0xFF);
+  return ((hi << 8) | lo) + static_cast<uint16_t>(Y);
 }
 
 /******************************************************************
@@ -606,9 +676,6 @@ void Cpu::LdaAbsolute() {
 
 void Cpu::LdaAbsoluteX() {
   uint16_t addr = AbsoluteX();
-  if (addr > 0xFF) {
-    AddCycles(1);
-  }
   A = ReadMemory(addr);
   UpdateNZ(A);
 }
@@ -623,11 +690,6 @@ void Cpu::LdaAbsoluteY() {
 }
 
 void Cpu::LdaIndirectX() {
-  // uint16_t indirect_addr = static_cast<uint16_t>(Fetch() + X);
-  // AddCycles(1);
-  // uint16_t lo = static_cast<uint16_t>(ReadMemory(indirect_addr));
-  // uint16_t hi = static_cast<uint16_t>(ReadMemory(indirect_addr + 1));
-  // uint16_t addr = (hi << 8) | lo;
   uint16_t addr = IndirectX();
   A = ReadMemory(addr);
   UpdateNZ(A);
@@ -649,27 +711,25 @@ void Cpu::LdxImmediate() {
 
 void Cpu::LdxZeroPage() {
   uint16_t addr = ZeroPage();
-  X = ReadMemory(addr);
-  UpdateNZ(X);
+  Ldx(addr);
 }
 
 void Cpu::LdxZeroPageY() {
   uint16_t addr = ZeroPageY();
-  X = ReadMemory(addr);
-  UpdateNZ(X);
+  Ldx(addr);
 }
 
 void Cpu::LdxAbsolute() {
   uint16_t addr = Absolute();
-  X = ReadMemory(addr);
-  UpdateNZ(X);
+  Ldx(addr);
 }
 
 void Cpu::LdxAbsoluteY() {
   uint16_t addr = AbsoluteY();
-  if (addr > 0xFF) {
-    AddCycles(1);
-  }
+  Ldx(addr);
+}
+
+void Cpu::Ldx(uint16_t addr) {
   X = ReadMemory(addr);
   UpdateNZ(X);
 }
@@ -684,28 +744,25 @@ void Cpu::LdyImmediate() {
 
 void Cpu::LdyZeroPage() {
   uint16_t addr = ZeroPage();
-  Y = ReadMemory(addr);
-  UpdateNZ(Y);
+  Ldy(addr);
 }
 
 void Cpu::LdyZeroPageX() {
-  uint16_t addr = static_cast<uint16_t>(Fetch() + X);
-  AddCycles(1);
-  Y = ReadMemory(addr);
-  UpdateNZ(Y);
+  uint16_t addr = ZeroPageX();
+  Ldy(addr);
 }
 
 void Cpu::LdyAbsolute() {
   uint16_t addr = Absolute();
-  Y = ReadMemory(addr);
-  UpdateNZ(Y);
+  Ldy(addr);
 }
 
 void Cpu::LdyAbsoluteX() {
   uint16_t addr = AbsoluteX();
-  if (addr > 0xFF) {
-    AddCycles(1);
-  }
+  Ldy(addr);
+}
+
+void Cpu::Ldy(uint16_t addr) {
   Y = ReadMemory(addr);
   UpdateNZ(Y);
 }
@@ -719,8 +776,7 @@ void Cpu::StaZeroPage() {
 }
 
 void Cpu::StaZeroPageX() {
-  uint16_t addr = static_cast<uint16_t>(Fetch() + X);
-  AddCycles(1);
+  uint16_t addr = ZeroPageX();
   WriteMemory(addr, A);
 }
 
@@ -766,8 +822,7 @@ void Cpu::StxZeroPage() {
 }
 
 void Cpu::StxZeroPageY() {
-  uint16_t addr = static_cast<uint16_t>(Fetch() + Y);
-  AddCycles(1);
+  uint16_t addr = ZeroPageY();
   WriteMemory(addr, X);
 }
 
@@ -785,8 +840,7 @@ void Cpu::StyZeroPage() {
 }
 
 void Cpu::StyZeroPageX() {
-  uint16_t addr = static_cast<uint16_t>(Fetch() + X);
-  AddCycles(1);
+  uint16_t addr = ZeroPageX();
   WriteMemory(addr, Y);
 }
 
@@ -899,40 +953,6 @@ void Cpu::PlpImplied() {
 /******************************************************************
   DEC
 ******************************************************************/
-// void Cpu::DecZeroPage() {
-//   uint16_t addr = ZeroPage();
-//   uint8_t value = ReadMemory(addr) - 1;
-//   AddCycles(1);
-//   WriteMemory(addr, value);
-//   UpdateNZ(value);
-// }
-
-// void Cpu::DecZeroPageX() {
-//   uint16_t addr = static_cast<uint16_t>(Fetch() + X);
-//   AddCycles(1);
-//   uint8_t value = ReadMemory(addr) - 1;
-//   AddCycles(1);
-//   WriteMemory(addr, value);
-//   UpdateNZ(value);
-// }
-
-// void Cpu::DecAbsolute() {
-//   uint16_t addr = Absolute();
-//   uint8_t value = ReadMemory(addr) - 1;
-//   AddCycles(1);
-//   WriteMemory(addr, value);
-//   UpdateNZ(value);
-// }
-
-// void Cpu::DecAbsoluteX() {
-//   uint16_t addr = AbsoluteX();
-//   AddCycles(1);
-//   uint8_t value = ReadMemory(addr) - 1;
-//   AddCycles(1);
-//   WriteMemory(addr, value);
-//   UpdateNZ(value);
-// }
-
 void Cpu::DecZeroPage() {
   uint16_t addr = ZeroPage();
   Dec(addr, ReadMemory(addr));
