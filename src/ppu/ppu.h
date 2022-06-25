@@ -72,7 +72,7 @@ class Ppu {
 
   void WritePpuAddr(uint8_t value);
 
-  uint8_t ReadPpuData(uint16_t addr);
+  uint8_t ReadPpuData();
   void WritePpuData(uint8_t value);
 
   /*****************************************************
@@ -85,6 +85,7 @@ class Ppu {
   void ReloadHorizontal();
   void IncHorizontal();
   void IncVertical();
+  void IncVram();
   void NextScanline();
 
   uint16_t CalcNametableAddr(uint8_t x);
@@ -105,10 +106,14 @@ class Ppu {
   uint64_t frame = 1;
 
   // Shift registers
-  std::deque<uint8_t> pattern_queue1;
-  std::deque<uint8_t> pattern_queue2;
-  std::deque<uint8_t> palette_queue1;
-  std::deque<uint8_t> palette_queue2;
+  // std::deque<uint8_t> pattern_queue1;
+  // std::deque<uint8_t> pattern_queue2;
+  // std::deque<uint8_t> palette_queue1;
+  // std::deque<uint8_t> palette_queue2;
+  uint16_t pattern_queue1;
+  uint16_t pattern_queue2;
+  uint16_t palette_queue1;
+  uint16_t palette_queue2;
 
   /*****************************************************
     Memory and registers
@@ -179,7 +184,7 @@ class Ppu {
   uint8_t bg_tile_low = 0x0;
   uint8_t bg_tile_high = 0x0;
   // NMI
-  bool nmi_occured = false;
+  bool nmi_pending = false;
 };
 
 }  // namespace graphics

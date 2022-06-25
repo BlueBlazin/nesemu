@@ -1,6 +1,8 @@
 #ifndef SRC_PPU_STATE_
 #define SRC_PPU_STATE_
 
+#include <iostream>
+
 namespace graphics {
 
 enum class ScanlineType {
@@ -46,6 +48,8 @@ enum class CycleType {
   SecondUnkByte0,
   SecondUnkByte1,
 };
+
+std::ostream& operator<<(std::ostream& os, const CycleType& cycle_type);
 
 enum class Toggle {
   Write1,

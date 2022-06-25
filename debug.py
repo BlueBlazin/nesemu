@@ -11,6 +11,7 @@ def debug():
                   f"Expected PC: {opcodes[i][0]}, logged: {logged[i]}. "
                   f"Bad opcode: {opcodes[i - 1][1]}")
             return
+    print("Done!")
 
 if __name__ == "__main__":
     debug()

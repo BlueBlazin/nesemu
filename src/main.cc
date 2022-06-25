@@ -18,6 +18,7 @@ int main(int argc, char *argv[]) {
   cpu.Startup();
 
   sf::RenderWindow window(sf::VideoMode(256, 240), "NESEmu");
+  window.setSize(sf::Vector2u(256 * 2, 240 * 2));
 
   sf::RenderWindow pat_table1_window(sf::VideoMode(128, 128),
                                      "Pattern Table 1");
@@ -53,18 +54,18 @@ int main(int argc, char *argv[]) {
       cpu.Tick();
     }
 
-    if (true || i % 256 == 0) {
+    texture.update(cpu.GetScreen());
+
+    if (i % 256 == 0) {
       pat_table1_texture.update(cpu.GetPatTable1());
-      pat_table1_window.draw(sf::Sprite(pat_table1_texture));
       pat_table2_texture.update(cpu.GetPatTable2());
-      pat_table2_window.draw(sf::Sprite(pat_table2_texture));
     }
 
-    // texture.update(cpu.GetScreen());
-    // sf::Sprite sprite(texture);
-    // window.draw(sprite);
+    window.draw(sf::Sprite(texture));
+    pat_table1_window.draw(sf::Sprite(pat_table1_texture));
+    pat_table2_window.draw(sf::Sprite(pat_table2_texture));
 
-    // window.display();
+    window.display();
     pat_table1_window.display();
     pat_table2_window.display();
 

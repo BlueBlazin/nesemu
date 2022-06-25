@@ -22,10 +22,9 @@ std::string to_hex(uint16_t PC) {
 Cpu::Cpu(const std::string& path) : mmu(path) { myfile.open("emu.log"); }
 
 void Cpu::Startup() {
-  // PC = static_cast<uint16_t>(mmu.Read(0xFFFC));
-  // PC |= static_cast<uint16_t>(mmu.Read(0xFFFD)) << 8;
-  // std::cout << "initial PC: " << std::hex << PC << std::endl;
-  PC = 0x0C000;
+  PC = static_cast<uint16_t>(mmu.Read(0xFFFC));
+  PC |= static_cast<uint16_t>(mmu.Read(0xFFFD)) << 8;
+  // PC = 0x0C000;
 }
 
 void Cpu::Run() {
@@ -36,20 +35,21 @@ void Cpu::Run() {
 }
 
 void Cpu::Tick() {
+  cycles++;
   myfile << to_hex(PC) << std::endl;
 
   if (mmu.InDma()) {
-    std::cout << "in dma" << std::endl;
     RunDma();
+    return;
   }
-
-  DecodeExecute(Fetch());
 
   // Check for interrupts
   if (NmiPending()) {
     std::cout << "NMI" << std::endl;
     mmu.ClearNmi();
     Interrupt(InterruptType::Nmi);
+  } else {
+    DecodeExecute(Fetch());
   }
 }
 
@@ -71,9 +71,11 @@ void Cpu::RunDma() {
 }
 
 void Cpu::DecodeExecute(uint8_t opcode) {
-  if (PC == 0xC6BD + 1) {
-    std::printf("Opcode: %X, A: %X, fetch(): %X\n", opcode, A, mmu.Read(PC));
-  }
+  // if (PC == 0xC5B7 + 1) {
+  //   std::printf("opcode: 0x%X 0x%X 0x%X\n", opcode, mmu.Read(PC),
+  //               mmu.Read(PC + 1));
+  // }
+
   switch (opcode) {
     case 0x00:
       BrkImplied();
@@ -788,13 +790,13 @@ void Cpu::StaAbsolute() {
 
 void Cpu::StaAbsoluteX() {
   uint16_t addr = AbsoluteX();
-  AddCycles(1);
+  ReadMemory(addr);
   WriteMemory(addr, A);
 }
 
 void Cpu::StaAbsoluteY() {
   uint16_t addr = AbsoluteY();
-  AddCycles(1);
+  ReadMemory(addr);
   WriteMemory(addr, A);
 }
 

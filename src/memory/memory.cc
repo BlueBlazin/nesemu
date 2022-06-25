@@ -1,6 +1,7 @@
 #include "memory.h"
 
 #include <cstdint>
+#include <cstdio>
 #include <memory>
 
 #include "src/mappers/ines.h"
@@ -56,13 +57,16 @@ uint8_t Memory::Read(uint16_t addr) {
   if (addr <= 0x1FFF) {
     return ram[addr % 0x800];
   } else if (addr <= 0x2007) {
+    // std::printf("read addr: 0x%X\n", addr);
     return ppu.Read(addr);
   } else if (addr <= 0x3FFF) {
     return ppu.Read(0x2000 | ((addr - 0x2000) & 0x7));
   } else if (addr <= 0x4017) {
     // TODO
+    return 0x00;
   } else if (addr <= 0x401F) {
     // TODO
+    return 0x00;
   } else if (addr <= 0xFFFF) {
     return cartridge->CpuRead(addr);
   } else {
@@ -71,12 +75,10 @@ uint8_t Memory::Read(uint16_t addr) {
 }
 
 void Memory::Write(uint16_t addr, uint8_t value) {
-  // std::cout << "write to: " << (unsigned int)addr
-  //           << ", value: " << (unsigned int)value << std::endl;
-
   if (addr <= 0x1FFF) {
     ram[addr % 0x800] = value;
   } else if (addr <= 0x2007) {
+    // std::printf("write addr: 0x%X\n", addr);
     ppu.Write(addr, value);
   } else if (addr <= 0x3FFF) {
     return ppu.Write(0x2000 | ((addr - 0x2000) & 0x7), value);

@@ -316,7 +316,6 @@ class Cpu {
   /* Flags (processor status) */
   bool flag_N = false;
   bool flag_V = false;
-  /* bool flag_B = true; not a real flag */
   bool flag_D = false;
   bool flag_I = true;
   bool flag_Z = false;
