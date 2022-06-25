@@ -43,8 +43,6 @@ void Cpu::Tick() {
     RunDma();
   }
 
-  // std::cout << "PC: 0x" << std::hex << PC << std::endl;
-  // std::printf("0x02: %X, 0x03: %X\n", mmu.Read(0x02), mmu.Read(0x03));
   DecodeExecute(Fetch());
 
   // Check for interrupts
@@ -56,6 +54,9 @@ void Cpu::Tick() {
 }
 
 uint8_t* Cpu::GetScreen() { return mmu.GetScreen(); }
+
+uint8_t* Cpu::GetPatTable1() { return mmu.GetPatTable1(); }
+uint8_t* Cpu::GetPatTable2() { return mmu.GetPatTable2(); }
 
 void Cpu::RunDma() {
   if (dma_state == DmaState::PreDma) {
@@ -637,14 +638,14 @@ uint16_t Cpu::Absolute() {
 uint16_t Cpu::AbsoluteX() {
   uint16_t lo = static_cast<uint16_t>(Fetch());
   uint16_t hi = static_cast<uint16_t>(Fetch());
-  // return (hi << 8) | ((lo + X) & 0xFF);
+
   return ((hi << 8) | lo) + static_cast<uint16_t>(X);
 }
 
 uint16_t Cpu::AbsoluteY() {
   uint16_t lo = static_cast<uint16_t>(Fetch());
   uint16_t hi = static_cast<uint16_t>(Fetch());
-  // return (hi << 8) | ((lo + Y) & 0xFF);
+
   return ((hi << 8) | lo) + static_cast<uint16_t>(Y);
 }
 
@@ -798,11 +799,6 @@ void Cpu::StaAbsoluteY() {
 }
 
 void Cpu::StaIndirectX() {
-  // uint16_t indirect_addr = static_cast<uint16_t>(Fetch() + X);
-  // AddCycles(1);
-  // uint16_t lo = static_cast<uint16_t>(ReadMemory(indirect_addr));
-  // uint16_t hi = static_cast<uint16_t>(ReadMemory(indirect_addr + 1));
-  // uint16_t addr = (hi << 8) | lo;
   uint16_t addr = IndirectX();
   WriteMemory(addr, A);
 }
@@ -1082,11 +1078,6 @@ void Cpu::AdcAbsoluteY() {
 }
 
 void Cpu::AdcIndirectX() {
-  // uint16_t indirect_addr = static_cast<uint16_t>(Fetch() + X);
-  // AddCycles(1);
-  // uint16_t lo = static_cast<uint16_t>(ReadMemory(indirect_addr));
-  // uint16_t hi = static_cast<uint16_t>(ReadMemory(indirect_addr + 1));
-  // uint16_t addr = (hi << 8) | lo;
   uint16_t addr = IndirectX();
   Adc(ReadMemory(addr));
 }
@@ -1146,11 +1137,6 @@ void Cpu::SbcAbsoluteY() {
 }
 
 void Cpu::SbcIndirectX() {
-  // uint16_t indirect_addr = static_cast<uint16_t>(Fetch() + X);
-  // AddCycles(1);
-  // uint16_t lo = static_cast<uint16_t>(ReadMemory(indirect_addr));
-  // uint16_t hi = static_cast<uint16_t>(ReadMemory(indirect_addr + 1));
-  // uint16_t addr = (hi << 8) | lo;
   uint16_t addr = IndirectX();
   Sbc(ReadMemory(addr));
 }
@@ -1160,10 +1146,7 @@ void Cpu::SbcIndirectY() {
   Sbc(ReadMemory(addr));
 }
 
-void Cpu::Sbc(uint8_t value) {
-  // flag_C = true;
-  Cpu::Adc(value ^ 0xFF);
-}
+void Cpu::Sbc(uint8_t value) { Cpu::Adc(value ^ 0xFF); }
 
 /******************************************************************
   AND
@@ -1198,11 +1181,6 @@ void Cpu::AndAbsoluteY() {
 }
 
 void Cpu::AndIndirectX() {
-  // uint16_t indirect_addr = static_cast<uint16_t>(Fetch() + X);
-  // AddCycles(1);
-  // uint16_t lo = static_cast<uint16_t>(ReadMemory(indirect_addr));
-  // uint16_t hi = static_cast<uint16_t>(ReadMemory(indirect_addr + 1));
-  // uint16_t addr = (hi << 8) | lo;
   uint16_t addr = IndirectX();
   And(ReadMemory(addr));
 }
@@ -1250,11 +1228,6 @@ void Cpu::EorAbsoluteY() {
 }
 
 void Cpu::EorIndirectX() {
-  // uint16_t indirect_addr = static_cast<uint16_t>(Fetch() + X);
-  // AddCycles(1);
-  // uint16_t lo = static_cast<uint16_t>(ReadMemory(indirect_addr));
-  // uint16_t hi = static_cast<uint16_t>(ReadMemory(indirect_addr + 1));
-  // uint16_t addr = (hi << 8) | lo;
   uint16_t addr = IndirectX();
   Eor(ReadMemory(addr));
 }
@@ -1302,11 +1275,6 @@ void Cpu::OraAbsoluteY() {
 }
 
 void Cpu::OraIndirectX() {
-  // uint16_t indirect_addr = static_cast<uint16_t>(Fetch() + X);
-  // AddCycles(1);
-  // uint16_t lo = static_cast<uint16_t>(ReadMemory(indirect_addr));
-  // uint16_t hi = static_cast<uint16_t>(ReadMemory(indirect_addr + 1));
-  // uint16_t addr = (hi << 8) | lo;
   uint16_t addr = IndirectX();
   Ora(ReadMemory(addr));
 }
@@ -1634,7 +1602,6 @@ void Cpu::JsrAbsolute() {
   AddCycles(1);
   Push(static_cast<uint8_t>((PC >> 8) & 0xFF));
   Push(static_cast<uint8_t>(PC & 0xFF));
-  // PC = lo;
   PC = (static_cast<uint16_t>(Fetch()) << 8) | lo;
 }
 
@@ -1656,7 +1623,7 @@ void Cpu::BrkImplied() {
   Fetch();
   uint8_t lo = static_cast<uint8_t>(PC & 0xFF);
   uint8_t hi = static_cast<uint8_t>((PC >> 8) & 0xFF);
-  // flag_B = true;
+
   Push(hi);
   Push(lo);
   uint8_t SR = (static_cast<uint8_t>(flag_N) << 7) |

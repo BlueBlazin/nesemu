@@ -16,6 +16,9 @@ namespace graphics {
 constexpr int SCREEN_WIDTH = 256;
 constexpr int SCREEN_HEIGHT = 240;
 constexpr int SCREEN_CHANNELS = 4;
+constexpr int PAT_TABLE_WIDTH = 128;
+constexpr int PAT_TABLE_SIZE =
+    PAT_TABLE_WIDTH * PAT_TABLE_WIDTH * SCREEN_CHANNELS;
 
 class Ppu {
  public:
@@ -29,7 +32,13 @@ class Ppu {
   uint8_t Read(uint16_t addr);
   void Write(uint16_t addr, uint8_t value);
 
+  void UpdatePatternTable(uint16_t table_offset = 0);
+
+  // std::array<uint8_t, PAT_TABLE_SIZE> GetPatternTable2();
+
   std::array<uint8_t, SCREEN_HEIGHT * SCREEN_WIDTH * SCREEN_CHANNELS> screen;
+  std::array<uint8_t, PAT_TABLE_SIZE> pat_table1;
+  std::array<uint8_t, PAT_TABLE_SIZE> pat_table2;
 
  private:
   std::shared_ptr<mappers::Mapper> cartridge;

@@ -31,6 +31,8 @@ class Cpu {
   void Tick();
 
   uint8_t* GetScreen();
+  uint8_t* GetPatTable1();
+  uint8_t* GetPatTable2();
   std::ofstream myfile;
 
  private:

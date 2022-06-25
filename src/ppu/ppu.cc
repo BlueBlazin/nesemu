@@ -1,5 +1,6 @@
 #include "ppu.h"
 
+#include <array>
 #include <cstdint>
 #include <deque>
 #include <iostream>
@@ -20,10 +21,43 @@ Ppu::Ppu(std::shared_ptr<mappers::Mapper> mapper)
       palette_queue2(),
       palette_ram_idxs(),
       obj_attr_memory(),
-      secondary_oam() {
+      secondary_oam(),
+      pat_table1() {
   // Initialize screen
   for (int i = 0; i < SCREEN_HEIGHT * SCREEN_WIDTH * SCREEN_CHANNELS; i++) {
     screen[i] = 0x00;
+  }
+}
+
+void Ppu::UpdatePatternTable(uint16_t table_offset) {
+  auto& pat_table = table_offset == 0 ? pat_table1 : pat_table2;
+
+  for (int tile = 0; tile < 256; tile++) {
+    int offset = tile * 16;  // because 16 bytes form 1 tile
+
+    for (int i = 0; i < 8; i++) {
+      uint8_t row_lo = ReadVram(table_offset + offset + i);
+      // the high byte for a row is offset by 8 bytes from the low byte
+      uint8_t row_hi = ReadVram(table_offset + offset + i + 8);
+
+      for (int j = 0; j < 8; j++) {
+        uint8_t col_lo = (row_lo >> (7 - j)) & 0x1;
+        uint8_t col_hi = (row_hi >> (7 - j)) & 0x1;
+        uint8_t value = ((col_hi << 1) | col_lo) * 85;  // 85 == 255 / 3
+
+        int coarse_x = (tile * 8) % PAT_TABLE_WIDTH;
+        int coarse_y = 8 * ((tile * 8) / PAT_TABLE_WIDTH);
+
+        int x = coarse_x + j;
+        int y = coarse_y + i;
+
+        int idx = (y * PAT_TABLE_WIDTH + x) * SCREEN_CHANNELS;
+        pat_table[idx] = value;
+        pat_table[idx + 1] = value;
+        pat_table[idx + 2] = value;
+        pat_table[idx + 3] = 0xFF;
+      }
+    }
   }
 }
 

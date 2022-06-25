@@ -36,6 +36,16 @@ void Memory::DmaTick() {
 
 uint8_t* Memory::GetScreen() { return ppu.screen.data(); }
 
+uint8_t* Memory::GetPatTable1() {
+  ppu.UpdatePatternTable();
+  return ppu.pat_table1.data();
+}
+
+uint8_t* Memory::GetPatTable2() {
+  ppu.UpdatePatternTable(0x1000);
+  return ppu.pat_table2.data();
+}
+
 bool Memory::NmiPending() { return ppu.NmiOccured(); }
 
 void Memory::ClearNmi() { ppu.ClearNmi(); }

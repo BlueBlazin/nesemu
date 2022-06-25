@@ -25,6 +25,8 @@ class Memory {
   void DmaTick();
 
   uint8_t* GetScreen();
+  uint8_t* GetPatTable1();
+  uint8_t* GetPatTable2();
 
   uint8_t Read(uint16_t addr);
   void Write(uint16_t addr, uint8_t value);
