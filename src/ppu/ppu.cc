@@ -60,15 +60,11 @@ void Ppu::PixelTick() {
     return;
   }
 
-  if (line == 261) {
-    pattern_queue1 = pattern_queue1 << 1;
-    pattern_queue2 = pattern_queue2 << 1;
-    return;
-  }
-
-  if (dot == 0 || dot > 256 || line > 239) {
-    return;
-  }
+  // if (line == 261) {
+  //   pattern_queue1 = pattern_queue1 << 1;
+  //   pattern_queue2 = pattern_queue2 << 1;
+  //   return;
+  // }
 
   // uint8_t bg_lo = static_cast<uint8_t>(
   //     static_cast<bool>(pattern_queue1 & (0x8000 >> reg_X)));
@@ -82,7 +78,7 @@ void Ppu::PixelTick() {
   pattern_queue1 = pattern_queue1 << 1;
   pattern_queue2 = pattern_queue2 << 1;
 
-  if (!show_bg) {
+  if (dot == 0 || dot > 256 || line > 239 || !show_bg) {
     return;
   }
 
@@ -114,12 +110,10 @@ void Ppu::DataFetcherTick() {
 }
 
 void Ppu::VisibleOrPrerenderTick() {
-  // if (Disabled()) {
-  //   // PPU disabled, don't do anything
-  //   return;
-  // }
-
-  // std::cout << "Cycle type: " << cycle_type << std::endl;
+  if (Disabled()) {
+    // PPU disabled, don't do anything
+    return;
+  }
 
   switch (cycle_type) {
     /* Cycle/Dot 0 */
@@ -197,10 +191,14 @@ void Ppu::VisibleOrPrerenderTick() {
         }
         cycle_type = CycleType::GarbageByte0;
       } else if (dot == 336) {
-        IncHorizontal();
+        if (!Disabled()) {
+          IncHorizontal();
+        }
         cycle_type = CycleType::FirstUnkByte0;
       } else {
-        IncHorizontal();
+        if (!Disabled()) {
+          IncHorizontal();
+        }
         cycle_type = CycleType::NametableByte0;
       }
       return;
@@ -376,8 +374,6 @@ void Ppu::NextScanline() {
   } else if (line == 240) {
     scanline_type = ScanlineType::PostRender;
   } else if (line == 241) {
-    pattern_queue1 = 0x0000;
-    pattern_queue2 = 0x0000;
     scanline_type = ScanlineType::VBlank;
   } else if (line == 261) {
     scanline_type = ScanlineType::PreRender;
