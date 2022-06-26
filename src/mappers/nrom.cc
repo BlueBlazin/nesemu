@@ -112,7 +112,7 @@ uint8_t Nrom::PpuRead(uint16_t addr) {
 
 void Nrom::PpuWrite(uint16_t addr, uint8_t value) {
   if (addr <= 0x1FFF) {
-    // chr_rxm[addr] = value;
+    chr_rxm[addr] = value;
   } else if (addr <= 0x2FFF) {
     VramWrite(addr, value);
   } else {
@@ -121,81 +121,57 @@ void Nrom::PpuWrite(uint16_t addr, uint8_t value) {
 }
 
 uint8_t Nrom::VramRead(uint16_t addr) {
-  if (addr <= 0x23FF) {
-    // nametable at 0x2000
-    return vram[addr - 0x2000];
-  } else if (addr <= 0x27FF) {
-    // nametable at 0x2400
-    switch (mirroring) {
-      case graphics::Mirroring::Horizontal:
-        return vram[addr - 0x2400];
-      default:
-        return vram[addr - 0x2000];
+  switch (mirroring) {
+    case graphics::Mirroring::Horizontal: {
+      if (addr < 0x2400) {
+        return vram[addr - 0x2000 + 0x0000];
+      } else if (addr < 0x2800) {
+        return vram[addr - 0x2400 + 0x0000];
+      } else if (addr < 0x2C00) {
+        return vram[addr - 0x2800 + 0x0400];
+      } else {
+        return vram[addr - 0x2C00 + 0x0400];
+      }
     }
-  } else if (addr <= 0x2BFF) {
-    // nametable at 0x2800
-    switch (mirroring) {
-      case graphics::Mirroring::Horizontal:
-        return vram[addr - 0x2400];
-      default:
-        return vram[addr - 0x2800];
-    }
-  } else if (addr <= 0x2FFF) {
-    // nametable at 0x2C00
-    switch (mirroring) {
-      case graphics::Mirroring::Horizontal:
-        return vram[addr - 0x2400];
-      default:
-        return vram[addr - 0x2800];
+    case graphics::Mirroring::Vertical: {
+      if (addr < 0x2400) {
+        return vram[addr - 0x2000 + 0x0000];
+      } else if (addr < 0x2800) {
+        return vram[addr - 0x2400 + 0x0400];
+      } else if (addr < 0x2C00) {
+        return vram[addr - 0x2800 + 0x0000];
+      } else {
+        return vram[addr - 0x2C00 + 0x0400];
+      }
     }
   }
 }
-
-// uint8_t Nrom::VramRead(uint16_t addr) {
-//   if (addr <= 0x27FF) {
-//     return vram[addr - 0x2000];
-//   } else {
-//     return 0x00;
-//   }
-// }
 
 void Nrom::VramWrite(uint16_t addr, uint8_t value) {
-  if (addr <= 0x23FF) {
-    // nametable at 0x2000
-    vram[addr - 0x2000] = value;
-  } else if (addr <= 0x27FF) {
-    // nametable at 0x2400
-    switch (mirroring) {
-      case graphics::Mirroring::Horizontal:
-        vram[addr - 0x2400] = value;
-      default:
-        vram[addr - 0x2000] = value;
+  switch (mirroring) {
+    case graphics::Mirroring::Horizontal: {
+      if (addr < 0x2400) {
+        vram[addr - 0x2000 + 0x0000] = value;
+      } else if (addr < 0x2800) {
+        vram[addr - 0x2400 + 0x0000] = value;
+      } else if (addr < 0x2C00) {
+        vram[addr - 0x2800 + 0x0400] = value;
+      } else {
+        vram[addr - 0x2C00 + 0x0400] = value;
+      }
     }
-  } else if (addr <= 0x2BFF) {
-    // nametable at 0x2800
-    switch (mirroring) {
-      case graphics::Mirroring::Horizontal:
-        vram[addr - 0x2400] = value;
-      default:
-        vram[addr - 0x2800] = value;
-    }
-  } else if (addr <= 0x2FFF) {
-    // nametable at 0x2C00
-    switch (mirroring) {
-      case graphics::Mirroring::Horizontal:
-        vram[addr - 0x2400] = value;
-      default:
-        vram[addr - 0x2800] = value;
+    case graphics::Mirroring::Vertical: {
+      if (addr < 0x2400) {
+        vram[addr - 0x2000 + 0x0000] = value;
+      } else if (addr < 0x2800) {
+        vram[addr - 0x2400 + 0x0400] = value;
+      } else if (addr < 0x2C00) {
+        vram[addr - 0x2800 + 0x0000] = value;
+      } else {
+        vram[addr - 0x2C00 + 0x0400] = value;
+      }
     }
   }
 }
-
-// void Nrom::VramWrite(uint16_t addr, uint8_t value) {
-//   if (addr <= 0x27FF) {
-//     vram[addr - 0x2000] = value;
-//   } else {
-//     throw "error";
-//   }
-// }
 
 }  // namespace mappers

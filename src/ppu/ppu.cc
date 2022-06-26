@@ -1,6 +1,7 @@
 #include "ppu.h"
 
 #include <array>
+#include <bitset>
 #include <cstdint>
 #include <cstdio>
 #include <deque>
@@ -30,76 +31,16 @@ Ppu::Ppu(std::shared_ptr<mappers::Mapper> mapper)
   for (int i = 0; i < SCREEN_HEIGHT * SCREEN_WIDTH * SCREEN_CHANNELS; i++) {
     screen[i] = 0x00;
   }
-}
 
-void Ppu::UpdatePatternTable(uint16_t table_offset) {
-  auto& pat_table = table_offset == 0 ? pat_table1 : pat_table2;
-
-  for (int tile = 0; tile < 256; tile++) {
-    int offset = tile * 16;  // because 16 bytes form 1 tile
-
-    for (int i = 0; i < 8; i++) {
-      uint8_t row_lo = ReadVram(table_offset + offset + i);
-      // the high byte for a row is offset by 8 bytes from the low byte
-      uint8_t row_hi = ReadVram(table_offset + offset + i + 8);
-
-      for (int j = 0; j < 8; j++) {
-        uint8_t col_lo = (row_lo >> (7 - j)) & 0x1;
-        uint8_t col_hi = (row_hi >> (7 - j)) & 0x1;
-        uint8_t value = ((col_hi << 1) | col_lo) * 85;  // 85 == 255 / 3
-
-        int coarse_x = (tile * 8) % PAT_TABLE_WIDTH;
-        int coarse_y = 8 * ((tile * 8) / PAT_TABLE_WIDTH);
-
-        int x = coarse_x + j;
-        int y = coarse_y + i;
-
-        int idx = (y * PAT_TABLE_WIDTH + x) * SCREEN_CHANNELS;
-        pat_table[idx + 0] = value;
-        pat_table[idx + 1] = value;
-        pat_table[idx + 2] = value;
-        pat_table[idx + 3] = 0xFF;
-      }
-    }
-  }
-}
-
-void Ppu::UpdateNametable() {
-  // pattern table at 0x0000 or 0x1000
-  uint16_t table_offset = pattern_table_addr == 0 ? 0x0000 : 0x1000;
-
-  for (int byte = 0; byte < NAMETABLE_ROWS * NAMETABLE_COLS; byte++) {
-    // pattern table index
-    uint8_t offset = ReadVram(0x2000 + byte);
-    uint16_t pattern_addr = offset * 16;
-
-    for (int i = 0; i < 8; i++) {
-      uint8_t row_lo = ReadVram(table_offset + pattern_addr + i);
-      uint8_t row_hi = ReadVram(table_offset + pattern_addr + i + 8);
-
-      for (int j = 0; j < 8; j++) {
-        uint8_t col_lo = (row_lo >> (7 - j)) & 0x1;
-        uint8_t col_hi = (row_hi >> (7 - j)) & 0x1;
-        uint8_t value = ((col_hi << 1) | col_lo) * 85;  // 85 == 255 / 3
-
-        int coarse_x = 8 * (byte % NAMETABLE_COLS);
-        int coarse_y = 8 * (byte / NAMETABLE_COLS);
-
-        int x = coarse_x + j;
-        int y = coarse_y + i;
-
-        int idx = (y * SCREEN_WIDTH + x) * SCREEN_CHANNELS;
-        nametable1[idx + 0] = value;
-        nametable1[idx + 1] = value;
-        nametable1[idx + 2] = value;
-        nametable1[idx + 3] = 0xFF;
-      }
-    }
-  }
+  myfile.open("ppu.log");
 }
 
 void Ppu::Tick(uint64_t cycles) {
   while (cycles > 0) {
+    // myfile << "frame: " << frame << ", line: " << line << ", dot: " << dot
+    //        << ", scanline_type: " << scanline_type
+    //        << ", cycle_type: " << cycle_type << std::endl;
+
     PixelTick();
     DataFetcherTick();
     SpriteEvalTick();
@@ -114,6 +55,11 @@ void Ppu::SpriteEvalTick() {
 }
 
 void Ppu::PixelTick() {
+  if (Disabled()) {
+    // PPU is disabled, don't shift pixels
+    return;
+  }
+
   if (line == 261) {
     pattern_queue1 = pattern_queue1 << 1;
     pattern_queue2 = pattern_queue2 << 1;
@@ -124,13 +70,27 @@ void Ppu::PixelTick() {
     return;
   }
 
-  uint8_t bg_lo = static_cast<uint8_t>(pattern_queue1 & (0x8000 >> reg_X));
-  uint8_t bg_hi = static_cast<uint8_t>(pattern_queue2 & (0x8000 >> reg_X));
+  // uint8_t bg_lo = static_cast<uint8_t>(
+  //     static_cast<bool>(pattern_queue1 & (0x8000 >> reg_X)));
+  // uint8_t bg_hi = static_cast<uint8_t>(
+  //     static_cast<bool>(pattern_queue2 & (0x8000 >> reg_X)));
 
+  // get correct bits using fine X scroll
+  uint8_t bg_lo = static_cast<uint8_t>(pattern_queue1 >> (15 - reg_X));
+  uint8_t bg_hi = static_cast<uint8_t>(pattern_queue2 >> (15 - reg_X));
+  // shift bits to the left by 1
   pattern_queue1 = pattern_queue1 << 1;
   pattern_queue2 = pattern_queue2 << 1;
 
+  if (!show_bg) {
+    return;
+  }
+
   uint8_t bg = (bg_hi << 1) | bg_lo;
+
+  if (bg == 0) {
+    return;
+  }
 
   int idx = (line * SCREEN_WIDTH + dot) * SCREEN_CHANNELS;
 
@@ -154,7 +114,12 @@ void Ppu::DataFetcherTick() {
 }
 
 void Ppu::VisibleOrPrerenderTick() {
-  std::cout << "Cycle type: " << cycle_type << std::endl;
+  // if (Disabled()) {
+  //   // PPU disabled, don't do anything
+  //   return;
+  // }
+
+  // std::cout << "Cycle type: " << cycle_type << std::endl;
 
   switch (cycle_type) {
     /* Cycle/Dot 0 */
@@ -166,12 +131,6 @@ void Ppu::VisibleOrPrerenderTick() {
     /* Cycles/Dots 1-256 and 321-336 */
     /******************************************************************/
     case CycleType::NametableByte0: {
-      if (dot == 1 && scanline_type == ScanlineType::PreRender) {
-        in_vblank = false;
-        UpdateNmi();
-        sprite_overflow = false;
-        sprite0_hit = false;
-      }
       // Get tile address
       tile_addr = 0x2000 | (reg_V & 0x0FFF);
 
@@ -184,6 +143,8 @@ void Ppu::VisibleOrPrerenderTick() {
       nametable_byte = static_cast<uint16_t>(ReadVram(tile_addr));
       // std::printf("tile addr: 0x%X, nametable byte: 0x%X\n", tile_addr,
       //             nametable_byte);
+      // myfile << "tile_addr: " << std::hex << tile_addr
+      //        << ", nametable_byte: " << (char)nametable_byte << std::endl;
       cycle_type = CycleType::AttrByte0;
       return;
     }
@@ -206,7 +167,6 @@ void Ppu::VisibleOrPrerenderTick() {
     case CycleType::PatternTileLow0: {
       uint16_t fine_y = (reg_V >> 12) & 0x7;
       bg_addr = (pattern_table_addr << 12) | (nametable_byte << 4) | fine_y;
-
       cycle_type = CycleType::PatternTileLow1;
       return;
     }
@@ -232,7 +192,9 @@ void Ppu::VisibleOrPrerenderTick() {
       // increment reg_V hori(v)
       if (dot == 256) {
         // increment reg_V vert(v) at dot 256
-        IncVertical();
+        if (!Disabled()) {
+          IncVertical();
+        }
         cycle_type = CycleType::GarbageByte0;
       } else if (dot == 336) {
         IncHorizontal();
@@ -317,7 +279,7 @@ void Ppu::VisibleOrPrerenderTick() {
 
   // continuously reload vert(v) during cycles 280-304 of the pre-render line
   if (scanline_type == ScanlineType::PreRender && dot >= 280 && dot <= 304 &&
-      show_bg) {
+      !Disabled()) {
     // vert(v) := vert(t)
     ReloadVertical();
   }
@@ -330,6 +292,11 @@ void Ppu::ShiftBg() {
   // }
   pattern_queue1 |= static_cast<uint16_t>(bg_tile_low);
   pattern_queue2 |= static_cast<uint16_t>(bg_tile_high);
+
+  // if (bg_tile_low != 0 || bg_tile_high != 0) {
+  //   std::cout << "lo: " << std::bitset<8>(bg_tile_low) << std::endl;
+  //   std::cout << "hi: " << std::bitset<8>(bg_tile_high) << std::endl;
+  // }
 }
 
 void Ppu::ReloadVertical() {
@@ -344,29 +311,44 @@ void Ppu::ReloadHorizontal() {
 
 void Ppu::IncHorizontal() {
   if ((reg_V & 0x1F) == 0x1F) {
-    reg_V &= 0xFFE0;
+    // reg_V &= 0xFFE0;
+    reg_V &= ~0x001F;
     reg_V ^= 0x0400;
   } else {
     reg_V++;
   }
 }
 
-void Ppu::IncVertical() {
-  if ((reg_V & 0x7000) != 0x7000) {
-    reg_V += 0x1000;
-  } else {
-    reg_V &= ~0x7000;
-    uint16_t coarse_y = (reg_V & 0x3E0) >> 5;
-    if (coarse_y == 0x1D) {
-      coarse_y = 0;
-      reg_V ^= 0x800;
-    } else if (coarse_y == 0x1F) {
-      coarse_y = 0;
-    } else {
-      coarse_y++;
-    }
+// void Ppu::IncVertical() {
+//   if ((reg_V & 0x7000) != 0x7000) {
+//     reg_V += 0x1000;
+//   } else {
+//     reg_V &= ~0x7000;
+//     uint16_t coarse_y = (reg_V & 0x3E0) >> 5;
+//     if (coarse_y == 0x1D) {
+//       coarse_y = 0;
+//       reg_V ^= 0x800;
+//     } else if (coarse_y == 0x1F) {
+//       coarse_y = 0;
+//     } else {
+//       coarse_y++;
+//     }
 
-    reg_V = (reg_V & ~0x3E0) | (coarse_y << 5);
+//     reg_V = (reg_V & ~0x3E0) | (coarse_y << 5);
+//   }
+// }
+
+void Ppu::IncVertical() {
+  if (((reg_V >> 12) & 0x7) == 0x7) {
+    if (((reg_V >> 5) & 0x1F) == 0x1F) {
+      reg_V &= 0xC1F;
+      reg_V ^= 0x400;
+    } else {
+      reg_V &= 0xFFF;
+      reg_V += 0x20;
+    }
+  } else {
+    reg_V += 0x1000;
   }
 }
 
@@ -385,29 +367,38 @@ void Ppu::NextScanline() {
   line++;
 
   if (line == 262) {
-    frame++;
     line = 0;
+    frame++;
   }
 
   if (line == 0) {
-    cycle_type = CycleType::Cycle0;
     scanline_type = ScanlineType::Visible;
   } else if (line == 240) {
-    cycle_type = CycleType::Cycle0;
     scanline_type = ScanlineType::PostRender;
   } else if (line == 241) {
     pattern_queue1 = 0x0000;
     pattern_queue2 = 0x0000;
     scanline_type = ScanlineType::VBlank;
   } else if (line == 261) {
-    cycle_type = CycleType::Cycle0;
     scanline_type = ScanlineType::PreRender;
+  }
+
+  if (scanline_type == ScanlineType::Visible ||
+      scanline_type == ScanlineType::PreRender) {
+    // restart state machine
+    cycle_type = CycleType::Cycle0;
   }
 }
 
 void Ppu::NextDot() {
   dot++;
-  if (dot == 341) {
+
+  if (dot == 1 && scanline_type == ScanlineType::PreRender) {
+    in_vblank = false;
+    UpdateNmi();
+    sprite_overflow = false;
+    sprite0_hit = false;
+  } else if (dot == 341) {
     dot = 0;
     NextScanline();
   }
@@ -539,12 +530,12 @@ uint8_t Ppu::ReadPpuData() {
 
   if (reg_V <= 0x3EFF) {
     value = read_buffer;
-    reg_V += vram_addr_inc;
+    IncVram();
     read_buffer = ReadVram(reg_V);
   } else {
     value = ReadVram(reg_V);
     read_buffer = value;
-    reg_V += vram_addr_inc;
+    IncVram();
   }
 
   return value;
@@ -553,7 +544,7 @@ uint8_t Ppu::ReadPpuData() {
 void Ppu::WritePpuData(uint8_t value) {
   WriteVram(reg_V, value);
   // std::printf("VRAM write addr: %X\n", reg_V);
-  reg_V += vram_addr_inc;
+  IncVram();
 }
 
 uint16_t Ppu::CalcNametableAddr(uint8_t x) {

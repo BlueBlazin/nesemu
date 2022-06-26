@@ -3,6 +3,7 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 cc_library(
     name = "ppu",
     srcs = [
+        "debug.cc",
         "ppu.cc",
         "state.cc",
     ],

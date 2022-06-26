@@ -18,16 +18,18 @@ int main(int argc, char *argv[]) {
   cpu.Startup();
 
   sf::RenderWindow window(sf::VideoMode(256, 240), "NESEmu");
+  // window.setSize(sf::Vector2u(1024, 960));
   window.setSize(sf::Vector2u(256 * 2, 240 * 2));
+  window.setPosition(sf::Vector2i(1250, 400));
 
   sf::RenderWindow pat_table1_window(sf::VideoMode(128, 128),
                                      "Pattern Table 1");
-  pat_table1_window.setPosition(sf::Vector2i(300, 500));
+  pat_table1_window.setPosition(sf::Vector2i(500, 600));
   pat_table1_window.setSize(sf::Vector2u(640, 640));
 
   sf::RenderWindow pat_table2_window(sf::VideoMode(128, 128),
                                      "Pattern Table 2");
-  pat_table2_window.setPosition(sf::Vector2i(1000, 500));
+  pat_table2_window.setPosition(sf::Vector2i(500, 1400));
   pat_table2_window.setSize(sf::Vector2u(640, 640));
 
   sf::RenderWindow nametable_window(sf::VideoMode(256, 240), "Nametable");

@@ -4,6 +4,7 @@
 #include <array>
 #include <cstdint>
 #include <deque>
+#include <fstream>
 #include <memory>
 #include <queue>
 
@@ -16,6 +17,7 @@ namespace graphics {
 constexpr int SCREEN_WIDTH = 256;
 constexpr int SCREEN_HEIGHT = 240;
 constexpr int SCREEN_CHANNELS = 4;
+constexpr int SCREEN_SIZE = SCREEN_HEIGHT * SCREEN_WIDTH * SCREEN_CHANNELS;
 constexpr int PAT_TABLE_WIDTH = 128;
 constexpr int PAT_TABLE_SIZE =
     PAT_TABLE_WIDTH * PAT_TABLE_WIDTH * SCREEN_CHANNELS;
@@ -40,10 +42,13 @@ class Ppu {
 
   // std::array<uint8_t, PAT_TABLE_SIZE> GetPatternTable2();
 
-  std::array<uint8_t, SCREEN_HEIGHT * SCREEN_WIDTH * SCREEN_CHANNELS> screen;
+  std::array<uint8_t, SCREEN_SIZE> screen;
   std::array<uint8_t, PAT_TABLE_SIZE> pat_table1;
   std::array<uint8_t, PAT_TABLE_SIZE> pat_table2;
   std::array<uint8_t, NAMETABLE_SIZE> nametable1;
+
+  // TODO: DELETE THIS LATER
+  std::ofstream myfile;
 
  private:
   std::shared_ptr<mappers::Mapper> cartridge;
