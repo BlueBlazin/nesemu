@@ -5,6 +5,19 @@
 
 namespace graphics {
 
+std::ostream& operator<<(std::ostream& os, const ScanlineType& scanline_type) {
+  switch (scanline_type) {
+    case ScanlineType::PreRender:
+      return os << "PreRender";
+    case ScanlineType::Visible:
+      return os << "Visible";
+    case ScanlineType::PostRender:
+      return os << "PostRender";
+    case ScanlineType::VBlank:
+      return os << "VBlank";
+  }
+}
+
 std::ostream& operator<<(std::ostream& os, const CycleType& cycle_type) {
   switch (cycle_type) {
     case CycleType::Cycle0:

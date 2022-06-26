@@ -19,6 +19,9 @@ constexpr int SCREEN_CHANNELS = 4;
 constexpr int PAT_TABLE_WIDTH = 128;
 constexpr int PAT_TABLE_SIZE =
     PAT_TABLE_WIDTH * PAT_TABLE_WIDTH * SCREEN_CHANNELS;
+constexpr int NAMETABLE_SIZE = SCREEN_WIDTH * SCREEN_HEIGHT * SCREEN_CHANNELS;
+constexpr int NAMETABLE_ROWS = 30;
+constexpr int NAMETABLE_COLS = 32;
 
 class Ppu {
  public:
@@ -33,12 +36,14 @@ class Ppu {
   void Write(uint16_t addr, uint8_t value);
 
   void UpdatePatternTable(uint16_t table_offset = 0);
+  void UpdateNametable();
 
   // std::array<uint8_t, PAT_TABLE_SIZE> GetPatternTable2();
 
   std::array<uint8_t, SCREEN_HEIGHT * SCREEN_WIDTH * SCREEN_CHANNELS> screen;
   std::array<uint8_t, PAT_TABLE_SIZE> pat_table1;
   std::array<uint8_t, PAT_TABLE_SIZE> pat_table2;
+  std::array<uint8_t, NAMETABLE_SIZE> nametable1;
 
  private:
   std::shared_ptr<mappers::Mapper> cartridge;
@@ -87,6 +92,8 @@ class Ppu {
   void IncVertical();
   void IncVram();
   void NextScanline();
+  void NextDot();
+  bool Disabled();
 
   uint16_t CalcNametableAddr(uint8_t x);
 

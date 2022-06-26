@@ -33,6 +33,8 @@ class Cpu {
   uint8_t* GetScreen();
   uint8_t* GetPatTable1();
   uint8_t* GetPatTable2();
+  uint8_t* GetNametable();
+
   std::ofstream myfile;
 
  private:

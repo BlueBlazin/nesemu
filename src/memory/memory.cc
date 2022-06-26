@@ -47,6 +47,11 @@ uint8_t* Memory::GetPatTable2() {
   return ppu.pat_table2.data();
 }
 
+uint8_t* Memory::GetNametable() {
+  ppu.UpdateNametable();
+  return ppu.nametable1.data();
+}
+
 bool Memory::NmiPending() { return ppu.NmiOccured(); }
 
 void Memory::ClearNmi() { ppu.ClearNmi(); }

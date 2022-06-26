@@ -12,6 +12,8 @@ enum class ScanlineType {
   VBlank,
 };
 
+std::ostream& operator<<(std::ostream& os, const ScanlineType& scanline_type);
+
 enum class CycleType {
   /* Cycles 0 (idle) */
   Cycle0,

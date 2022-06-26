@@ -24,7 +24,7 @@ Cpu::Cpu(const std::string& path) : mmu(path) { myfile.open("emu.log"); }
 void Cpu::Startup() {
   PC = static_cast<uint16_t>(mmu.Read(0xFFFC));
   PC |= static_cast<uint16_t>(mmu.Read(0xFFFD)) << 8;
-  // PC = 0x0C000;
+  // PC = 0xC000;
 }
 
 void Cpu::Run() {
@@ -35,8 +35,9 @@ void Cpu::Run() {
 }
 
 void Cpu::Tick() {
+  // std::printf("0x02: 0x%X, 0x03: 0x%X\n", mmu.Read(0x02), mmu.Read(0x03));
   cycles++;
-  myfile << to_hex(PC) << std::endl;
+  // myfile << to_hex(PC) << std::endl;
 
   if (mmu.InDma()) {
     RunDma();
@@ -45,7 +46,7 @@ void Cpu::Tick() {
 
   // Check for interrupts
   if (NmiPending()) {
-    std::cout << "NMI" << std::endl;
+    // std::cout << "NMI" << std::endl;
     mmu.ClearNmi();
     Interrupt(InterruptType::Nmi);
   } else {
@@ -57,6 +58,7 @@ uint8_t* Cpu::GetScreen() { return mmu.GetScreen(); }
 
 uint8_t* Cpu::GetPatTable1() { return mmu.GetPatTable1(); }
 uint8_t* Cpu::GetPatTable2() { return mmu.GetPatTable2(); }
+uint8_t* Cpu::GetNametable() { return mmu.GetNametable(); }
 
 void Cpu::RunDma() {
   if (dma_state == DmaState::PreDma) {

@@ -112,7 +112,7 @@ uint8_t Nrom::PpuRead(uint16_t addr) {
 
 void Nrom::PpuWrite(uint16_t addr, uint8_t value) {
   if (addr <= 0x1FFF) {
-    chr_rxm[addr] = value;
+    // chr_rxm[addr] = value;
   } else if (addr <= 0x2FFF) {
     VramWrite(addr, value);
   } else {
@@ -151,6 +151,14 @@ uint8_t Nrom::VramRead(uint16_t addr) {
   }
 }
 
+// uint8_t Nrom::VramRead(uint16_t addr) {
+//   if (addr <= 0x27FF) {
+//     return vram[addr - 0x2000];
+//   } else {
+//     return 0x00;
+//   }
+// }
+
 void Nrom::VramWrite(uint16_t addr, uint8_t value) {
   if (addr <= 0x23FF) {
     // nametable at 0x2000
@@ -181,5 +189,13 @@ void Nrom::VramWrite(uint16_t addr, uint8_t value) {
     }
   }
 }
+
+// void Nrom::VramWrite(uint16_t addr, uint8_t value) {
+//   if (addr <= 0x27FF) {
+//     vram[addr - 0x2000] = value;
+//   } else {
+//     throw "error";
+//   }
+// }
 
 }  // namespace mappers
