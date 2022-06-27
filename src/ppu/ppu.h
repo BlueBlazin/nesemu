@@ -7,6 +7,7 @@
 #include <fstream>
 #include <memory>
 #include <queue>
+#include <vector>
 
 #include "src/mappers/mapper.h"
 #include "src/mirroring/mirroring.h"
@@ -40,15 +41,13 @@ class Ppu {
   void UpdatePatternTable(uint16_t table_offset = 0);
   void UpdateNametable();
 
-  // std::array<uint8_t, PAT_TABLE_SIZE> GetPatternTable2();
-
-  std::array<uint8_t, SCREEN_SIZE> screen;
-  std::array<uint8_t, PAT_TABLE_SIZE> pat_table1;
-  std::array<uint8_t, PAT_TABLE_SIZE> pat_table2;
-  std::array<uint8_t, NAMETABLE_SIZE> nametable1;
-
-  // TODO: DELETE THIS LATER
-  std::ofstream myfile;
+  std::vector<uint8_t> screen;
+  std::vector<uint8_t> pat_table1;
+  std::vector<uint8_t> pat_table2;
+  std::vector<uint8_t> nametable1;
+  std::vector<uint8_t> nametable2;
+  std::vector<uint8_t> nametable3;
+  std::vector<uint8_t> nametable4;
 
  private:
   std::shared_ptr<mappers::Mapper> cartridge;
@@ -89,8 +88,7 @@ class Ppu {
     Helper methods
   *****************************************************/
 
-  void ShiftBg();
-
+  void LoadBg();
   void ReloadVertical();
   void ReloadHorizontal();
   void IncHorizontal();
@@ -99,6 +97,8 @@ class Ppu {
   void NextScanline();
   void NextDot();
   bool Disabled();
+  void ShiftBg();
+  bool ShiftOnCycle();
 
   uint16_t CalcNametableAddr(uint8_t x);
 

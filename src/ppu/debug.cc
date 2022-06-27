@@ -1,3 +1,6 @@
+#include <cstdio>
+#include <iostream>
+
 #include "ppu.h"
 
 namespace graphics {

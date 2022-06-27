@@ -7,6 +7,7 @@
 #include <deque>
 #include <iostream>
 #include <memory>
+#include <vector>
 
 #include "src/mappers/mapper.h"
 #include "src/mirroring/mirroring.h"
@@ -15,7 +16,13 @@
 namespace graphics {
 
 Ppu::Ppu(std::shared_ptr<mappers::Mapper> mapper)
-    : screen(),
+    : screen(SCREEN_SIZE, 0),
+      pat_table1(PAT_TABLE_SIZE, 0),
+      pat_table2(PAT_TABLE_SIZE, 0),
+      nametable1(NAMETABLE_SIZE, 0),
+      nametable2(NAMETABLE_SIZE, 0),
+      nametable3(NAMETABLE_SIZE, 0),
+      nametable4(NAMETABLE_SIZE, 0),
       cartridge(std::move(mapper)),
       pattern_queue1(),
       pattern_queue2(),
@@ -23,24 +30,15 @@ Ppu::Ppu(std::shared_ptr<mappers::Mapper> mapper)
       palette_queue2(),
       palette_ram_idxs(),
       obj_attr_memory(),
-      secondary_oam(),
-      pat_table1(),
-      pat_table2(),
-      nametable1() {
+      secondary_oam() {
   // Initialize screen
   for (int i = 0; i < SCREEN_HEIGHT * SCREEN_WIDTH * SCREEN_CHANNELS; i++) {
     screen[i] = 0x00;
   }
-
-  myfile.open("ppu.log");
 }
 
 void Ppu::Tick(uint64_t cycles) {
   while (cycles > 0) {
-    // myfile << "frame: " << frame << ", line: " << line << ", dot: " << dot
-    //        << ", scanline_type: " << scanline_type
-    //        << ", cycle_type: " << cycle_type << std::endl;
-
     PixelTick();
     DataFetcherTick();
     SpriteEvalTick();
@@ -55,38 +53,17 @@ void Ppu::SpriteEvalTick() {
 }
 
 void Ppu::PixelTick() {
-  if (Disabled()) {
+  if (Disabled() || scanline_type != ScanlineType::Visible || dot == 0 ||
+      dot > 256) {
     // PPU is disabled, don't shift pixels
     return;
   }
 
-  // if (line == 261) {
-  //   pattern_queue1 = pattern_queue1 << 1;
-  //   pattern_queue2 = pattern_queue2 << 1;
-  //   return;
-  // }
-
-  // uint8_t bg_lo = static_cast<uint8_t>(
-  //     static_cast<bool>(pattern_queue1 & (0x8000 >> reg_X)));
-  // uint8_t bg_hi = static_cast<uint8_t>(
-  //     static_cast<bool>(pattern_queue2 & (0x8000 >> reg_X)));
-
   // get correct bits using fine X scroll
   uint8_t bg_lo = static_cast<uint8_t>(pattern_queue1 >> (15 - reg_X));
   uint8_t bg_hi = static_cast<uint8_t>(pattern_queue2 >> (15 - reg_X));
-  // shift bits to the left by 1
-  pattern_queue1 = pattern_queue1 << 1;
-  pattern_queue2 = pattern_queue2 << 1;
-
-  if (dot == 0 || dot > 256 || line > 239 || !show_bg) {
-    return;
-  }
 
   uint8_t bg = (bg_hi << 1) | bg_lo;
-
-  if (bg == 0) {
-    return;
-  }
 
   int idx = (line * SCREEN_WIDTH + dot) * SCREEN_CHANNELS;
 
@@ -115,12 +92,16 @@ void Ppu::VisibleOrPrerenderTick() {
     return;
   }
 
+  if (ShiftOnCycle()) {
+    ShiftBg();
+  }
+
   switch (cycle_type) {
     /* Cycle/Dot 0 */
     /******************************************************************/
     case CycleType::Cycle0: {
       cycle_type = CycleType::NametableByte0;
-      return;
+      break;
     }
     /* Cycles/Dots 1-256 and 321-336 */
     /******************************************************************/
@@ -129,18 +110,14 @@ void Ppu::VisibleOrPrerenderTick() {
       tile_addr = 0x2000 | (reg_V & 0x0FFF);
 
       cycle_type = CycleType::NametableByte1;
-      return;
+      break;
     }
     /******************************************************************/
     case CycleType::NametableByte1: {
       // Get nametable byte
       nametable_byte = static_cast<uint16_t>(ReadVram(tile_addr));
-      // std::printf("tile addr: 0x%X, nametable byte: 0x%X\n", tile_addr,
-      //             nametable_byte);
-      // myfile << "tile_addr: " << std::hex << tile_addr
-      //        << ", nametable_byte: " << (char)nametable_byte << std::endl;
       cycle_type = CycleType::AttrByte0;
-      return;
+      break;
     }
     /******************************************************************/
     case CycleType::AttrByte0: {
@@ -149,59 +126,51 @@ void Ppu::VisibleOrPrerenderTick() {
                   ((reg_V >> 2) & 0x07);
 
       cycle_type = CycleType::AttrByte1;
-      return;
+      break;
     }
     /******************************************************************/
     case CycleType::AttrByte1: {
       // TODO
       cycle_type = CycleType::PatternTileLow0;
-      return;
+      break;
     }
     /******************************************************************/
     case CycleType::PatternTileLow0: {
       uint16_t fine_y = (reg_V >> 12) & 0x7;
       bg_addr = (pattern_table_addr << 12) | (nametable_byte << 4) | fine_y;
       cycle_type = CycleType::PatternTileLow1;
-      return;
+      break;
     }
     /******************************************************************/
     case CycleType::PatternTileLow1: {
       bg_tile_low = ReadVram(bg_addr);
 
       cycle_type = CycleType::PatternTileHigh0;
-      return;
+      break;
     }
     /******************************************************************/
     case CycleType::PatternTileHigh0: {
       bg_addr |= 0x8;
 
       cycle_type = CycleType::PatternTileHigh1;
-      return;
+      break;
     }
     /******************************************************************/
     case CycleType::PatternTileHigh1: {
       bg_tile_high = ReadVram(bg_addr);
       // load data into shift registers
-      ShiftBg();
+      LoadBg();
+      IncHorizontal();
       // increment reg_V hori(v)
       if (dot == 256) {
-        // increment reg_V vert(v) at dot 256
-        if (!Disabled()) {
-          IncVertical();
-        }
+        IncVertical();
         cycle_type = CycleType::GarbageByte0;
       } else if (dot == 336) {
-        if (!Disabled()) {
-          IncHorizontal();
-        }
         cycle_type = CycleType::FirstUnkByte0;
       } else {
-        if (!Disabled()) {
-          IncHorizontal();
-        }
         cycle_type = CycleType::NametableByte0;
       }
-      return;
+      break;
     }
     /* Cycles/Dots 257-320 */
     /******************************************************************/
@@ -211,37 +180,37 @@ void Ppu::VisibleOrPrerenderTick() {
         ReloadHorizontal();
       }
       cycle_type = CycleType::GarbageByte1;
-      return;
+      break;
     }
     /******************************************************************/
     case CycleType::GarbageByte1: {
       cycle_type = CycleType::GarbageByte2;
-      return;
+      break;
     }
     /******************************************************************/
     case CycleType::GarbageByte2: {
       cycle_type = CycleType::GarbageByte3;
-      return;
+      break;
     }
     /******************************************************************/
     case CycleType::GarbageByte3: {
       cycle_type = CycleType::NextSpriteTileLow0;
-      return;
+      break;
     }
     /******************************************************************/
     case CycleType::NextSpriteTileLow0: {
       cycle_type = CycleType::NextSpriteTileLow1;
-      return;
+      break;
     }
     /******************************************************************/
     case CycleType::NextSpriteTileLow1: {
       cycle_type = CycleType::NextSpriteTileHigh0;
-      return;
+      break;
     }
     /******************************************************************/
     case CycleType::NextSpriteTileHigh0: {
       cycle_type = CycleType::NextSpriteTileHigh1;
-      return;
+      break;
     }
     /******************************************************************/
     case CycleType::NextSpriteTileHigh1: {
@@ -250,66 +219,68 @@ void Ppu::VisibleOrPrerenderTick() {
       } else {
         cycle_type = CycleType::GarbageByte0;
       }
-      return;
+      break;
     }
     /* Cycles/Dots 337-340 */
     /******************************************************************/
     case CycleType::FirstUnkByte0: {
       cycle_type = CycleType::FirstUnkByte1;
-      return;
+      break;
     }
     /******************************************************************/
     case CycleType::FirstUnkByte1: {
       cycle_type = CycleType::SecondUnkByte0;
-      return;
+      break;
     }
     /******************************************************************/
     case CycleType::SecondUnkByte0: {
       cycle_type = CycleType::SecondUnkByte1;
-      return;
+      break;
     }
     /******************************************************************/
     case CycleType::SecondUnkByte1: {
-      // std::cout << dot << ", " << scanline_type << std::endl;
-      return;
+      break;
     }
   }
 
   // continuously reload vert(v) during cycles 280-304 of the pre-render line
-  if (scanline_type == ScanlineType::PreRender && dot >= 280 && dot <= 304 &&
-      !Disabled()) {
+  if (scanline_type == ScanlineType::PreRender && dot >= 280 && dot <= 304) {
     // vert(v) := vert(t)
     ReloadVertical();
   }
 }
 
-void Ppu::ShiftBg() {
-  // for (int i = 7; i >= 0; i--) {
-  //   pattern_queue1.push_back((bg_tile_low >> i) & 0x1);
-  //   pattern_queue2.push_back((bg_tile_high >> i) & 0x1);
-  // }
+void Ppu::LoadBg() {
+  pattern_queue1 &= 0xFF00;
+  pattern_queue2 &= 0xFF00;
   pattern_queue1 |= static_cast<uint16_t>(bg_tile_low);
   pattern_queue2 |= static_cast<uint16_t>(bg_tile_high);
+}
 
-  // if (bg_tile_low != 0 || bg_tile_high != 0) {
-  //   std::cout << "lo: " << std::bitset<8>(bg_tile_low) << std::endl;
-  //   std::cout << "hi: " << std::bitset<8>(bg_tile_high) << std::endl;
-  // }
+void Ppu::ShiftBg() {
+  pattern_queue1 = pattern_queue1 << 1;
+  pattern_queue2 = pattern_queue2 << 1;
+}
+
+bool Ppu::ShiftOnCycle() {
+  return (
+      scanline_type == ScanlineType::Visible &&
+          ((dot >= 1 && dot <= 256) || (dot >= 321 && dot <= 336)) ||
+      (scanline_type == ScanlineType::PreRender && (dot >= 321 && dot <= 336)));
 }
 
 void Ppu::ReloadVertical() {
-  reg_V &= 0x7C1F;
-  reg_V |= (reg_T & ~0x7C1F);
+  reg_V &= 0x041F;
+  reg_V |= (reg_T & 0x7BE0);
 }
 
 void Ppu::ReloadHorizontal() {
   reg_V &= 0x7BE0;
-  reg_V |= (reg_T & ~0x7BE0);
+  reg_V |= (reg_T & 0x041F);
 }
 
 void Ppu::IncHorizontal() {
   if ((reg_V & 0x1F) == 0x1F) {
-    // reg_V &= 0xFFE0;
     reg_V &= ~0x001F;
     reg_V ^= 0x0400;
   } else {
@@ -317,36 +288,21 @@ void Ppu::IncHorizontal() {
   }
 }
 
-// void Ppu::IncVertical() {
-//   if ((reg_V & 0x7000) != 0x7000) {
-//     reg_V += 0x1000;
-//   } else {
-//     reg_V &= ~0x7000;
-//     uint16_t coarse_y = (reg_V & 0x3E0) >> 5;
-//     if (coarse_y == 0x1D) {
-//       coarse_y = 0;
-//       reg_V ^= 0x800;
-//     } else if (coarse_y == 0x1F) {
-//       coarse_y = 0;
-//     } else {
-//       coarse_y++;
-//     }
-
-//     reg_V = (reg_V & ~0x3E0) | (coarse_y << 5);
-//   }
-// }
-
 void Ppu::IncVertical() {
-  if (((reg_V >> 12) & 0x7) == 0x7) {
-    if (((reg_V >> 5) & 0x1F) == 0x1F) {
-      reg_V &= 0xC1F;
-      reg_V ^= 0x400;
-    } else {
-      reg_V &= 0xFFF;
-      reg_V += 0x20;
-    }
-  } else {
+  if ((reg_V & 0x7000) != 0x7000) {
     reg_V += 0x1000;
+  } else {
+    reg_V &= ~0x7000;
+    uint16_t y = (reg_V & 0x03E0) >> 5;
+    if (y == 29) {
+      y = 0;
+      reg_V ^= 0x0800;
+    } else if (y == 31) {
+      y = 0;
+    } else {
+      y += 1;
+    }
+    reg_V = (reg_V & ~0x03E0) | (y << 5);
   }
 }
 
@@ -402,6 +358,12 @@ void Ppu::NextDot() {
 
 bool Ppu::Disabled() { return !show_bg && !show_sprites; }
 
+bool Ppu::NmiOccured() { return nmi_pending; }
+
+void Ppu::ClearNmi() { nmi_pending = false; }
+
+void Ppu::OamDmaWrite(uint8_t value) { obj_attr_memory[oam_addr++] = value; }
+
 uint8_t Ppu::Read(uint16_t addr) {
   switch (addr) {
     case 0x2002:
@@ -414,12 +376,6 @@ uint8_t Ppu::Read(uint16_t addr) {
       return last_write;
   }
 }
-
-bool Ppu::NmiOccured() { return nmi_pending; }
-
-void Ppu::ClearNmi() { nmi_pending = false; }
-
-void Ppu::OamDmaWrite(uint8_t value) { obj_attr_memory[oam_addr++] = value; }
 
 void Ppu::Write(uint16_t addr, uint8_t value) {
   switch (addr) {
@@ -442,11 +398,6 @@ void Ppu::Write(uint16_t addr, uint8_t value) {
       WritePpuAddr(value);
       break;
     case 0x2007:
-      // std::printf("0x2007 value: 0x%X, addr: 0x%X\n", value, reg_V);
-      // if (value != 0 && value != 0x20) {
-      //   std::printf("VRAM addr: 0x%X, value: 0x%X, disabled: %d\n", reg_V,
-      //               value, !show_bg && !show_sprites);
-      // }
       WritePpuData(value);
       break;
   }
@@ -458,8 +409,6 @@ void Ppu::WritePpuCtrl(uint8_t value) {
   base_nametable_addr = CalcNametableAddr(value & 0x3);
   vram_addr_inc = static_cast<bool>((value >> 2) & 0x1) ? 32 : 1;
   sprite_table_addr = static_cast<bool>(((value >> 3) & 0x1)) ? 0x1000 : 0x0;
-  // pattern_table_addr = static_cast<bool>(((value >> 4) & 0x1)) ? 0x1000 :
-  // 0x0;
   pattern_table_addr = static_cast<uint16_t>((value >> 4) & 0x1);
   long_sprites = static_cast<bool>((value >> 5) & 0x1);
   ppu_select = static_cast<bool>((value >> 6) & 0x1);
@@ -482,7 +431,6 @@ void Ppu::WritePpuMask(uint8_t value) {
 }
 
 uint8_t Ppu::ReadPpuStatus() {
-  // if (in_vblank) std::printf("in vblank: %d\n", in_vblank);
   uint8_t value = (static_cast<uint8_t>(in_vblank) << 7) |
                   (static_cast<uint8_t>(sprite0_hit) << 6) |
                   (static_cast<uint8_t>(sprite_overflow) << 5) |
@@ -498,9 +446,11 @@ uint8_t Ppu::ReadPpuStatus() {
 void Ppu::WritePpuScroll(uint8_t value) {
   if (reg_W == Toggle::Write1) {
     reg_X = static_cast<uint16_t>(value & 0x3);
+    reg_T &= 0x7FE0;
     reg_T |= static_cast<uint16_t>(value >> 3);
     reg_W = Toggle::Write2;
   } else {
+    reg_T &= 0xC1F;
     reg_T |= static_cast<uint16_t>(value & 0x7) << 12;
     reg_T |= static_cast<uint16_t>(value & 0xF8) << 2;
     reg_W = Toggle::Write1;
@@ -513,7 +463,7 @@ void Ppu::WritePpuAddr(uint8_t value) {
     reg_T |= static_cast<uint16_t>(value & 0x3F) << 8;
     reg_W = Toggle::Write2;
   } else {
-    reg_T &= 0xFF00;
+    reg_T &= 0x7F00;
     reg_T |= static_cast<uint16_t>(value);
     reg_V = reg_T;
     reg_W = Toggle::Write1;
@@ -521,7 +471,6 @@ void Ppu::WritePpuAddr(uint8_t value) {
 }
 
 uint8_t Ppu::ReadPpuData() {
-  // std::printf("VRAM read addr: %X\n", reg_V);
   uint8_t value;
 
   if (reg_V <= 0x3EFF) {
@@ -539,7 +488,6 @@ uint8_t Ppu::ReadPpuData() {
 
 void Ppu::WritePpuData(uint8_t value) {
   WriteVram(reg_V, value);
-  // std::printf("VRAM write addr: %X\n", reg_V);
   IncVram();
 }
 
@@ -572,7 +520,6 @@ uint8_t Ppu::ReadVram(uint16_t addr) {
 
 void Ppu::WriteVram(uint16_t addr, uint8_t value) {
   if (addr <= 0x1FFF) {
-    // std::printf("Writing to CHR 0x%X\n", addr);
     cartridge->PpuWrite(addr, value);
   } else if (addr <= 0x2FFF) {
     cartridge->PpuWrite(addr, value);

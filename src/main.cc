@@ -18,8 +18,8 @@ int main(int argc, char *argv[]) {
   cpu.Startup();
 
   sf::RenderWindow window(sf::VideoMode(256, 240), "NESEmu");
-  // window.setSize(sf::Vector2u(1024, 960));
-  window.setSize(sf::Vector2u(256 * 2, 240 * 2));
+  window.setSize(sf::Vector2u(1024, 960));
+  // window.setSize(sf::Vector2u(256 * 2, 240 * 2));
   window.setPosition(sf::Vector2i(1250, 400));
 
   sf::RenderWindow pat_table1_window(sf::VideoMode(128, 128),

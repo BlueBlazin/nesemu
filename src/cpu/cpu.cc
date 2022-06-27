@@ -24,7 +24,6 @@ Cpu::Cpu(const std::string& path) : mmu(path) { myfile.open("emu.log"); }
 void Cpu::Startup() {
   PC = static_cast<uint16_t>(mmu.Read(0xFFFC));
   PC |= static_cast<uint16_t>(mmu.Read(0xFFFD)) << 8;
-  // PC = 0xC000;
 }
 
 void Cpu::Run() {
@@ -35,9 +34,7 @@ void Cpu::Run() {
 }
 
 void Cpu::Tick() {
-  // std::printf("0x02: 0x%X, 0x03: 0x%X\n", mmu.Read(0x02), mmu.Read(0x03));
   cycles++;
-  // myfile << to_hex(PC) << std::endl;
 
   if (mmu.InDma()) {
     RunDma();
@@ -46,7 +43,6 @@ void Cpu::Tick() {
 
   // Check for interrupts
   if (NmiPending()) {
-    // std::cout << "NMI" << std::endl;
     mmu.ClearNmi();
     Interrupt(InterruptType::Nmi);
   } else {
@@ -73,11 +69,6 @@ void Cpu::RunDma() {
 }
 
 void Cpu::DecodeExecute(uint8_t opcode) {
-  // if (PC == 0xC5B7 + 1) {
-  //   std::printf("opcode: 0x%X 0x%X 0x%X\n", opcode, mmu.Read(PC),
-  //               mmu.Read(PC + 1));
-  // }
-
   switch (opcode) {
     case 0x00:
       BrkImplied();

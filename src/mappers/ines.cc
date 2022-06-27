@@ -14,14 +14,6 @@
 namespace mappers {
 
 std::shared_ptr<Mapper> ReadCartridge(std::string path) {
-  // std::ifstream stream1(path, std::ios::in | std::ios::binary);
-  // std::istream_iterator<char> start1(stream1), end1;
-  // std::vector<char> data2(start1, end1);
-  // std::cout << "0xFFFC: " << (unsigned int)data2[0x10 + 0x4000 - 3]
-  //           << std::endl;
-  // std::cout << "0xFFFD: " << (unsigned int)data2[0x10 + 0x4000 - 4]
-  //           << std::endl;
-
   std::ifstream stream(path, std::ios::in | std::ios::binary);
   std::istreambuf_iterator<char> start(stream), end;
   std::vector<uint8_t> data(start, end);
@@ -33,8 +25,9 @@ std::shared_ptr<Mapper> ReadCartridge(std::string path) {
   if (static_cast<bool>(flag6 & 0x8)) {
     mirroring = graphics::Mirroring::FourScreen;
   } else {
-    mirroring = static_cast<bool>(flag6 & 0x1) ? graphics::Mirroring::Horizontal
-                                               : graphics::Mirroring::Vertical;
+    mirroring = static_cast<bool>(flag6 & 0x1)
+                    ? graphics::Mirroring::Vertical
+                    : graphics::Mirroring::Horizontal;
   }
 
   INesHeader header = {

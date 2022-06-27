@@ -83,7 +83,6 @@ void Memory::Write(uint16_t addr, uint8_t value) {
   if (addr <= 0x1FFF) {
     ram[addr % 0x800] = value;
   } else if (addr <= 0x2007) {
-    // std::printf("write addr: 0x%X\n", addr);
     ppu.Write(addr, value);
   } else if (addr <= 0x3FFF) {
     return ppu.Write(0x2000 | ((addr - 0x2000) & 0x7), value);
