@@ -11,6 +11,7 @@
 
 #include "src/mappers/mapper.h"
 #include "src/mirroring/mirroring.h"
+#include "src/ppu/palette.h"
 #include "src/ppu/state.h"
 
 namespace graphics {
@@ -62,14 +63,33 @@ void Ppu::PixelTick() {
   // get correct bits using fine X scroll
   uint8_t bg_lo = static_cast<uint8_t>(pattern_queue1 >> (15 - reg_X));
   uint8_t bg_hi = static_cast<uint8_t>(pattern_queue2 >> (15 - reg_X));
+  uint8_t bg_idx = (bg_hi << 1) | bg_lo;
 
-  uint8_t bg = (bg_hi << 1) | bg_lo;
+  uint8_t bg_palette_lo = palette_queue1 >> (15 - reg_X);
+  uint8_t bg_palette_hi = palette_queue2 >> (15 - reg_X);
+  uint8_t bg_palette = (bg_palette_hi << 1) | bg_palette_lo;
+
+  if (bg_idx == 0) {
+    bg_palette = 0;
+  }
+
+  uint8_t palette = ReadVram((static_cast<uint16_t>(bg_palette) << 2) +
+                             static_cast<uint16_t>(bg_idx) + 0x3F00);
+
+  uint16_t pixel_color = (emph_blue << 8) | (emph_green << 7) |
+                         (emph_red << 6) | static_cast<uint16_t>(palette);
+
+  uint16_t master_palette_idx = pixel_color * 3;
+
+  uint8_t red = NTSC_PALETTE[master_palette_idx + 0];
+  uint8_t green = NTSC_PALETTE[master_palette_idx + 1];
+  uint8_t blue = NTSC_PALETTE[master_palette_idx + 2];
 
   int idx = (line * SCREEN_WIDTH + dot) * SCREEN_CHANNELS;
 
-  screen[idx + 0] = bg * 85;
-  screen[idx + 1] = bg * 85;
-  screen[idx + 2] = bg * 85;
+  screen[idx + 0] = red;
+  screen[idx + 1] = green;
+  screen[idx + 2] = blue;
   screen[idx + 3] = 0xFF;
 }
 
@@ -130,7 +150,7 @@ void Ppu::VisibleOrPrerenderTick() {
     }
     /******************************************************************/
     case CycleType::AttrByte1: {
-      // TODO
+      attr_byte = ReadVram(attr_addr);
       cycle_type = CycleType::PatternTileLow0;
       break;
     }
@@ -255,11 +275,25 @@ void Ppu::LoadBg() {
   pattern_queue2 &= 0xFF00;
   pattern_queue1 |= static_cast<uint16_t>(bg_tile_low);
   pattern_queue2 |= static_cast<uint16_t>(bg_tile_high);
+
+  // Each palette byte spans four quadrants/tiles. If we index
+  // each tile as `idx = 2 * y + x`, we can find the quadrant the
+  // current tile belongs to with `idx % 4`.
+  uint8_t attr_x = (reg_V >> 1) & 0x1;
+  uint8_t attr_y = (reg_V >> 6) & 0x1;
+  uint8_t shift = ((attr_y << 1) | attr_x) * 2;
+  palette_latch = (attr_byte >> shift) & 0x3;
 }
 
 void Ppu::ShiftBg() {
   pattern_queue1 = pattern_queue1 << 1;
   pattern_queue2 = pattern_queue2 << 1;
+
+  palette_queue1 = palette_queue1 << 1;
+  palette_queue2 = palette_queue2 << 1;
+
+  palette_queue1 |= palette_latch & 0x1;
+  palette_queue2 |= (palette_latch >> 1) & 0x1;
 }
 
 bool Ppu::ShiftOnCycle() {
@@ -425,9 +459,9 @@ void Ppu::WritePpuMask(uint8_t value) {
   show_leftmost_sprites = static_cast<bool>((value >> 2) & 0x1);
   show_bg = static_cast<bool>((value >> 3) & 0x1);
   show_sprites = static_cast<bool>((value >> 4) & 0x1);
-  emph_red = static_cast<bool>((value >> 5) & 0x1);
-  emph_green = static_cast<bool>((value >> 6) & 0x1);
-  emph_blue = static_cast<bool>((value >> 7) & 0x1);
+  emph_red = static_cast<uint16_t>((value >> 5) & 0x1);
+  emph_green = static_cast<uint16_t>((value >> 6) & 0x1);
+  emph_blue = static_cast<uint16_t>((value >> 7) & 0x1);
 }
 
 uint8_t Ppu::ReadPpuStatus() {
@@ -509,7 +543,7 @@ void Ppu::UpdateNmi() {
 }
 
 uint8_t Ppu::ReadVram(uint16_t addr) {
-  if (addr <= 0x2FFF) {
+  if (addr <= 0x3EFF) {
     return cartridge->PpuRead(addr);
   } else if (addr <= 0x3F1F) {
     return palette_ram_idxs[addr - 0x3F00];
@@ -521,7 +555,7 @@ uint8_t Ppu::ReadVram(uint16_t addr) {
 void Ppu::WriteVram(uint16_t addr, uint8_t value) {
   if (addr <= 0x1FFF) {
     cartridge->PpuWrite(addr, value);
-  } else if (addr <= 0x2FFF) {
+  } else if (addr <= 0x3EFF) {
     cartridge->PpuWrite(addr, value);
   } else if (addr <= 0x3F1F) {
     palette_ram_idxs[addr - 0x3F00] = value;

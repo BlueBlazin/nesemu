@@ -8,6 +8,7 @@ cc_library(
         "state.cc",
     ],
     hdrs = [
+        "palette.h",
         "ppu.h",
         "state.h",
     ],

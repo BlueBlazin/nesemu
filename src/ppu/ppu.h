@@ -156,9 +156,9 @@ class Ppu {
   bool show_leftmost_sprites = true;
   bool show_bg = true;
   bool show_sprites = true;
-  bool emph_red = false;
-  bool emph_green = false;
-  bool emph_blue = false;
+  uint16_t emph_red = 0;
+  uint16_t emph_green = 0;
+  uint16_t emph_blue = 0;
 
   /* PPUSTATUS 0x2002 */
   bool sprite_overflow = false;
@@ -191,6 +191,8 @@ class Ppu {
   // nametable fetching
   uint16_t tile_addr = 0x0;
   uint16_t attr_addr = 0x0;
+  uint8_t attr_byte = 0x0;
+  uint8_t palette_latch = 0x0;
   uint16_t nametable_byte = 0x0;
   uint16_t bg_addr = 0x0;
   uint8_t bg_tile_low = 0x0;
