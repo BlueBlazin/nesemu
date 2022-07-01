@@ -1,5 +1,5 @@
-#ifndef SRC_MAPPERS_INES_
-#define SRC_MAPPERS_INES_
+#ifndef SRC_MAPPERS_INES_H_
+#define SRC_MAPPERS_INES_H_
 
 #include <algorithm>
 #include <cstdint>
@@ -29,4 +29,4 @@ std::shared_ptr<Mapper> ReadCartridge(std::string path);
 
 }  // namespace mappers
 
-#endif  // SRC_MAPPERS_INES_
+#endif  // SRC_MAPPERS_INES_H_

@@ -37,13 +37,13 @@ void Ppu::UpdatePatternTable(uint16_t table_offset) {
   }
 }
 
-void Ppu::UpdateNametable() {
+void Ppu::UpdateNametable(uint16_t addr) {
   // pattern table at 0x0000 or 0x1000
   uint16_t table_offset = pattern_table_addr == 0 ? 0x0000 : 0x1000;
 
   for (int byte = 0; byte < NAMETABLE_ROWS * NAMETABLE_COLS; byte++) {
     // pattern table index
-    uint8_t offset = ReadVram(0x2000 + byte);
+    uint8_t offset = ReadVram(addr + static_cast<uint16_t>(byte));
     uint16_t pattern_addr = offset * 16;
 
     for (int i = 0; i < 8; i++) {
@@ -62,10 +62,33 @@ void Ppu::UpdateNametable() {
         int y = coarse_y + i;
 
         int idx = (y * SCREEN_WIDTH + x) * SCREEN_CHANNELS;
-        nametable1[idx + 0] = value;
-        nametable1[idx + 1] = value;
-        nametable1[idx + 2] = value;
-        nametable1[idx + 3] = 0xFF;
+
+        switch (addr) {
+          case 0x2000: {
+            nametable1[idx + 0] = value;
+            nametable1[idx + 1] = value;
+            nametable1[idx + 2] = value;
+            nametable1[idx + 3] = 0xFF;
+          }
+          case 0x2400: {
+            nametable2[idx + 0] = value;
+            nametable2[idx + 1] = value;
+            nametable2[idx + 2] = value;
+            nametable2[idx + 3] = 0xFF;
+          }
+          case 0x2800: {
+            nametable3[idx + 0] = value;
+            nametable3[idx + 1] = value;
+            nametable3[idx + 2] = value;
+            nametable3[idx + 3] = 0xFF;
+          }
+          case 0x2C00: {
+            nametable4[idx + 0] = value;
+            nametable4[idx + 1] = value;
+            nametable4[idx + 2] = value;
+            nametable4[idx + 3] = 0xFF;
+          }
+        }
       }
     }
   }

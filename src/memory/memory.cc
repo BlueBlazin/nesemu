@@ -47,9 +47,19 @@ uint8_t* Memory::GetPatTable2() {
   return ppu.pat_table2.data();
 }
 
-uint8_t* Memory::GetNametable() {
-  ppu.UpdateNametable();
-  return ppu.nametable1.data();
+uint8_t* Memory::GetNametable(uint16_t addr) {
+  ppu.UpdateNametable(addr);
+
+  switch (addr) {
+    case 0x2000:
+      return ppu.nametable1.data();
+    case 0x2400:
+      return ppu.nametable2.data();
+    case 0x2800:
+      return ppu.nametable3.data();
+    case 0x2C00:
+      return ppu.nametable4.data();
+  }
 }
 
 bool Memory::NmiPending() { return ppu.NmiOccured(); }

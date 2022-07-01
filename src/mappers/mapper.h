@@ -1,5 +1,5 @@
-#ifndef SRC_MAPPERS_MAPPER_
-#define SRC_MAPPERS_MAPPER_
+#ifndef SRC_MAPPERS_MAPPER_H_
+#define SRC_MAPPERS_MAPPER_H_
 
 #include <cstdint>
 
@@ -16,4 +16,4 @@ class Mapper {
 
 }  // namespace mappers
 
-#endif  // SRC_MAPPERS_MAPPER_
+#endif  // SRC_MAPPERS_MAPPER_H_

@@ -1,5 +1,5 @@
-#ifndef SRC_MAPPERS_NROM_
-#define SRC_MAPPERS_NROM_
+#ifndef SRC_MAPPERS_NROM_H_
+#define SRC_MAPPERS_NROM_H_
 
 #include <array>
 #include <cstdint>
@@ -34,4 +34,4 @@ class Nrom : public Mapper {
 
 }  // namespace mappers
 
-#endif  // SRC_MAPPERS_NROM_
+#endif  // SRC_MAPPERS_NROM_H_

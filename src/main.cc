@@ -1,83 +1,94 @@
-#include <bitset>
-#include <cstdint>
-#include <cstring>
-#include <fstream>
-#include <iostream>
-#include <memory>
+// #include <bitset>
+// #include <cstdint>
+// #include <cstring>
+// #include <fstream>
+// #include <iostream>
+// #include <memory>
 
-#include "SFML/Audio.hpp"
-#include "SFML/Graphics.hpp"
-#include "SFML/System.hpp"
-#include "SFML/Window.hpp"
-#include "src/cpu/cpu.h"
-#include "src/mappers/mapper.h"
-#include "src/mappers/nrom.h"
+// #include "SFML/Audio.hpp"
+// #include "SFML/Graphics.hpp"
+// #include "SFML/System.hpp"
+// #include "SFML/Window.hpp"
+// #include "src/cpu/cpu.h"
+// #include "src/mappers/mapper.h"
+// #include "src/mappers/nrom.h"
+
+#include "src/nes/nes.h"
 
 int main(int argc, char *argv[]) {
-  cpu::Cpu cpu = cpu::Cpu(argv[1]);
-  cpu.Startup();
-
-  sf::RenderWindow window(sf::VideoMode(256, 240), "NESEmu");
-  window.setSize(sf::Vector2u(1024, 960));
-  // window.setSize(sf::Vector2u(256 * 2, 240 * 2));
-  window.setPosition(sf::Vector2i(1250, 400));
-
-  sf::RenderWindow pat_table1_window(sf::VideoMode(128, 128),
-                                     "Pattern Table 1");
-  pat_table1_window.setPosition(sf::Vector2i(500, 600));
-  pat_table1_window.setSize(sf::Vector2u(640, 640));
-
-  sf::RenderWindow pat_table2_window(sf::VideoMode(128, 128),
-                                     "Pattern Table 2");
-  pat_table2_window.setPosition(sf::Vector2i(500, 1400));
-  pat_table2_window.setSize(sf::Vector2u(640, 640));
-
-  sf::RenderWindow nametable_window(sf::VideoMode(256, 240), "Nametable");
-  nametable_window.setPosition(sf::Vector2i(2350, 500));
-  nametable_window.setSize(sf::Vector2u(512, 480));
-
-  sf::Event ev;
-  sf::Texture texture;
-  texture.create(256, 240);
-
-  sf::Texture pat_table1_texture;
-  pat_table1_texture.create(128, 128);
-
-  sf::Texture pat_table2_texture;
-  pat_table2_texture.create(128, 128);
-
-  sf::Texture nametable_texture;
-  nametable_texture.create(256, 240);
-
-  for (uint64_t i = 0; i < 100000; i++) {
-    cpu.Tick();
-  }
-
-  texture.update(cpu.GetScreen());
-  pat_table1_texture.update(cpu.GetPatTable1());
-  pat_table2_texture.update(cpu.GetPatTable2());
-  nametable_texture.update(cpu.GetNametable());
-
-  window.draw(sf::Sprite(texture));
-  pat_table1_window.draw(sf::Sprite(pat_table1_texture));
-  pat_table2_window.draw(sf::Sprite(pat_table2_texture));
-  nametable_window.draw(sf::Sprite(nametable_texture));
-
-  window.display();
-  pat_table1_window.display();
-  pat_table2_window.display();
-  nametable_window.display();
-
-  while (window.isOpen()) {
-    bool event_polled = window.pollEvent(ev);
-
-    if (event_polled && ev.type == sf::Event::Closed) {
-      window.close();
-    }
-  }
-
-  return EXIT_SUCCESS;
+  nes::Nes emulator(argv[1]);
+  emulator.Run();
 }
+
+// int main(int argc, char *argv[]) {
+//   uint64_t width = sf::VideoMode::getDesktopMode().width;
+//   uint64_t height = sf::VideoMode::getDesktopMode().height;
+//   std::cout << "width: " << width << ", height: " << height << std::endl;
+
+//   cpu::Cpu cpu = cpu::Cpu(argv[1]);
+//   cpu.Startup();
+
+//   sf::RenderWindow window(sf::VideoMode(256, 240), "NESEmu");
+//   window.setSize(sf::Vector2u(1024, 960));
+//   // window.setSize(sf::Vector2u(256 * 2, 240 * 2));
+//   window.setPosition(sf::Vector2i(1250, 400));
+
+//   sf::RenderWindow pat_table1_window(sf::VideoMode(128, 128),
+//                                      "Pattern Table 1");
+//   pat_table1_window.setPosition(sf::Vector2i(500, 600));
+//   pat_table1_window.setSize(sf::Vector2u(640, 640));
+
+//   sf::RenderWindow pat_table2_window(sf::VideoMode(128, 128),
+//                                      "Pattern Table 2");
+//   pat_table2_window.setPosition(sf::Vector2i(500, 1400));
+//   pat_table2_window.setSize(sf::Vector2u(640, 640));
+
+//   sf::RenderWindow nametable_window(sf::VideoMode(256, 240), "Nametable");
+//   nametable_window.setPosition(sf::Vector2i(2350, 500));
+//   nametable_window.setSize(sf::Vector2u(512, 480));
+
+//   sf::Event ev;
+//   sf::Texture texture;
+//   texture.create(256, 240);
+
+//   sf::Texture pat_table1_texture;
+//   pat_table1_texture.create(128, 128);
+
+//   sf::Texture pat_table2_texture;
+//   pat_table2_texture.create(128, 128);
+
+//   sf::Texture nametable_texture;
+//   nametable_texture.create(256, 240);
+
+//   for (uint64_t i = 0; i < 100000; i++) {
+//     cpu.Tick();
+//   }
+
+//   texture.update(cpu.GetScreen());
+//   pat_table1_texture.update(cpu.GetPatTable1());
+//   pat_table2_texture.update(cpu.GetPatTable2());
+//   nametable_texture.update(cpu.GetNametable());
+
+//   window.draw(sf::Sprite(texture));
+//   pat_table1_window.draw(sf::Sprite(pat_table1_texture));
+//   pat_table2_window.draw(sf::Sprite(pat_table2_texture));
+//   nametable_window.draw(sf::Sprite(nametable_texture));
+
+//   window.display();
+//   pat_table1_window.display();
+//   pat_table2_window.display();
+//   nametable_window.display();
+
+//   while (window.isOpen()) {
+//     bool event_polled = window.pollEvent(ev);
+
+//     if (event_polled && ev.type == sf::Event::Closed) {
+//       window.close();
+//     }
+//   }
+
+//   return EXIT_SUCCESS;
+// }
 
 // int main(int argc, char *argv[]) {
 //   cpu::Cpu cpu = cpu::Cpu(argv[1]);

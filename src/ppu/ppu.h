@@ -1,5 +1,5 @@
-#ifndef SRC_PPU_PPU_
-#define SRC_PPU_PPU_
+#ifndef SRC_PPU_PPU_H_
+#define SRC_PPU_PPU_H_
 
 #include <array>
 #include <cstdint>
@@ -39,7 +39,7 @@ class Ppu {
   void Write(uint16_t addr, uint8_t value);
 
   void UpdatePatternTable(uint16_t table_offset = 0);
-  void UpdateNametable();
+  void UpdateNametable(uint16_t addr);
 
   std::vector<uint8_t> screen;
   std::vector<uint8_t> pat_table1;
@@ -203,4 +203,4 @@ class Ppu {
 
 }  // namespace graphics
 
-#endif  // SRC_PPU_PPU_
+#endif  // SRC_PPU_PPU_H_

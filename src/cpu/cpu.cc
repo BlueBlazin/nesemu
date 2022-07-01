@@ -9,6 +9,7 @@
 #include <stdexcept>
 #include <string>
 
+#include "src/cpu/event.h"
 #include "src/memory/memory.h"
 
 namespace cpu {
@@ -26,6 +27,19 @@ void Cpu::Startup() {
   PC |= static_cast<uint16_t>(mmu.Read(0xFFFD)) << 8;
 }
 
+Event Cpu::RunTillEvent(uint64_t max_cycles) {
+  while (event_cycles <= max_cycles) {
+    Tick();
+
+    if (NmiPending()) {
+      return Event::VBlank;
+    }
+  }
+
+  event_cycles -= max_cycles;
+  return Event::MaxCycles;
+}
+
 void Cpu::Run() {
   /* fetch-decode-execute loop */
   while (true) {
@@ -34,8 +48,6 @@ void Cpu::Run() {
 }
 
 void Cpu::Tick() {
-  cycles++;
-
   if (mmu.InDma()) {
     RunDma();
     return;
@@ -54,7 +66,7 @@ uint8_t* Cpu::GetScreen() { return mmu.GetScreen(); }
 
 uint8_t* Cpu::GetPatTable1() { return mmu.GetPatTable1(); }
 uint8_t* Cpu::GetPatTable2() { return mmu.GetPatTable2(); }
-uint8_t* Cpu::GetNametable() { return mmu.GetNametable(); }
+uint8_t* Cpu::GetNametable(uint16_t addr) { return mmu.GetNametable(addr); }
 
 void Cpu::RunDma() {
   if (dma_state == DmaState::PreDma) {
@@ -1730,6 +1742,7 @@ uint8_t Cpu::Fetch() {
 
 void Cpu::AddCycles(uint64_t n) {
   cycles += n;
+  event_cycles += n;
   mmu.PpuTick(3 * n);
 }
 

@@ -1,5 +1,5 @@
-#ifndef SRC_CPU_CPU_
-#define SRC_CPU_CPU_
+#ifndef SRC_CPU_CPU_H_
+#define SRC_CPU_CPU_H_
 
 #include <cstdint>
 #include <string>
@@ -7,6 +7,7 @@
 #include <fstream>
 #include <iostream>
 
+#include "src/cpu/event.h"
 #include "src/memory/memory.h"
 
 namespace cpu {
@@ -27,13 +28,14 @@ class Cpu {
   Cpu(const std::string& path);
 
   void Startup();
+  Event RunTillEvent(uint64_t max_cycles);
   void Run();
   void Tick();
 
   uint8_t* GetScreen();
   uint8_t* GetPatTable1();
   uint8_t* GetPatTable2();
-  uint8_t* GetNametable();
+  uint8_t* GetNametable(uint16_t addr);
 
   std::ofstream myfile;
 
@@ -306,6 +308,7 @@ class Cpu {
 
   /* Internal */
   uint64_t cycles = 0;
+  uint64_t event_cycles = 0;
   DmaState dma_state = DmaState::PreDma;
 
   /* Registers */
@@ -326,4 +329,4 @@ class Cpu {
 
 }  // namespace cpu
 
-#endif  // SRC_CPU_CPU_
+#endif  // SRC_CPU_CPU_H_

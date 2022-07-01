@@ -1,5 +1,5 @@
-#ifndef SRC_MIRRORING_MIRRORING_
-#define SRC_MIRRORING_MIRRORING_
+#ifndef SRC_MIRRORING_MIRRORING_H_
+#define SRC_MIRRORING_MIRRORING_H_
 
 namespace graphics {
 
@@ -11,4 +11,4 @@ enum class Mirroring {
 
 }  // namespace graphics
 
-#endif  // SRC_PPU_MIRRORING_
+#endif  // SRC_MIRRORING_MIRRORING_H_

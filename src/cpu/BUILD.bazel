@@ -3,7 +3,10 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 cc_library(
     name = "cpu",
     srcs = ["cpu.cc"],
-    hdrs = ["cpu.h"],
+    hdrs = [
+        "cpu.h",
+        "event.h",
+    ],
     visibility = ["//visibility:public"],
     deps = ["//src/memory"],
 )

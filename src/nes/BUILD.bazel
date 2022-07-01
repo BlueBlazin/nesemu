@@ -1,0 +1,13 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+cc_library(
+    name = "nes",
+    srcs = ["nes.cc"],
+    hdrs = ["nes.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//src/cpu",
+        "//src/mappers",
+        "@SFML//:sfml",
+    ],
+)

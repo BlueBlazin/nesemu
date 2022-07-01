@@ -1,5 +1,5 @@
-#ifndef SRC_MEMORY_MEMORY_
-#define SRC_MEMORY_MEMORY_
+#ifndef SRC_MEMORY_MEMORY_H_
+#define SRC_MEMORY_MEMORY_H_
 
 #include <array>
 #include <cstdint>
@@ -27,7 +27,7 @@ class Memory {
   uint8_t* GetScreen();
   uint8_t* GetPatTable1();
   uint8_t* GetPatTable2();
-  uint8_t* GetNametable();
+  uint8_t* GetNametable(uint16_t addr);
 
   uint8_t Read(uint16_t addr);
   void Write(uint16_t addr, uint8_t value);
@@ -47,4 +47,4 @@ class Memory {
 
 }  // namespace memory
 
-#endif
+#endif  // SRC_MEMORY_MEMORY_H_

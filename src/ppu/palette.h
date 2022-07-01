@@ -1,5 +1,5 @@
-#ifndef SRC_PPU_PALETTE_
-#define SRC_PPU_PALETTE_
+#ifndef SRC_PPU_PALETTE_H_
+#define SRC_PPU_PALETTE_H_
 
 #include <cstdint>
 
@@ -140,4 +140,4 @@ constexpr uint8_t NTSC_PALETTE[NUM_COLORS * NUM_VARIATIONS * 3] = {
 
 }  // namespace graphics
 
-#endif  // SRC_PPU_PALETTE_
+#endif  // SRC_PPU_PALETTE_H_

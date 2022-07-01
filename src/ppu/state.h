@@ -1,5 +1,5 @@
-#ifndef SRC_PPU_STATE_
-#define SRC_PPU_STATE_
+#ifndef SRC_PPU_STATE_H_
+#define SRC_PPU_STATE_H_
 
 #include <iostream>
 
@@ -60,4 +60,4 @@ enum class Toggle {
 
 }  // namespace graphics
 
-#endif  // SRC_PPU_STATE_
+#endif  // SRC_PPU_STATE_H_
