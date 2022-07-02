@@ -77,8 +77,12 @@ uint8_t Memory::Read(uint16_t addr) {
   } else if (addr <= 0x3FFF) {
     return ppu.Read(0x2000 | ((addr - 0x2000) & 0x7));
   } else if (addr <= 0x4017) {
-    // TODO
-    return 0x00;
+    switch (addr) {
+      case 0x4016:
+        return controller.Read();
+      default:
+        return 0x00;
+    }
   } else if (addr <= 0x401F) {
     // TODO
     return 0x00;
@@ -102,7 +106,11 @@ void Memory::Write(uint16_t addr, uint8_t value) {
         in_dma = true;
         dma_state = DmaState::Read;
         dma_addr = static_cast<uint16_t>(value) << 8;
+        return;
       }
+      case 0x4016:
+        controller.SetStrobe(value);
+        return;
     }
   } else if (addr <= 0x401F) {
     // TODO

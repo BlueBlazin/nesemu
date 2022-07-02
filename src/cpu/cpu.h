@@ -7,6 +7,7 @@
 #include <fstream>
 #include <iostream>
 
+#include "src/controllers/controllers.h"
 #include "src/cpu/event.h"
 #include "src/memory/memory.h"
 
@@ -31,6 +32,9 @@ class Cpu {
   Event RunTillEvent(uint64_t max_cycles);
   void Run();
   void Tick();
+
+  void PressKey(controllers::Key key);
+  void ReleaseKey(controllers::Key key);
 
   uint8_t* GetScreen();
   uint8_t* GetPatTable1();

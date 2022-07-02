@@ -8,5 +8,8 @@ cc_library(
         "event.h",
     ],
     visibility = ["//visibility:public"],
-    deps = ["//src/memory"],
+    deps = [
+        "//src/controllers",
+        "//src/memory",
+    ],
 )

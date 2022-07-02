@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 
+#include "src/controllers/controllers.h"
 #include "src/mappers/ines.h"
 #include "src/mappers/mapper.h"
 #include "src/ppu/ppu.h"
@@ -34,6 +35,8 @@ class Memory {
   bool NmiPending();
   void ClearNmi();
   bool InDma();
+
+  controllers::Controller controller;
 
  private:
   std::shared_ptr<mappers::Mapper> cartridge;

@@ -8,6 +8,7 @@
 #include "SFML/Graphics.hpp"
 #include "SFML/System.hpp"
 #include "SFML/Window.hpp"
+#include "src/controllers/controllers.h"
 #include "src/cpu/cpu.h"
 #include "src/cpu/event.h"
 #include "src/mappers/mapper.h"
@@ -18,17 +19,23 @@ Nes::Nes(const std::string& rom_path)
     : cpu(rom_path),
       window(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "NESEmu"),
       pat_table1_window(sf::VideoMode(PAT_TABLE_SIZE, PAT_TABLE_SIZE),
-                        "Pattern Table 1"),
+                        "Pattern Table 1",
+                        sf::Style::Titlebar | sf::Style::Resize),
       pat_table2_window(sf::VideoMode(PAT_TABLE_SIZE, PAT_TABLE_SIZE),
-                        "Pattern Table 2"),
+                        "Pattern Table 2",
+                        sf::Style::Titlebar | sf::Style::Resize),
       nametable1_window(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT),
-                        "Nametable at 0x2000"),
+                        "Nametable at 0x2000",
+                        sf::Style::Titlebar | sf::Style::Resize),
       nametable2_window(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT),
-                        "Nametable at 0x2400"),
+                        "Nametable at 0x2400",
+                        sf::Style::Titlebar | sf::Style::Resize),
       nametable3_window(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT),
-                        "Nametable at 0x2800"),
+                        "Nametable at 0x2800",
+                        sf::Style::Titlebar | sf::Style::Resize),
       nametable4_window(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT),
-                        "Nametable at 0x2C00") {
+                        "Nametable at 0x2C00",
+                        sf::Style::Titlebar | sf::Style::Resize) {
   // get screen dimensions
   uint64_t width = sf::VideoMode::getDesktopMode().width;
   uint64_t height = sf::VideoMode::getDesktopMode().height;
@@ -108,8 +115,6 @@ Nes::Nes(const std::string& rom_path)
 }
 
 void Nes::Run() {
-  sf::Event ev;
-
   // start cpu
   cpu.Startup();
   // display windows
@@ -123,11 +128,8 @@ void Nes::Run() {
   float elapsed = 0.0F;
 
   while (window.isOpen()) {
-    bool event_polled = window.pollEvent(ev);
-
-    if (event_polled && ev.type == sf::Event::Closed) {
-      window.close();
-    }
+    // handle events
+    HandleEvents();
 
     // run emulation forward
     if ((elapsed = clock.getElapsedTime().asSeconds() + dt) >= TIME_PER_FRAME) {
@@ -146,6 +148,82 @@ void Nes::Emulate() {
         break;
       case cpu::Event::MaxCycles:
         return;
+    }
+  }
+}
+
+void Nes::HandleEvents() {
+  if (!window.pollEvent(event)) {
+    return;
+  }
+
+  if (event.type == sf::Event::Closed) {
+    window.close();
+  } else if (event.type == sf::Event::KeyPressed) {
+    switch (event.key.code) {
+      case sf::Keyboard::A:
+        cpu.PressKey(controllers::Key::A);
+        break;
+      case sf::Keyboard::S:
+        cpu.PressKey(controllers::Key::B);
+        break;
+      case sf::Keyboard::Space:
+        cpu.PressKey(controllers::Key::Select);
+        break;
+      case sf::Keyboard::Enter:
+        cpu.PressKey(controllers::Key::Start);
+        break;
+      case sf::Keyboard::Up:
+        cpu.PressKey(controllers::Key::Up);
+        break;
+      case sf::Keyboard::Down:
+        cpu.PressKey(controllers::Key::Down);
+        break;
+      case sf::Keyboard::Left:
+        cpu.PressKey(controllers::Key::Left);
+        break;
+      case sf::Keyboard::Right:
+        cpu.PressKey(controllers::Key::Right);
+        break;
+      case sf::Keyboard::LSystem:
+      case sf::Keyboard::RSystem:
+        cmd_pressed = true;
+        break;
+      case sf::Keyboard::Q:
+      case sf::Keyboard::W:
+        window.close();
+        break;
+    }
+  } else if (event.type == sf::Event::KeyReleased) {
+    switch (event.key.code) {
+      case sf::Keyboard::A:
+        cpu.ReleaseKey(controllers::Key::A);
+        break;
+      case sf::Keyboard::S:
+        cpu.ReleaseKey(controllers::Key::B);
+        break;
+      case sf::Keyboard::Space:
+        cpu.ReleaseKey(controllers::Key::Select);
+        break;
+      case sf::Keyboard::Enter:
+        cpu.ReleaseKey(controllers::Key::Start);
+        break;
+      case sf::Keyboard::Up:
+        cpu.ReleaseKey(controllers::Key::Up);
+        break;
+      case sf::Keyboard::Down:
+        cpu.ReleaseKey(controllers::Key::Down);
+        break;
+      case sf::Keyboard::Left:
+        cpu.ReleaseKey(controllers::Key::Left);
+        break;
+      case sf::Keyboard::Right:
+        cpu.ReleaseKey(controllers::Key::Right);
+        break;
+      case sf::Keyboard::LSystem:
+      case sf::Keyboard::RSystem:
+        cmd_pressed = false;
+        break;
     }
   }
 }

@@ -9,6 +9,7 @@
 #include <stdexcept>
 #include <string>
 
+#include "src/controllers/controllers.h"
 #include "src/cpu/event.h"
 #include "src/memory/memory.h"
 
@@ -61,6 +62,10 @@ void Cpu::Tick() {
     DecodeExecute(Fetch());
   }
 }
+
+void Cpu::PressKey(controllers::Key key) { mmu.controller.PressKey(key); }
+
+void Cpu::ReleaseKey(controllers::Key key) { mmu.controller.ReleaseKey(key); }
 
 uint8_t* Cpu::GetScreen() { return mmu.GetScreen(); }
 

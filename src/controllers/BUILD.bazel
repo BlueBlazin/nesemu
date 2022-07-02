@@ -1,0 +1,10 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+cc_library(
+    name = "controllers",
+    srcs = ["controllers.cc"],
+    hdrs = [
+        "controllers.h",
+    ],
+    visibility = ["//visibility:public"],
+)

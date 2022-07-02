@@ -9,6 +9,7 @@
 #include "SFML/Graphics.hpp"
 #include "SFML/System.hpp"
 #include "SFML/Window.hpp"
+#include "src/controllers/controllers.h"
 #include "src/cpu/cpu.h"
 #include "src/cpu/event.h"
 #include "src/mappers/mapper.h"
@@ -31,6 +32,7 @@ class Nes {
 
  private:
   void Emulate();
+  void HandleEvents();
   void UpdateWindows();
   void InitialDraw();
   void DrawWindows();
@@ -67,6 +69,12 @@ class Nes {
   sf::Sprite nt2_sprite;
   sf::Sprite nt3_sprite;
   sf::Sprite nt4_sprite;
+
+  // events
+  sf::Event event;
+
+  // internal
+  bool cmd_pressed = false;
 };
 
 }  // namespace nes
