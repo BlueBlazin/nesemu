@@ -34,7 +34,13 @@ Nes::Nes(const std::string& rom_path)
                         sf::Style::Titlebar | sf::Style::Resize),
       nametable4_window(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT),
                         "Nametable at 0x2C00",
-                        sf::Style::Titlebar | sf::Style::Resize) {
+                        sf::Style::Titlebar | sf::Style::Resize),
+      key_offsets{
+          {sf::Keyboard::A, 0},     {sf::Keyboard::S, 1},
+          {sf::Keyboard::Space, 2}, {sf::Keyboard::Enter, 3},
+          {sf::Keyboard::Up, 4},    {sf::Keyboard::Down, 5},
+          {sf::Keyboard::Left, 6},  {sf::Keyboard::Right, 7},
+      } {
   // get screen dimensions
   uint64_t width = sf::VideoMode::getDesktopMode().width;
   uint64_t height = sf::VideoMode::getDesktopMode().height;
@@ -161,28 +167,14 @@ void Nes::HandleEvents() {
   } else if (event.type == sf::Event::KeyPressed) {
     switch (event.key.code) {
       case sf::Keyboard::A:
-        cpu.p1_input |= (1 << 0);
-        break;
       case sf::Keyboard::S:
-        cpu.p1_input |= (1 << 1);
-        break;
       case sf::Keyboard::Space:
-        cpu.p1_input |= (1 << 2);
-        break;
       case sf::Keyboard::Enter:
-        cpu.p1_input |= (1 << 3);
-        break;
       case sf::Keyboard::Up:
-        cpu.p1_input |= (1 << 4);
-        break;
       case sf::Keyboard::Down:
-        cpu.p1_input |= (1 << 5);
-        break;
       case sf::Keyboard::Left:
-        cpu.p1_input |= (1 << 6);
-        break;
       case sf::Keyboard::Right:
-        cpu.p1_input |= (1 << 7);
+        cpu.p1_input |= (1 << key_offsets[event.key.code]);
         break;
       case sf::Keyboard::LSystem:
       case sf::Keyboard::RSystem:
@@ -194,12 +186,16 @@ void Nes::HandleEvents() {
           window.close();
         }
         break;
+      default:
+        break;
     }
   } else if (event.type == sf::Event::KeyReleased) {
     switch (event.key.code) {
       case sf::Keyboard::LSystem:
       case sf::Keyboard::RSystem:
         cmd_pressed = false;
+        break;
+      default:
         break;
     }
   }
@@ -215,28 +211,28 @@ void Nes::HandleEvents() {
 //   } else if (event.type == sf::Event::KeyPressed) {
 //     switch (event.key.code) {
 //       case sf::Keyboard::A:
-//         cpu.PressKey(controllers::Key::A);
+//         cpu.p1_input |= (1 << 0);
 //         break;
 //       case sf::Keyboard::S:
-//         cpu.PressKey(controllers::Key::B);
+//         cpu.p1_input |= (1 << 1);
 //         break;
 //       case sf::Keyboard::Space:
-//         cpu.PressKey(controllers::Key::Select);
+//         cpu.p1_input |= (1 << 2);
 //         break;
 //       case sf::Keyboard::Enter:
-//         cpu.PressKey(controllers::Key::Start);
+//         cpu.p1_input |= (1 << 3);
 //         break;
 //       case sf::Keyboard::Up:
-//         cpu.PressKey(controllers::Key::Up);
+//         cpu.p1_input |= (1 << 4);
 //         break;
 //       case sf::Keyboard::Down:
-//         cpu.PressKey(controllers::Key::Down);
+//         cpu.p1_input |= (1 << 5);
 //         break;
 //       case sf::Keyboard::Left:
-//         cpu.PressKey(controllers::Key::Left);
+//         cpu.p1_input |= (1 << 6);
 //         break;
 //       case sf::Keyboard::Right:
-//         cpu.PressKey(controllers::Key::Right);
+//         cpu.p1_input |= (1 << 7);
 //         break;
 //       case sf::Keyboard::LSystem:
 //       case sf::Keyboard::RSystem:

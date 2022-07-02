@@ -4,6 +4,7 @@
 #include <cmath>
 #include <cstdint>
 #include <string>
+#include <unordered_map>
 
 #include "SFML/Audio.hpp"
 #include "SFML/Graphics.hpp"
@@ -74,6 +75,7 @@ class Nes {
 
   // internal
   bool cmd_pressed = false;
+  std::unordered_map<int, int> key_offsets;
 };
 
 }  // namespace nes
