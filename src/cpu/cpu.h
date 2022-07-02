@@ -7,7 +7,6 @@
 #include <fstream>
 #include <iostream>
 
-#include "src/controllers/controllers.h"
 #include "src/cpu/event.h"
 #include "src/memory/memory.h"
 
@@ -33,14 +32,16 @@ class Cpu {
   void Run();
   void Tick();
 
-  void PressKey(controllers::Key key);
-  void ReleaseKey(controllers::Key key);
+  // void PressKey(controllers::Key key);
+  // void ReleaseKey(controllers::Key key);
 
   uint8_t* GetScreen();
   uint8_t* GetPatTable1();
   uint8_t* GetPatTable2();
   uint8_t* GetNametable(uint16_t addr);
 
+  // controller
+  uint8_t p1_input = 0x00;
   std::ofstream myfile;
 
  private:

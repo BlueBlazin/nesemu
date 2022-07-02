@@ -6,7 +6,6 @@ cc_library(
     hdrs = ["nes.h"],
     visibility = ["//visibility:public"],
     deps = [
-        "//src/controllers",
         "//src/cpu",
         "//src/mappers",
         "@SFML//:sfml",

@@ -6,7 +6,6 @@ cc_library(
     hdrs = ["memory.h"],
     visibility = ["//visibility:public"],
     deps = [
-        "//src/controllers",
         "//src/mappers",
         "//src/ppu",
     ],

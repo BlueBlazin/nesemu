@@ -8,7 +8,6 @@
 #include "SFML/Graphics.hpp"
 #include "SFML/System.hpp"
 #include "SFML/Window.hpp"
-#include "src/controllers/controllers.h"
 #include "src/cpu/cpu.h"
 #include "src/cpu/event.h"
 #include "src/mappers/mapper.h"
@@ -162,28 +161,28 @@ void Nes::HandleEvents() {
   } else if (event.type == sf::Event::KeyPressed) {
     switch (event.key.code) {
       case sf::Keyboard::A:
-        cpu.PressKey(controllers::Key::A);
+        cpu.p1_input |= (1 << 0);
         break;
       case sf::Keyboard::S:
-        cpu.PressKey(controllers::Key::B);
+        cpu.p1_input |= (1 << 1);
         break;
       case sf::Keyboard::Space:
-        cpu.PressKey(controllers::Key::Select);
+        cpu.p1_input |= (1 << 2);
         break;
       case sf::Keyboard::Enter:
-        cpu.PressKey(controllers::Key::Start);
+        cpu.p1_input |= (1 << 3);
         break;
       case sf::Keyboard::Up:
-        cpu.PressKey(controllers::Key::Up);
+        cpu.p1_input |= (1 << 4);
         break;
       case sf::Keyboard::Down:
-        cpu.PressKey(controllers::Key::Down);
+        cpu.p1_input |= (1 << 5);
         break;
       case sf::Keyboard::Left:
-        cpu.PressKey(controllers::Key::Left);
+        cpu.p1_input |= (1 << 6);
         break;
       case sf::Keyboard::Right:
-        cpu.PressKey(controllers::Key::Right);
+        cpu.p1_input |= (1 << 7);
         break;
       case sf::Keyboard::LSystem:
       case sf::Keyboard::RSystem:
@@ -191,35 +190,13 @@ void Nes::HandleEvents() {
         break;
       case sf::Keyboard::Q:
       case sf::Keyboard::W:
-        window.close();
+        if (cmd_pressed) {
+          window.close();
+        }
         break;
     }
   } else if (event.type == sf::Event::KeyReleased) {
     switch (event.key.code) {
-      case sf::Keyboard::A:
-        cpu.ReleaseKey(controllers::Key::A);
-        break;
-      case sf::Keyboard::S:
-        cpu.ReleaseKey(controllers::Key::B);
-        break;
-      case sf::Keyboard::Space:
-        cpu.ReleaseKey(controllers::Key::Select);
-        break;
-      case sf::Keyboard::Enter:
-        cpu.ReleaseKey(controllers::Key::Start);
-        break;
-      case sf::Keyboard::Up:
-        cpu.ReleaseKey(controllers::Key::Up);
-        break;
-      case sf::Keyboard::Down:
-        cpu.ReleaseKey(controllers::Key::Down);
-        break;
-      case sf::Keyboard::Left:
-        cpu.ReleaseKey(controllers::Key::Left);
-        break;
-      case sf::Keyboard::Right:
-        cpu.ReleaseKey(controllers::Key::Right);
-        break;
       case sf::Keyboard::LSystem:
       case sf::Keyboard::RSystem:
         cmd_pressed = false;
@@ -227,6 +204,60 @@ void Nes::HandleEvents() {
     }
   }
 }
+
+// void Nes::HandleEvents() {
+//   if (!window.pollEvent(event)) {
+//     return;
+//   }
+
+//   if (event.type == sf::Event::Closed) {
+//     window.close();
+//   } else if (event.type == sf::Event::KeyPressed) {
+//     switch (event.key.code) {
+//       case sf::Keyboard::A:
+//         cpu.PressKey(controllers::Key::A);
+//         break;
+//       case sf::Keyboard::S:
+//         cpu.PressKey(controllers::Key::B);
+//         break;
+//       case sf::Keyboard::Space:
+//         cpu.PressKey(controllers::Key::Select);
+//         break;
+//       case sf::Keyboard::Enter:
+//         cpu.PressKey(controllers::Key::Start);
+//         break;
+//       case sf::Keyboard::Up:
+//         cpu.PressKey(controllers::Key::Up);
+//         break;
+//       case sf::Keyboard::Down:
+//         cpu.PressKey(controllers::Key::Down);
+//         break;
+//       case sf::Keyboard::Left:
+//         cpu.PressKey(controllers::Key::Left);
+//         break;
+//       case sf::Keyboard::Right:
+//         cpu.PressKey(controllers::Key::Right);
+//         break;
+//       case sf::Keyboard::LSystem:
+//       case sf::Keyboard::RSystem:
+//         cmd_pressed = true;
+//         break;
+//       case sf::Keyboard::Q:
+//       case sf::Keyboard::W:
+//         if (cmd_pressed) {
+//           window.close();
+//         }
+//         break;
+//     }
+//   } else if (event.type == sf::Event::KeyReleased) {
+//     switch (event.key.code) {
+//       case sf::Keyboard::LSystem:
+//       case sf::Keyboard::RSystem:
+//         cmd_pressed = false;
+//         break;
+//     }
+//   }
+// }
 
 void Nes::UpdateWindows() {
   texture.update(cpu.GetScreen());

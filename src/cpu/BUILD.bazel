@@ -9,7 +9,6 @@ cc_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
-        "//src/controllers",
         "//src/memory",
     ],
 )

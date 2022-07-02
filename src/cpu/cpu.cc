@@ -9,19 +9,14 @@
 #include <stdexcept>
 #include <string>
 
-#include "src/controllers/controllers.h"
 #include "src/cpu/event.h"
 #include "src/memory/memory.h"
 
 namespace cpu {
 
-std::string to_hex(uint16_t PC) {
-  std::ostringstream ss;
-  ss << std::hex << PC;
-  return ss.str();
+Cpu::Cpu(const std::string& path) : mmu(path, p1_input) {
+  myfile.open("emu.log");
 }
-
-Cpu::Cpu(const std::string& path) : mmu(path) { myfile.open("emu.log"); }
 
 void Cpu::Startup() {
   PC = static_cast<uint16_t>(mmu.Read(0xFFFC));
@@ -63,9 +58,10 @@ void Cpu::Tick() {
   }
 }
 
-void Cpu::PressKey(controllers::Key key) { mmu.controller.PressKey(key); }
+// void Cpu::PressKey(controllers::Key key) { mmu.controller.PressKey(key); }
 
-void Cpu::ReleaseKey(controllers::Key key) { mmu.controller.ReleaseKey(key); }
+// void Cpu::ReleaseKey(controllers::Key key) { mmu.controller.ReleaseKey(key);
+// }
 
 uint8_t* Cpu::GetScreen() { return mmu.GetScreen(); }
 

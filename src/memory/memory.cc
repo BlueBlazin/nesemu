@@ -9,8 +9,11 @@
 
 namespace memory {
 
-Memory::Memory(const std::string& path)
-    : cartridge(mappers::ReadCartridge(path)), ppu(cartridge), ram() {
+Memory::Memory(const std::string& path, uint8_t& p1_input)
+    : cartridge(mappers::ReadCartridge(path)),
+      ppu(cartridge),
+      ram(),
+      p1_input(p1_input) {
   for (int i = 0; i < ram.size(); i++) {
     ram[i] = 0x00;
   }
@@ -78,8 +81,14 @@ uint8_t Memory::Read(uint16_t addr) {
     return ppu.Read(0x2000 | ((addr - 0x2000) & 0x7));
   } else if (addr <= 0x4017) {
     switch (addr) {
-      case 0x4016:
-        return controller.Read();
+      case 0x4016: {
+        if (strobe) {
+          p1_data = p1_input;
+        }
+        uint8_t value = 0x40 | (p1_data & 0x1);
+        p1_data = 0x80 | (p1_data >> 1);
+        return value;
+      }
       default:
         return 0x00;
     }
@@ -109,7 +118,11 @@ void Memory::Write(uint16_t addr, uint8_t value) {
         return;
       }
       case 0x4016:
-        controller.SetStrobe(value);
+        strobe = static_cast<bool>(value & 0x1);
+        if (strobe) {
+          p1_data = p1_input;
+          p1_input = 0;
+        }
         return;
     }
   } else if (addr <= 0x401F) {

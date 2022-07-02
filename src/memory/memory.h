@@ -6,7 +6,6 @@
 #include <memory>
 #include <string>
 
-#include "src/controllers/controllers.h"
 #include "src/mappers/ines.h"
 #include "src/mappers/mapper.h"
 #include "src/ppu/ppu.h"
@@ -20,7 +19,7 @@ enum class DmaState {
 
 class Memory {
  public:
-  Memory(const std::string& path);
+  Memory(const std::string& path, uint8_t& p1_input);
 
   void PpuTick(uint64_t n);
   void DmaTick();
@@ -36,8 +35,6 @@ class Memory {
   void ClearNmi();
   bool InDma();
 
-  controllers::Controller controller;
-
  private:
   std::shared_ptr<mappers::Mapper> cartridge;
   graphics::Ppu ppu;
@@ -46,6 +43,11 @@ class Memory {
   uint8_t dma_data = 0x00;
   uint16_t dma_addr = 0x0000;
   DmaState dma_state = DmaState::Read;
+
+  // controller
+  uint8_t& p1_input;
+  bool strobe = false;
+  uint8_t p1_data = 0x00;
 };
 
 }  // namespace memory

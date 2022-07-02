@@ -9,7 +9,6 @@
 #include "SFML/Graphics.hpp"
 #include "SFML/System.hpp"
 #include "SFML/Window.hpp"
-#include "src/controllers/controllers.h"
 #include "src/cpu/cpu.h"
 #include "src/cpu/event.h"
 #include "src/mappers/mapper.h"
