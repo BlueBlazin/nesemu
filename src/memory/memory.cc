@@ -75,7 +75,6 @@ uint8_t Memory::Read(uint16_t addr) {
   if (addr <= 0x1FFF) {
     return ram[addr % 0x800];
   } else if (addr <= 0x2007) {
-    // std::printf("read addr: 0x%X\n", addr);
     return ppu.Read(addr);
   } else if (addr <= 0x3FFF) {
     return ppu.Read(0x2000 | ((addr - 0x2000) & 0x7));

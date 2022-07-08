@@ -201,60 +201,6 @@ void Nes::HandleEvents() {
   }
 }
 
-// void Nes::HandleEvents() {
-//   if (!window.pollEvent(event)) {
-//     return;
-//   }
-
-//   if (event.type == sf::Event::Closed) {
-//     window.close();
-//   } else if (event.type == sf::Event::KeyPressed) {
-//     switch (event.key.code) {
-//       case sf::Keyboard::A:
-//         cpu.p1_input |= (1 << 0);
-//         break;
-//       case sf::Keyboard::S:
-//         cpu.p1_input |= (1 << 1);
-//         break;
-//       case sf::Keyboard::Space:
-//         cpu.p1_input |= (1 << 2);
-//         break;
-//       case sf::Keyboard::Enter:
-//         cpu.p1_input |= (1 << 3);
-//         break;
-//       case sf::Keyboard::Up:
-//         cpu.p1_input |= (1 << 4);
-//         break;
-//       case sf::Keyboard::Down:
-//         cpu.p1_input |= (1 << 5);
-//         break;
-//       case sf::Keyboard::Left:
-//         cpu.p1_input |= (1 << 6);
-//         break;
-//       case sf::Keyboard::Right:
-//         cpu.p1_input |= (1 << 7);
-//         break;
-//       case sf::Keyboard::LSystem:
-//       case sf::Keyboard::RSystem:
-//         cmd_pressed = true;
-//         break;
-//       case sf::Keyboard::Q:
-//       case sf::Keyboard::W:
-//         if (cmd_pressed) {
-//           window.close();
-//         }
-//         break;
-//     }
-//   } else if (event.type == sf::Event::KeyReleased) {
-//     switch (event.key.code) {
-//       case sf::Keyboard::LSystem:
-//       case sf::Keyboard::RSystem:
-//         cmd_pressed = false;
-//         break;
-//     }
-//   }
-// }
-
 void Nes::UpdateWindows() {
   texture.update(cpu.GetScreen());
   pt1_texture.update(cpu.GetPatTable1());

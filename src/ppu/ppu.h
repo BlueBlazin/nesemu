@@ -26,6 +26,12 @@ constexpr int NAMETABLE_SIZE = SCREEN_WIDTH * SCREEN_HEIGHT * SCREEN_CHANNELS;
 constexpr int NAMETABLE_ROWS = 30;
 constexpr int NAMETABLE_COLS = 32;
 
+struct Color {
+  uint8_t red;
+  uint8_t green;
+  uint8_t blue;
+};
+
 class Ppu {
  public:
   Ppu(std::shared_ptr<mappers::Mapper> mapper);
@@ -57,12 +63,14 @@ class Ppu {
   *****************************************************/
 
   void DataFetcherTick();
-  void SpriteEvalTick();
+  // void SpriteEvalTick();
   void PixelTick();
 
   void VisibleOrPrerenderTick();
   void PostRenderTick();
   void VBlankTick();
+
+  void EvalSprites();
 
   /*****************************************************
     Data read/write methods
@@ -97,8 +105,10 @@ class Ppu {
   void NextScanline();
   void NextDot();
   bool Disabled();
-  void ShiftBg();
+  void ShiftBgFifos();
   bool ShiftOnCycle();
+  void ShiftSpriteFifos(int i);
+  Color GetRgb(uint8_t palette, uint8_t value);
 
   uint16_t CalcNametableAddr(uint8_t x);
 
@@ -111,21 +121,30 @@ class Ppu {
   // PPU state variants
   ScanlineType scanline_type = ScanlineType::PreRender;
   CycleType cycle_type = CycleType::Cycle0;
+  // SpriteFetchType sprite_fetch_type = SpriteFetchType::SecondaryOamInit0;
 
   // PPU state info
   uint64_t dot = 0;
   uint64_t line = 261;
   uint64_t frame = 1;
 
-  // Shift registers
-  // std::deque<uint8_t> pattern_queue1;
-  // std::deque<uint8_t> pattern_queue2;
-  // std::deque<uint8_t> palette_queue1;
-  // std::deque<uint8_t> palette_queue2;
+  // Bg shift registers
   uint16_t pattern_queue1;
   uint16_t pattern_queue2;
   uint16_t palette_queue1;
   uint16_t palette_queue2;
+
+  /*---------------------------------------------------
+    Sprite registers
+  ---------------------------------------------------*/
+  // shift registers
+  uint8_t sprite_queues1[8] = {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0};
+  uint8_t sprite_queues2[8] = {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0};
+  // latches
+  uint8_t sprite_attrs[8] = {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0};
+  // counters
+  uint16_t sprite_counters[8] = {0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF,
+                                 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF};
 
   /*****************************************************
     Memory and registers
@@ -184,6 +203,14 @@ class Ppu {
   /*---------------------------------------------------
     Internal state
   ---------------------------------------------------*/
+
+  uint8_t sprite_idx = 0x0;
+  uint8_t secondary_oam_idx = 0x0;
+  uint8_t sprite_palette = 0x0;
+
+  // sprite fetching
+  uint16_t sprite_tile_idx = 0x00;
+  uint16_t sprite_addr = 0x00;
 
   uint8_t last_write = 0x00;
   uint8_t read_buffer = 0x00;

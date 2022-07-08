@@ -81,4 +81,18 @@ std::ostream& operator<<(std::ostream& os, const CycleType& cycle_type) {
   }
 }
 
+// std::ostream& operator<<(std::ostream& os,
+//                          const SpriteFetchType& sprite_fetch_type) {
+//   switch (sprite_fetch_type) {
+//     case SpriteFetchType::SecondaryOamInit:
+//       return os << "SecondaryOamInit";
+//     case SpriteFetchType::SpriteEval:
+//       return os << "SpriteEval";
+//     case SpriteFetchType::SpriteFetch:
+//       return os << "SpriteFetch";
+//     case SpriteFetchType::RenderPipelineInit:
+//       return os << "RenderPipelineInit";
+//   }
+// }
+
 }  // namespace graphics

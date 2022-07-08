@@ -42,16 +42,56 @@ void Ppu::Tick(uint64_t cycles) {
   while (cycles > 0) {
     PixelTick();
     DataFetcherTick();
-    SpriteEvalTick();
+    // SpriteEvalTick();
 
     NextDot();
     cycles--;
   }
 }
 
-void Ppu::SpriteEvalTick() {
-  // TODO
+void Ppu::EvalSprites() {
+  secondary_oam_idx = 0;
+
+  for (int n = 0; n < 64; n++) {
+    uint8_t y = obj_attr_memory[n << 2];
+
+    if ((y <= line) && (line <= y + (long_sprites ? 16 : 8))) {
+      if (secondary_oam_idx < secondary_oam.size()) {
+        secondary_oam[secondary_oam_idx++] = y;
+        secondary_oam[secondary_oam_idx++] = obj_attr_memory[n << 2 | 1];
+        secondary_oam[secondary_oam_idx++] = obj_attr_memory[n << 2 | 2];
+        secondary_oam[secondary_oam_idx++] = obj_attr_memory[n << 2 | 3];
+      } else {
+        sprite_overflow = true;
+      }
+    }
+  }
 }
+
+// void Ppu::SpriteEvalTick() {
+//   switch (sprite_fetch_type) {
+//     case SpriteFetchType::SecondaryOamInit0: {
+//       sprite_fetch_type = SpriteFetchType::SecondaryOamInit1;
+//       break;
+//     }
+//     case SpriteFetchType::SecondaryOamInit1: {
+//       secondary_oam[secondary_oam_idx++] = 0xFF;
+//       if (dot == 64) {
+//         secondary_oam_idx = 0;
+//         sprite_fetch_type = SpriteFetchType::SpriteEval;
+//       } else {
+//         sprite_fetch_type = SpriteFetchType::SecondaryOamInit0;
+//       }
+//       break;
+//     }
+//     case SpriteFetchType::SpriteEval: {
+//       if (((dot - 65) & 0x4) == 0x3) {
+//         uint64_t y = static_cast<uint64_t>(obj_attr_memory[oam_idx << 2]);
+//         secondary_oam[secondary_oam_idx] = obj_attr_memory[oam_idx << 2];
+//       }
+//     }
+//   }
+// }
 
 void Ppu::PixelTick() {
   if (Disabled() || scanline_type != ScanlineType::Visible || dot == 0 ||
@@ -73,23 +113,31 @@ void Ppu::PixelTick() {
     bg_palette = 0;
   }
 
-  uint8_t palette = ReadVram((static_cast<uint16_t>(bg_palette) << 2) +
-                             static_cast<uint16_t>(bg_idx) + 0x3F00);
+  // uint8_t palette = ReadVram((static_cast<uint16_t>(bg_palette) << 2) +
+  //                            static_cast<uint16_t>(bg_idx) + 0x3F00);
 
-  uint16_t pixel_color = (emph_blue << 8) | (emph_green << 7) |
-                         (emph_red << 6) | static_cast<uint16_t>(palette);
+  // uint16_t pixel_color = (emph_blue << 8) | (emph_green << 7) |
+  //                        (emph_red << 6) | static_cast<uint16_t>(palette);
 
-  uint16_t master_palette_idx = pixel_color * 3;
+  // uint16_t master_palette_idx = pixel_color * 3;
 
-  uint8_t red = NTSC_PALETTE[master_palette_idx + 0];
-  uint8_t green = NTSC_PALETTE[master_palette_idx + 1];
-  uint8_t blue = NTSC_PALETTE[master_palette_idx + 2];
+  // uint8_t red = NTSC_PALETTE[master_palette_idx + 0];
+  // uint8_t green = NTSC_PALETTE[master_palette_idx + 1];
+  // uint8_t blue = NTSC_PALETTE[master_palette_idx + 2];
+
+  // int idx = (line * SCREEN_WIDTH + dot) * SCREEN_CHANNELS;
+
+  // screen[idx + 0] = red;
+  // screen[idx + 1] = green;
+  // screen[idx + 2] = blue;
+  // screen[idx + 3] = 0xFF;
+  Color color = GetRgb(bg_palette, bg_idx);
 
   int idx = (line * SCREEN_WIDTH + dot) * SCREEN_CHANNELS;
 
-  screen[idx + 0] = red;
-  screen[idx + 1] = green;
-  screen[idx + 2] = blue;
+  screen[idx + 0] = color.red;
+  screen[idx + 1] = color.green;
+  screen[idx + 2] = color.blue;
   screen[idx + 3] = 0xFF;
 }
 
@@ -113,7 +161,7 @@ void Ppu::VisibleOrPrerenderTick() {
   }
 
   if (ShiftOnCycle()) {
-    ShiftBg();
+    ShiftBgFifos();
   }
 
   switch (cycle_type) {
@@ -185,6 +233,10 @@ void Ppu::VisibleOrPrerenderTick() {
       if (dot == 256) {
         IncVertical();
         cycle_type = CycleType::GarbageByte0;
+        // evaluate all sprites for next scanline
+        EvalSprites();
+        // init sprite idx to 0
+        sprite_idx = 0;
       } else if (dot == 336) {
         cycle_type = CycleType::FirstUnkByte0;
       } else {
@@ -204,16 +256,28 @@ void Ppu::VisibleOrPrerenderTick() {
     }
     /******************************************************************/
     case CycleType::GarbageByte1: {
+      uint16_t fine_y = (reg_V >> 12) & 0x7;
+      uint16_t value =
+          static_cast<uint16_t>(secondary_oam[sprite_idx << 2 | 1]);
+
+      if (long_sprites) {
+        // TODO
+        throw "8x16 sprites are unimplemented";
+      } else {
+        sprite_addr = (value << 4) | fine_y;
+      }
       cycle_type = CycleType::GarbageByte2;
       break;
     }
     /******************************************************************/
     case CycleType::GarbageByte2: {
+      sprite_attrs[sprite_idx] = secondary_oam[sprite_idx << 2 | 2];
       cycle_type = CycleType::GarbageByte3;
       break;
     }
     /******************************************************************/
     case CycleType::GarbageByte3: {
+      sprite_counters[sprite_idx] = secondary_oam[sprite_idx << 2 | 3];
       cycle_type = CycleType::NextSpriteTileLow0;
       break;
     }
@@ -224,6 +288,7 @@ void Ppu::VisibleOrPrerenderTick() {
     }
     /******************************************************************/
     case CycleType::NextSpriteTileLow1: {
+      sprite_queues1[sprite_idx] = ReadVram(sprite_addr);
       cycle_type = CycleType::NextSpriteTileHigh0;
       break;
     }
@@ -234,6 +299,8 @@ void Ppu::VisibleOrPrerenderTick() {
     }
     /******************************************************************/
     case CycleType::NextSpriteTileHigh1: {
+      sprite_queues2[sprite_idx++] = ReadVram(sprite_addr | 0x8);
+
       if (dot == 320) {
         cycle_type = CycleType::NametableByte0;
       } else {
@@ -267,6 +334,16 @@ void Ppu::VisibleOrPrerenderTick() {
   if (scanline_type == ScanlineType::PreRender && dot >= 280 && dot <= 304) {
     // vert(v) := vert(t)
     ReloadVertical();
+  } else if (scanline_type == ScanlineType::Visible && dot > 0 && dot <= 256) {
+    // decrement x value of all 8 sprite counters
+    for (int i = 0; i < 8; i++) {
+      sprite_counters[i]--;
+      sprite_counters[i] = sprite_counters[i] & ~(sprite_counters[i] >> 8);
+
+      if (sprite_counters[i] == 0) {
+        ShiftSpriteFifos(i);
+      }
+    }
   }
 }
 
@@ -285,7 +362,7 @@ void Ppu::LoadBg() {
   palette_latch = (attr_byte >> shift) & 0x3;
 }
 
-void Ppu::ShiftBg() {
+void Ppu::ShiftBgFifos() {
   pattern_queue1 = pattern_queue1 << 1;
   pattern_queue2 = pattern_queue2 << 1;
 
@@ -296,9 +373,36 @@ void Ppu::ShiftBg() {
   palette_queue2 |= (palette_latch >> 1) & 0x1;
 }
 
+void Ppu::ShiftSpriteFifos(int i) {
+  if (static_cast<bool>((sprite_attrs[i] >> 6) & 0x1)) {
+    // flip horizontalally
+    sprite_queues1[i] = sprite_queues1[i] >> 1;
+    sprite_queues2[i] = sprite_queues2[i] >> 1;
+  } else {
+    sprite_queues1[i] = sprite_queues1[i] << 1;
+    sprite_queues2[i] = sprite_queues2[i] << 1;
+  }
+}
+
+Color Ppu::GetRgb(uint8_t palette, uint8_t value) {
+  uint8_t addr = ReadVram((static_cast<uint16_t>(palette) << 2) +
+                          static_cast<uint16_t>(value) + 0x3F00);
+
+  uint16_t pixel_color = (emph_blue << 8) | (emph_green << 7) |
+                         (emph_red << 6) | static_cast<uint16_t>(addr);
+
+  uint16_t master_palette_idx = pixel_color * 3;
+
+  return Color{
+      .red = NTSC_PALETTE[master_palette_idx + 0],
+      .green = NTSC_PALETTE[master_palette_idx + 1],
+      .blue = NTSC_PALETTE[master_palette_idx + 2],
+  };
+}
+
 bool Ppu::ShiftOnCycle() {
   return (
-      scanline_type == ScanlineType::Visible &&
+      (scanline_type == ScanlineType::Visible) &&
           ((dot >= 1 && dot <= 256) || (dot >= 321 && dot <= 336)) ||
       (scanline_type == ScanlineType::PreRender && (dot >= 321 && dot <= 336)));
 }
