@@ -108,7 +108,7 @@ class Ppu {
   void ShiftBgFifos();
   bool ShiftOnCycle();
   void ShiftSpriteFifos(int i);
-  Color GetRgb(uint8_t palette, uint8_t value);
+  Color GetRgb(uint8_t palette, uint8_t value, uint16_t offset);
 
   uint16_t CalcNametableAddr(uint8_t x);
 
@@ -145,6 +145,8 @@ class Ppu {
   // counters
   uint16_t sprite_counters[8] = {0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF,
                                  0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF};
+  // sprite numbers
+  uint8_t sprite_nums[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
   /*****************************************************
     Memory and registers
@@ -207,6 +209,7 @@ class Ppu {
   uint8_t sprite_idx = 0x0;
   uint8_t secondary_oam_idx = 0x0;
   uint8_t sprite_palette = 0x0;
+  bool sprite0_on_scanline = false;
 
   // sprite fetching
   uint16_t sprite_tile_idx = 0x00;
