@@ -104,8 +104,7 @@ void Ppu::UpdateSprites() {
       // TODO
     } else {
       uint8_t tile_idx = obj_attr_memory[n << 2 | 1];
-      // addr = sprite_table_addr | (tile_idx << 4);
-      addr = 0x1000 | (tile_idx << 4);
+      addr = sprite_table_addr | (tile_idx << 4);
     }
 
     int x = (n % SPRITES_COLS) * SPRITE_BOX_WIDTH;

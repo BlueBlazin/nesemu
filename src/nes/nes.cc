@@ -73,22 +73,25 @@ Nes::Nes(const std::string& rom_path)
   objects_window.setSize(sf::Vector2u(objects_width, objects_height));
 
   // compute aggregate dimensions
-  int total_windows_width =
-      pat_table_size + screen_width + 2 * nametable_width + 3 * padding;
+  int total_windows_width = objects_width + pat_table_size + screen_width +
+                            2 * nametable_width + 4 * padding;
 
   int pat_tables_height = 2 * pat_table_size + padding + TITLEBAR_HEIGHT;
   int nametables_height = 2 * nametable_height + padding + TITLEBAR_HEIGHT;
 
+  // position sprites window
+  int objs_x = (width - total_windows_width) / 2;
+  int objs_y = (height - objects_height) / 2;
+
+  objects_window.setPosition(sf::Vector2i(objs_x, objs_y + TITLEBAR_HEIGHT));
+
   // position pattern tables
-  int pt_x = (width - total_windows_width) / 2;
+  // int pt_x = (width - total_windows_width) / 2;
+  int pt_x = objs_x + objects_width + padding;
   int pt_y = (height - pat_tables_height) / 2;
   pat_table1_window.setPosition(sf::Vector2i(pt_x, pt_y));
   pat_table2_window.setPosition(
       sf::Vector2i(pt_x, pt_y + pat_table_size + padding + TITLEBAR_HEIGHT));
-
-  // position sprites window
-  objects_window.setPosition(sf::Vector2i(
-      pt_x, pt_y + 2 * (pat_table_size + padding) + TITLEBAR_HEIGHT));
 
   // position main window
   int window_x = pt_x + pat_table_size + padding;
