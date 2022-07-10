@@ -104,21 +104,18 @@ void Ppu::UpdateSprites() {
       // TODO
     } else {
       uint8_t tile_idx = obj_attr_memory[n << 2 | 1];
-      // std::printf("n: %d, 0x%X, 0x%X, 0x%X, 0x%X\n", n, obj_attr_memory[n *
-      // 4],
-      //             obj_attr_memory[n * 4 + 1], obj_attr_memory[n * 4 + 2],
-      //             obj_attr_memory[n * 4 + 3]);
-      addr = sprite_table_addr | (tile_idx << 4);
+      // addr = sprite_table_addr | (tile_idx << 4);
+      addr = 0x1000 | (tile_idx << 4);
     }
 
-    int x = (n % SPRITES_COLS) * 8;
-    int y = (n / SPRITES_COLS) * 16;
+    int x = (n % SPRITES_COLS) * SPRITE_BOX_WIDTH;
+    int y = (n / SPRITES_COLS) * SPRITE_BOX_HEIGHT;
     // draw 8x8 sprite
-    for (int row = y; row < y + 8; row++) {
+    for (int row = y + 2; row < y + 2 + 8; row++) {
       uint8_t lo = ReadVram(addr + row);
       uint8_t hi = ReadVram(addr + row + 8);
 
-      for (int col = x; col < x + 8; col++) {
+      for (int col = x + 2; col < x + 2 + 8; col++) {
         uint8_t value = ((hi >> 6) & 0x2) | (lo >> 7);
         Color color = GetRgb(palette, value, 0x10);
 
@@ -130,6 +127,34 @@ void Ppu::UpdateSprites() {
 
         lo = lo << 1;
         hi = hi << 1;
+      }
+    }
+  }
+
+  // draw white border around sprites
+  // (<P> = padding, <B> = border, <X> = sprite pixel)
+  // <P><P><P><P><P><P><P><P><P><P><P><P>
+  // <P><B><B><B><B><B><B><B><B><B><B><P>
+  // <P><B><X><X><X><X><X><X><X><X><B><P>
+  // ... 15 more of above
+  // <P><B><B><B><B><B><B><B><B><B><B><P>
+  // <P><P><P><P><P><P><P><P><P><P><P><P>
+  for (int i = 0; i < SPRITES_HEIGHT; i++) {
+    for (int j = 0; j < SPRITES_WIDTH; j++) {
+      int idx = (i * SPRITES_WIDTH + j) * SCREEN_CHANNELS;
+
+      if ((i % SPRITE_BOX_HEIGHT == 1 || i % SPRITE_BOX_HEIGHT == 18) &&
+          !(j % SPRITE_BOX_WIDTH == 0 || j % SPRITE_BOX_WIDTH == 11)) {
+        sprites[idx + 0] = 0xDD;
+        sprites[idx + 1] = 0xDD;
+        sprites[idx + 2] = 0xDD;
+        sprites[idx + 3] = 0xDD;
+      } else if ((j % SPRITE_BOX_WIDTH == 1 || j % SPRITE_BOX_WIDTH == 10) &&
+                 !(i % SPRITE_BOX_HEIGHT == 0 || i % SPRITE_BOX_HEIGHT == 19)) {
+        sprites[idx + 0] = 0xDD;
+        sprites[idx + 1] = 0xDD;
+        sprites[idx + 2] = 0xDD;
+        sprites[idx + 3] = 0xDD;
       }
     }
   }

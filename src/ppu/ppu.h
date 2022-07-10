@@ -27,8 +27,10 @@ constexpr int NAMETABLE_ROWS = 30;
 constexpr int NAMETABLE_COLS = 32;
 constexpr int SPRITES_ROWS = 8;
 constexpr int SPRITES_COLS = 8;
-constexpr int SPRITES_HEIGHT = SPRITES_ROWS * 16;
-constexpr int SPRITES_WIDTH = SPRITES_COLS * 8;
+constexpr int SPRITE_BOX_WIDTH = 8 + 4;    // 2 pixels each for border & padding
+constexpr int SPRITE_BOX_HEIGHT = 16 + 4;  // 2 pixels each for border & padding
+constexpr int SPRITES_HEIGHT = SPRITES_ROWS * SPRITE_BOX_HEIGHT;
+constexpr int SPRITES_WIDTH = SPRITES_COLS * SPRITE_BOX_WIDTH;
 constexpr int SPRITES_SIZE = SPRITES_HEIGHT * SPRITES_WIDTH * SCREEN_CHANNELS;
 
 struct Color {

@@ -57,8 +57,8 @@ Nes::Nes(const std::string& rom_path)
   int pat_table_size = PAT_TABLE_SIZE * zoom;
   int nametable_width = SCREEN_WIDTH * 2;
   int nametable_height = SCREEN_HEIGHT * 2;
-  int objects_width = SPRITES_WIDTH * zoom;
-  int objects_height = SPRITES_HEIGHT * zoom;
+  int objects_width = SPRITES_WIDTH * (zoom + 1);
+  int objects_height = SPRITES_HEIGHT * (zoom + 1);
   // 50px padding
   int padding = 50;
 

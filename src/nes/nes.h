@@ -19,8 +19,8 @@ namespace nes {
 constexpr int SCREEN_WIDTH = 256;
 constexpr int SCREEN_HEIGHT = 240;
 constexpr int PAT_TABLE_SIZE = 128;
-constexpr int SPRITES_WIDTH = 64;
-constexpr int SPRITES_HEIGHT = 128;
+constexpr int SPRITES_WIDTH = (8 + 4) * 8;
+constexpr int SPRITES_HEIGHT = (16 + 4) * 8;
 // rough estimate of title bar height
 constexpr int TITLEBAR_HEIGHT = 65;
 constexpr uint64_t MAX_CYCLES = 29815;
