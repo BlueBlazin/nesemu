@@ -24,6 +24,7 @@ Ppu::Ppu(std::shared_ptr<mappers::Mapper> mapper)
       nametable2(NAMETABLE_SIZE, 0),
       nametable3(NAMETABLE_SIZE, 0),
       nametable4(NAMETABLE_SIZE, 0),
+      sprites(SPRITES_SIZE, 0),
       cartridge(std::move(mapper)),
       pattern_queue1(),
       pattern_queue2(),
@@ -51,6 +52,7 @@ void Ppu::Tick(uint64_t cycles) {
 
 void Ppu::EvalSprites() {
   secondary_oam_idx = 0;
+  num_sprites_on_line = 0;
   sprite0_on_scanline = false;
 
   // initialize secondary OAM to 0xFF
@@ -62,7 +64,7 @@ void Ppu::EvalSprites() {
     uint8_t y = obj_attr_memory[n << 2];
 
     if ((y <= line) && (line < y + (long_sprites ? 16 : 8))) {
-      if (secondary_oam_idx < secondary_oam.size()) {
+      if (num_sprites_on_line < 8) {
         if (secondary_oam_idx == 0) {
           sprite0_on_scanline = true;
         }
@@ -71,6 +73,7 @@ void Ppu::EvalSprites() {
         secondary_oam[secondary_oam_idx++] = obj_attr_memory[(n << 2) | 1];
         secondary_oam[secondary_oam_idx++] = obj_attr_memory[(n << 2) | 2];
         secondary_oam[secondary_oam_idx++] = obj_attr_memory[(n << 2) | 3];
+        num_sprites_on_line++;
       } else {
         sprite_overflow = true;
       }
@@ -78,10 +81,62 @@ void Ppu::EvalSprites() {
   }
 }
 
+// void Ppu::PixelTick() {
+//   if (Disabled() || scanline_type != ScanlineType::Visible || dot == 0 ||
+//       dot > 256) {
+//     // PPU is disabled, don't shift pixels
+//     return;
+//   }
+
+//   // get correct bits using fine X scroll
+//   uint8_t bg_lo = static_cast<uint8_t>(pattern_queue1 >> (15 - reg_X));
+//   uint8_t bg_hi = static_cast<uint8_t>(pattern_queue2 >> (15 - reg_X));
+//   uint8_t value = (bg_hi << 1) | bg_lo;
+
+//   uint8_t bg_palette_lo = palette_queue1 >> (15 - reg_X);
+//   uint8_t bg_palette_hi = palette_queue2 >> (15 - reg_X);
+//   uint8_t palette = (bg_palette_hi << 1) | bg_palette_lo;
+//   Color color = GetRgb(value == 0 ? 0 : palette, value, 0);
+
+//   if (show_sprites) {
+//     uint8_t sprite_value = 0;
+//     uint8_t sprite_palette = 0;
+//     bool sprite_priority = false;
+
+//     for (int i = 0; i <= num_sprites_on_line; i++) {
+//       uint8_t x =
+//           ((sprite_queues2[i] >> 6) & 0x2) | ((sprite_queues1[i] >> 7) &
+//           0x1);
+
+//       // if flip horizontal, use rightmost bit
+//       if (static_cast<bool>((sprite_attrs[i] >> 6) & 0x1)) {
+//         x = (sprite_queues2[i] & 0x2) | (sprite_queues1[i] & 0x1);
+//       }
+
+//       if (sprite_counters[i] == 0 && x > 0) {
+//         sprite_value = x;
+//         sprite_palette = sprite_attrs[i] & 0x3;
+//         sprite_priority = static_cast<bool>((sprite_attrs[i] >> 5) & 0x1);
+
+//         if (i == 0 && sprite0_on_scanline && value != 0) {
+//           sprite0_hit = true;
+//         }
+
+//         break;
+//       }
+//     }
+
+//     if (sprite_value > 0 && sprite_priority) {
+//       value = sprite_value;
+//       palette = sprite_palette;
+//       color = GetRgb(palette, value, 0x10);
+//     }
+//   }
+
 void Ppu::PixelTick() {
   if (Disabled() || scanline_type != ScanlineType::Visible || dot == 0 ||
       dot > 256) {
-    // PPU is disabled, don't shift pixels
+    // PPU is disabled, don't draw pixels
     return;
   }
 
@@ -96,36 +151,26 @@ void Ppu::PixelTick() {
   Color color = GetRgb(value == 0 ? 0 : palette, value, 0);
 
   if (show_sprites) {
-    uint8_t sprite_value = 0;
-    uint8_t sprite_palette = 0;
-    bool sprite_priority = false;
+    int sprite_idx = 8;
 
-    for (int i = 0; i < 8; i++) {
-      uint8_t x =
-          ((sprite_queues2[i] >> 6) & 0x2) | ((sprite_queues1[i] >> 7) & 0x1);
-
-      // if flip horizontal, use rightmost bit
-      if (static_cast<bool>((sprite_attrs[i] >> 6) & 0x1)) {
-        x = (sprite_queues2[i] & 0x2) | (sprite_queues1[i] & 0x1);
-      }
-
-      if (sprite_counters[i] == 0 && x > 0) {
-        sprite_value = x;
-        sprite_palette = sprite_attrs[i] & 0x3;
-        sprite_priority = static_cast<bool>((sprite_attrs[i] >> 5) & 0x1);
-
-        if (i == 0 && sprite0_on_scanline && value != 0) {
-          sprite0_hit = true;
-        }
-
-        break;
+    for (int i = num_sprites_on_line; i >= 0; i--) {
+      if (sprite_counters[i] == 0 && GetSpriteValue(i) > 0) {
+        sprite_idx = i;
       }
     }
 
-    if (sprite_value > 0 && sprite_priority) {
-      value = sprite_value;
-      palette = sprite_palette;
-      color = GetRgb(palette, value, 0x10);
+    if (sprite_idx < 8) {
+      if (sprite_idx == 0 && sprite0_on_scanline && value != 0) {
+        sprite0_hit = true;
+      }
+
+      bool sprite_priority =
+          static_cast<bool>((sprite_attrs[sprite_idx] >> 5) & 0x1);
+
+      if (sprite_priority || value == 0) {
+        color = GetRgb(sprite_attrs[sprite_idx] & 0x3,
+                       GetSpriteValue(sprite_idx), 0x10);
+      }
     }
   }
 
@@ -135,6 +180,18 @@ void Ppu::PixelTick() {
   screen[idx + 1] = color.green;
   screen[idx + 2] = color.blue;
   screen[idx + 3] = 0xFF;
+}
+
+uint8_t Ppu::GetSpriteValue(int i) {
+  uint8_t byte_lo = sprite_queues1[i];
+  uint8_t byte_hi = sprite_queues2[i];
+
+  // if flip horizontal, use rightmost bit
+  if (static_cast<bool>((sprite_attrs[i] >> 6) & 0x1)) {
+    return (byte_hi & 0x2) | (byte_lo & 0x1);
+  } else {
+    return ((byte_hi >> 6) & 0x2) | ((byte_lo >> 7) & 0x1);
+  }
 }
 
 void Ppu::DataFetcherTick() {
@@ -252,7 +309,7 @@ void Ppu::VisibleOrPrerenderTick() {
     }
     /******************************************************************/
     case CycleType::GarbageByte1: {
-      uint16_t fine_y = (reg_V >> 12) & 0x7;
+      // uint16_t fine_y = (reg_V >> 12) & 0x7;
       uint16_t value =
           static_cast<uint16_t>(secondary_oam[(sprite_idx << 2) | 1]);
 
@@ -260,7 +317,9 @@ void Ppu::VisibleOrPrerenderTick() {
         // TODO
         throw "8x16 sprites are unimplemented";
       } else {
-        sprite_addr = sprite_table_addr | (value << 4) | fine_y;
+        uint16_t fine_y = (line - secondary_oam[sprite_idx << 2]) % 8;
+
+        sprite_addr = sprite_table_addr | (((value << 4) | fine_y) & 0xFFF);
       }
       cycle_type = CycleType::GarbageByte2;
       break;

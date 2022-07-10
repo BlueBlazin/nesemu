@@ -19,8 +19,10 @@ namespace nes {
 constexpr int SCREEN_WIDTH = 256;
 constexpr int SCREEN_HEIGHT = 240;
 constexpr int PAT_TABLE_SIZE = 128;
+constexpr int SPRITES_WIDTH = 64;
+constexpr int SPRITES_HEIGHT = 128;
 // rough estimate of title bar height
-constexpr int TITLEBAR_HEIGHT = 75;
+constexpr int TITLEBAR_HEIGHT = 65;
 constexpr uint64_t MAX_CYCLES = 29815;
 constexpr float TIME_PER_FRAME = 1.0 / 60.0;
 
@@ -50,6 +52,9 @@ class Nes {
   sf::RenderWindow nametable3_window;
   sf::RenderWindow nametable4_window;
 
+  // objects = game sprites
+  sf::RenderWindow objects_window;
+
   // textures
   sf::Texture texture;
 
@@ -61,6 +66,8 @@ class Nes {
   sf::Texture nt3_texture;
   sf::Texture nt4_texture;
 
+  sf::Texture objects_texture;
+
   // sprites
   sf::Sprite window_sprite;
   sf::Sprite pt1_sprite;
@@ -69,6 +76,7 @@ class Nes {
   sf::Sprite nt2_sprite;
   sf::Sprite nt3_sprite;
   sf::Sprite nt4_sprite;
+  sf::Sprite objects_sprite;
 
   // events
   sf::Event event;

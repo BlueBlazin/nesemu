@@ -58,16 +58,12 @@ void Cpu::Tick() {
   }
 }
 
-// void Cpu::PressKey(controllers::Key key) { mmu.controller.PressKey(key); }
-
-// void Cpu::ReleaseKey(controllers::Key key) { mmu.controller.ReleaseKey(key);
-// }
-
 uint8_t* Cpu::GetScreen() { return mmu.GetScreen(); }
 
 uint8_t* Cpu::GetPatTable1() { return mmu.GetPatTable1(); }
 uint8_t* Cpu::GetPatTable2() { return mmu.GetPatTable2(); }
 uint8_t* Cpu::GetNametable(uint16_t addr) { return mmu.GetNametable(addr); }
+uint8_t* Cpu::GetSprites() { return mmu.GetSprites(); }
 
 void Cpu::RunDma() {
   if (dma_state == DmaState::PreDma) {

@@ -32,7 +32,10 @@ void Memory::DmaTick() {
       ppu.OamDmaWrite(dma_data);
       dma_addr++;
       dma_state = DmaState::Read;
-      in_dma = (dma_addr & 0xFF) != 0;
+      if ((dma_addr & 0xFF) == 0) {
+        in_dma = false;
+        ppu.UpdateSprites();
+      }
       return;
     }
   }
@@ -63,6 +66,11 @@ uint8_t* Memory::GetNametable(uint16_t addr) {
     case 0x2C00:
       return ppu.nametable4.data();
   }
+}
+
+uint8_t* Memory::GetSprites() {
+  // ppu.UpdateSprites();
+  return ppu.sprites.data();
 }
 
 bool Memory::NmiPending() { return ppu.NmiOccured(); }

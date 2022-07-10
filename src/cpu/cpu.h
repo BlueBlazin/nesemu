@@ -39,6 +39,7 @@ class Cpu {
   uint8_t* GetPatTable1();
   uint8_t* GetPatTable2();
   uint8_t* GetNametable(uint16_t addr);
+  uint8_t* GetSprites();
 
   // controller
   uint8_t p1_input = 0x00;

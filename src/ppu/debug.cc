@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <cstdio>
 #include <iostream>
 
@@ -89,6 +90,46 @@ void Ppu::UpdateNametable(uint16_t addr) {
             nametable4[idx + 3] = 0xFF;
           }
         }
+      }
+    }
+  }
+}
+
+void Ppu::UpdateSprites() {
+  for (int n = 0; n < 64; n++) {
+    uint16_t addr;
+    uint8_t palette = obj_attr_memory[n << 2 | 2] & 0x3;
+
+    if (long_sprites) {
+      // TODO
+    } else {
+      uint8_t tile_idx = obj_attr_memory[n << 2 | 1];
+      // std::printf("n: %d, 0x%X, 0x%X, 0x%X, 0x%X\n", n, obj_attr_memory[n *
+      // 4],
+      //             obj_attr_memory[n * 4 + 1], obj_attr_memory[n * 4 + 2],
+      //             obj_attr_memory[n * 4 + 3]);
+      addr = sprite_table_addr | (tile_idx << 4);
+    }
+
+    int x = (n % SPRITES_COLS) * 8;
+    int y = (n / SPRITES_COLS) * 16;
+    // draw 8x8 sprite
+    for (int row = y; row < y + 8; row++) {
+      uint8_t lo = ReadVram(addr + row);
+      uint8_t hi = ReadVram(addr + row + 8);
+
+      for (int col = x; col < x + 8; col++) {
+        uint8_t value = ((hi >> 6) & 0x2) | (lo >> 7);
+        Color color = GetRgb(palette, value, 0x10);
+
+        int idx = (row * SPRITES_WIDTH + col) * SCREEN_CHANNELS;
+        sprites[idx + 0] = color.red;
+        sprites[idx + 1] = color.green;
+        sprites[idx + 2] = color.blue;
+        sprites[idx + 3] = 0xFF;
+
+        lo = lo << 1;
+        hi = hi << 1;
       }
     }
   }

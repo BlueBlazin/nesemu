@@ -25,6 +25,11 @@ constexpr int PAT_TABLE_SIZE =
 constexpr int NAMETABLE_SIZE = SCREEN_WIDTH * SCREEN_HEIGHT * SCREEN_CHANNELS;
 constexpr int NAMETABLE_ROWS = 30;
 constexpr int NAMETABLE_COLS = 32;
+constexpr int SPRITES_ROWS = 8;
+constexpr int SPRITES_COLS = 8;
+constexpr int SPRITES_HEIGHT = SPRITES_ROWS * 16;
+constexpr int SPRITES_WIDTH = SPRITES_COLS * 8;
+constexpr int SPRITES_SIZE = SPRITES_HEIGHT * SPRITES_WIDTH * SCREEN_CHANNELS;
 
 struct Color {
   uint8_t red;
@@ -46,6 +51,7 @@ class Ppu {
 
   void UpdatePatternTable(uint16_t table_offset = 0);
   void UpdateNametable(uint16_t addr);
+  void UpdateSprites();
 
   std::vector<uint8_t> screen;
   std::vector<uint8_t> pat_table1;
@@ -54,6 +60,7 @@ class Ppu {
   std::vector<uint8_t> nametable2;
   std::vector<uint8_t> nametable3;
   std::vector<uint8_t> nametable4;
+  std::vector<uint8_t> sprites;
 
  private:
   std::shared_ptr<mappers::Mapper> cartridge;
@@ -109,6 +116,7 @@ class Ppu {
   bool ShiftOnCycle();
   void ShiftSpriteFifos(int i);
   Color GetRgb(uint8_t palette, uint8_t value, uint16_t offset);
+  uint8_t GetSpriteValue(int i);
 
   uint16_t CalcNametableAddr(uint8_t x);
 
@@ -210,6 +218,7 @@ class Ppu {
   uint8_t secondary_oam_idx = 0x0;
   uint8_t sprite_palette = 0x0;
   bool sprite0_on_scanline = false;
+  int num_sprites_on_line = 0;
 
   // sprite fetching
   uint16_t sprite_tile_idx = 0x00;

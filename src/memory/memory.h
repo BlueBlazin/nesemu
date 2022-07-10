@@ -28,6 +28,7 @@ class Memory {
   uint8_t* GetPatTable1();
   uint8_t* GetPatTable2();
   uint8_t* GetNametable(uint16_t addr);
+  uint8_t* GetSprites();
 
   uint8_t Read(uint16_t addr);
   void Write(uint16_t addr, uint8_t value);

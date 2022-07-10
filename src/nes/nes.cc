@@ -35,6 +35,8 @@ Nes::Nes(const std::string& rom_path)
       nametable4_window(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT),
                         "Nametable at 0x2C00",
                         sf::Style::Titlebar | sf::Style::Resize),
+      objects_window(sf::VideoMode(SPRITES_WIDTH, SPRITES_HEIGHT), "Sprites",
+                     sf::Style::Titlebar | sf::Style::Resize),
       key_offsets{
           {sf::Keyboard::A, 0},     {sf::Keyboard::S, 1},
           {sf::Keyboard::Space, 2}, {sf::Keyboard::Enter, 3},
@@ -51,9 +53,12 @@ Nes::Nes(const std::string& rom_path)
   // window resize dimensions
   int screen_width = SCREEN_WIDTH * zoom;
   int screen_height = SCREEN_WIDTH * zoom;
-  int pat_table_size = PAT_TABLE_SIZE * (zoom + 1);
+  // int pat_table_size = PAT_TABLE_SIZE * (zoom + 1);
+  int pat_table_size = PAT_TABLE_SIZE * zoom;
   int nametable_width = SCREEN_WIDTH * 2;
   int nametable_height = SCREEN_HEIGHT * 2;
+  int objects_width = SPRITES_WIDTH * zoom;
+  int objects_height = SPRITES_HEIGHT * zoom;
   // 50px padding
   int padding = 50;
 
@@ -65,6 +70,7 @@ Nes::Nes(const std::string& rom_path)
   nametable2_window.setSize(sf::Vector2u(nametable_width, nametable_height));
   nametable3_window.setSize(sf::Vector2u(nametable_width, nametable_height));
   nametable4_window.setSize(sf::Vector2u(nametable_width, nametable_height));
+  objects_window.setSize(sf::Vector2u(objects_width, objects_height));
 
   // compute aggregate dimensions
   int total_windows_width =
@@ -79,6 +85,10 @@ Nes::Nes(const std::string& rom_path)
   pat_table1_window.setPosition(sf::Vector2i(pt_x, pt_y));
   pat_table2_window.setPosition(
       sf::Vector2i(pt_x, pt_y + pat_table_size + padding + TITLEBAR_HEIGHT));
+
+  // position sprites window
+  objects_window.setPosition(sf::Vector2i(
+      pt_x, pt_y + 2 * (pat_table_size + padding) + TITLEBAR_HEIGHT));
 
   // position main window
   int window_x = pt_x + pat_table_size + padding;
@@ -108,6 +118,8 @@ Nes::Nes(const std::string& rom_path)
   nt3_texture.create(SCREEN_WIDTH, SCREEN_HEIGHT);
   nt4_texture.create(SCREEN_WIDTH, SCREEN_HEIGHT);
 
+  objects_texture.create(SPRITES_WIDTH, SPRITES_HEIGHT);
+
   // define sprites
   // TODO: can this be done in initializer list instead?
   window_sprite = sf::Sprite(texture);
@@ -117,6 +129,7 @@ Nes::Nes(const std::string& rom_path)
   nt2_sprite = sf::Sprite(nt2_texture);
   nt3_sprite = sf::Sprite(nt3_texture);
   nt4_sprite = sf::Sprite(nt4_texture);
+  objects_sprite = sf::Sprite(objects_texture);
 }
 
 void Nes::Run() {
@@ -209,6 +222,8 @@ void Nes::UpdateWindows() {
   nt2_texture.update(cpu.GetNametable(0x2400));
   nt3_texture.update(cpu.GetNametable(0x2800));
   nt4_texture.update(cpu.GetNametable(0x2C00));
+  // TODO objects
+  objects_texture.update(cpu.GetSprites());
 
   DrawWindows();
   DisplayWindows();
@@ -227,6 +242,7 @@ void Nes::DrawWindows() {
   nametable2_window.draw(nt2_sprite);
   nametable3_window.draw(nt3_sprite);
   nametable4_window.draw(nt4_sprite);
+  objects_window.draw(objects_sprite);
 }
 
 void Nes::DisplayWindows() {
@@ -239,6 +255,8 @@ void Nes::DisplayWindows() {
   nametable2_window.display();
   nametable3_window.display();
   nametable4_window.display();
+
+  objects_window.display();
 }
 
 }  // namespace nes
