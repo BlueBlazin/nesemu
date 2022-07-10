@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "ppu.h"
+#include "src/ppu/palette.h"
 
 namespace graphics {
 
@@ -116,7 +117,7 @@ void Ppu::UpdateSprites() {
 
       for (int col = x + 2; col < x + 2 + 8; col++) {
         uint8_t value = ((hi >> 6) & 0x2) | (lo >> 7);
-        Color color = GetRgb(palette, value, 0x10);
+        Color color = GetRgb(value == 0 ? 0 : palette, value, 0x10);
 
         int idx = (row * SPRITES_WIDTH + col) * SCREEN_CHANNELS;
         sprites[idx + 0] = color.red;
@@ -155,6 +156,55 @@ void Ppu::UpdateSprites() {
         sprites[idx + 2] = 0xDD;
         sprites[idx + 3] = 0xDD;
       }
+    }
+  }
+}
+
+void Ppu::UpdatePalettes() {
+  constexpr int rect_height = PALETTE_PADDING + PALETTES_BOX_HEIGHT;
+  constexpr int rect_width = PALETTE_PADDING + PALETTES_BOX_WIDTH;
+
+  for (int i = 0; i < PALETTES_HEIGHT; i++) {
+    // skip padding rows
+    if (i % rect_height < PALETTE_PADDING) {
+      continue;
+    }
+
+    for (int j = 0; j < PALETTES_WIDTH; j++) {
+      int idx = (i * PALETTES_WIDTH + j) * SCREEN_CHANNELS;
+
+      // skip padding columns
+      if (j % rect_width < PALETTE_PADDING) {
+        continue;
+      }
+      // border columns
+      int slot = j / rect_width;
+
+      if ((i % rect_height == PALETTE_PADDING) ||
+          (i % rect_height == rect_height - 1)) {
+        palettes[idx + 0] = 0xFF;
+        palettes[idx + 1] = 0xFF;
+        palettes[idx + 2] = 0xFF;
+        palettes[idx + 3] = 0xFF;
+        continue;
+      }
+
+      if ((j - (PALETTE_PADDING + rect_width * slot)) % PALETTE_SIZE == 0) {
+        palettes[idx + 0] = 0xFF;
+        palettes[idx + 1] = 0xFF;
+        palettes[idx + 2] = 0xFF;
+        palettes[idx + 3] = 0xFF;
+        continue;
+      }
+
+      int n = (j - (PALETTE_PADDING + rect_width * slot)) / PALETTE_SIZE;
+      uint16_t offset = i < rect_height ? 0 : 0x10;
+      uint16_t master_palette_idx =
+          static_cast<uint16_t>(ReadVram(PALETTE_ADDRS[slot][n] | offset)) * 3;
+      palettes[idx + 0] = NTSC_PALETTE[master_palette_idx + 0];
+      palettes[idx + 1] = NTSC_PALETTE[master_palette_idx + 1];
+      palettes[idx + 2] = NTSC_PALETTE[master_palette_idx + 2];
+      palettes[idx + 3] = 0xFF;
     }
   }
 }

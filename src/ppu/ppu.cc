@@ -25,6 +25,7 @@ Ppu::Ppu(std::shared_ptr<mappers::Mapper> mapper)
       nametable3(NAMETABLE_SIZE, 0),
       nametable4(NAMETABLE_SIZE, 0),
       sprites(SPRITES_SIZE, 0),
+      palettes(PALETTES_SIZE, 0),
       cartridge(std::move(mapper)),
       pattern_queue1(),
       pattern_queue2(),

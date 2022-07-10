@@ -73,6 +73,11 @@ uint8_t* Memory::GetSprites() {
   return ppu.sprites.data();
 }
 
+uint8_t* Memory::GetPalettes() {
+  ppu.UpdatePalettes();
+  return ppu.palettes.data();
+}
+
 bool Memory::NmiPending() { return ppu.NmiOccured(); }
 
 void Memory::ClearNmi() { ppu.ClearNmi(); }

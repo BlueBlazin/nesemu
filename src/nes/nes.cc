@@ -37,6 +37,8 @@ Nes::Nes(const std::string& rom_path)
                         sf::Style::Titlebar | sf::Style::Resize),
       objects_window(sf::VideoMode(SPRITES_WIDTH, SPRITES_HEIGHT), "Sprites",
                      sf::Style::Titlebar | sf::Style::Resize),
+      palettes_window(sf::VideoMode(PALETTES_WIDTH, PALETTES_HEIGHT),
+                      "Palettes", sf::Style::Titlebar | sf::Style::Resize),
       key_offsets{
           {sf::Keyboard::A, 0},     {sf::Keyboard::S, 1},
           {sf::Keyboard::Space, 2}, {sf::Keyboard::Enter, 3},
@@ -59,6 +61,10 @@ Nes::Nes(const std::string& rom_path)
   int nametable_height = SCREEN_HEIGHT * 2;
   int objects_width = SPRITES_WIDTH * (zoom + 1);
   int objects_height = SPRITES_HEIGHT * (zoom + 1);
+  // int palettes_width = PALETTES_WIDTH * std::max(1, zoom - 1);
+  // int palettes_height = PALETTES_HEIGHT * std::max(1, zoom - 1);
+  int palettes_width = PALETTES_WIDTH * zoom;
+  int palettes_height = PALETTES_HEIGHT * zoom;
   // 50px padding
   int padding = 50;
 
@@ -71,9 +77,11 @@ Nes::Nes(const std::string& rom_path)
   nametable3_window.setSize(sf::Vector2u(nametable_width, nametable_height));
   nametable4_window.setSize(sf::Vector2u(nametable_width, nametable_height));
   objects_window.setSize(sf::Vector2u(objects_width, objects_height));
+  palettes_window.setSize(sf::Vector2u(palettes_width, palettes_height));
 
   // compute aggregate dimensions
-  int total_windows_width = objects_width + pat_table_size + screen_width +
+  int total_windows_width = std::max(objects_width, palettes_width) +
+                            pat_table_size + screen_width +
                             2 * nametable_width + 4 * padding;
 
   int pat_tables_height = 2 * pat_table_size + padding + TITLEBAR_HEIGHT;
@@ -81,13 +89,21 @@ Nes::Nes(const std::string& rom_path)
 
   // position sprites window
   int objs_x = (width - total_windows_width) / 2;
-  int objs_y = (height - objects_height) / 2;
-
+  int objs_y = (height - (objects_height + palettes_height + padding +
+                          2 * TITLEBAR_HEIGHT)) /
+               2;
   objects_window.setPosition(sf::Vector2i(objs_x, objs_y + TITLEBAR_HEIGHT));
+
+  // position palettes window
+  // int pal_x =
+  //     (width - (total_windows_width - objects_width + palettes_width)) / 2;
+  int pal_x = (width - total_windows_width) / 2;
+  palettes_window.setPosition(sf::Vector2i(
+      pal_x, objs_y + objects_height + padding + 2 * TITLEBAR_HEIGHT));
 
   // position pattern tables
   // int pt_x = (width - total_windows_width) / 2;
-  int pt_x = objs_x + objects_width + padding;
+  int pt_x = pal_x + palettes_width + padding;
   int pt_y = (height - pat_tables_height) / 2;
   pat_table1_window.setPosition(sf::Vector2i(pt_x, pt_y));
   pat_table2_window.setPosition(
@@ -123,6 +139,8 @@ Nes::Nes(const std::string& rom_path)
 
   objects_texture.create(SPRITES_WIDTH, SPRITES_HEIGHT);
 
+  palettes_texture.create(PALETTES_WIDTH, PALETTES_HEIGHT);
+
   // define sprites
   // TODO: can this be done in initializer list instead?
   window_sprite = sf::Sprite(texture);
@@ -133,6 +151,7 @@ Nes::Nes(const std::string& rom_path)
   nt3_sprite = sf::Sprite(nt3_texture);
   nt4_sprite = sf::Sprite(nt4_texture);
   objects_sprite = sf::Sprite(objects_texture);
+  palettes_sprite = sf::Sprite(palettes_texture);
 }
 
 void Nes::Run() {
@@ -225,8 +244,8 @@ void Nes::UpdateWindows() {
   nt2_texture.update(cpu.GetNametable(0x2400));
   nt3_texture.update(cpu.GetNametable(0x2800));
   nt4_texture.update(cpu.GetNametable(0x2C00));
-  // TODO objects
   objects_texture.update(cpu.GetSprites());
+  palettes_texture.update(cpu.GetPalettes());
 
   DrawWindows();
   DisplayWindows();
@@ -246,6 +265,8 @@ void Nes::DrawWindows() {
   nametable3_window.draw(nt3_sprite);
   nametable4_window.draw(nt4_sprite);
   objects_window.draw(objects_sprite);
+  palettes_window.clear();
+  palettes_window.draw(palettes_sprite);
 }
 
 void Nes::DisplayWindows() {
@@ -260,6 +281,8 @@ void Nes::DisplayWindows() {
   nametable4_window.display();
 
   objects_window.display();
+
+  palettes_window.display();
 }
 
 }  // namespace nes

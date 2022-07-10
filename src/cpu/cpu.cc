@@ -64,6 +64,7 @@ uint8_t* Cpu::GetPatTable1() { return mmu.GetPatTable1(); }
 uint8_t* Cpu::GetPatTable2() { return mmu.GetPatTable2(); }
 uint8_t* Cpu::GetNametable(uint16_t addr) { return mmu.GetNametable(addr); }
 uint8_t* Cpu::GetSprites() { return mmu.GetSprites(); }
+uint8_t* Cpu::GetPalettes() { return mmu.GetPalettes(); }
 
 void Cpu::RunDma() {
   if (dma_state == DmaState::PreDma) {

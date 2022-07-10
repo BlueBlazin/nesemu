@@ -21,6 +21,10 @@ constexpr int SCREEN_HEIGHT = 240;
 constexpr int PAT_TABLE_SIZE = 128;
 constexpr int SPRITES_WIDTH = (8 + 4) * 8;
 constexpr int SPRITES_HEIGHT = (16 + 4) * 8;
+// constexpr int PALETTES_WIDTH = 162;
+// constexpr int PALETTES_HEIGHT = 50;
+constexpr int PALETTES_WIDTH = 137;
+constexpr int PALETTES_HEIGHT = 35;
 // rough estimate of title bar height
 constexpr int TITLEBAR_HEIGHT = 65;
 constexpr uint64_t MAX_CYCLES = 29815;
@@ -55,6 +59,8 @@ class Nes {
   // objects = game sprites
   sf::RenderWindow objects_window;
 
+  sf::RenderWindow palettes_window;
+
   // textures
   sf::Texture texture;
 
@@ -68,6 +74,8 @@ class Nes {
 
   sf::Texture objects_texture;
 
+  sf::Texture palettes_texture;
+
   // sprites
   sf::Sprite window_sprite;
   sf::Sprite pt1_sprite;
@@ -77,6 +85,7 @@ class Nes {
   sf::Sprite nt3_sprite;
   sf::Sprite nt4_sprite;
   sf::Sprite objects_sprite;
+  sf::Sprite palettes_sprite;
 
   // events
   sf::Event event;

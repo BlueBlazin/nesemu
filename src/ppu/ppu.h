@@ -33,6 +33,32 @@ constexpr int SPRITES_HEIGHT = SPRITES_ROWS * SPRITE_BOX_HEIGHT;
 constexpr int SPRITES_WIDTH = SPRITES_COLS * SPRITE_BOX_WIDTH;
 constexpr int SPRITES_SIZE = SPRITES_HEIGHT * SPRITES_WIDTH * SCREEN_CHANNELS;
 
+// constexpr int PALETTE_SIZE = 8;
+// constexpr int PALETTES_BOX_HEIGHT = PALETTE_SIZE + 4;
+// constexpr int PALETTES_BOX_WIDTH = (PALETTE_SIZE + 1) * 3 + 1 + 2;
+// constexpr int PALETTES_WIDTH = (PALETTE_SIZE * 3 + 2) * 4 + 2;
+// constexpr int PALETTES_HEIGHT = (PALETTE_SIZE + 2) * 2 + 2;
+// constexpr int PALETTES_SIZE =
+//     PALETTES_WIDTH * PALETTES_HEIGHT * SCREEN_CHANNELS;
+
+constexpr int PALETTE_SIZE = 8 + 1;
+constexpr int PALETTE_PADDING = 5;
+constexpr int PALETTES_BOX_WIDTH = PALETTE_SIZE * 3 + 1;
+constexpr int PALETTES_BOX_HEIGHT = PALETTE_SIZE + 1;
+constexpr int PALETTES_WIDTH =
+    (PALETTES_BOX_WIDTH + PALETTE_PADDING) * 4 + PALETTE_PADDING;
+constexpr int PALETTES_HEIGHT =
+    (PALETTES_BOX_HEIGHT + PALETTE_PADDING) * 2 + PALETTE_PADDING;
+constexpr int PALETTES_SIZE =
+    PALETTES_WIDTH * PALETTES_HEIGHT * SCREEN_CHANNELS;
+
+constexpr uint16_t PALETTE_ADDRS[4][3] = {
+    {0x3F01, 0x3F02, 0x3F03},
+    {0x3F05, 0x3F06, 0x3F07},
+    {0x3F09, 0x3F0A, 0x3F0B},
+    {0x3F0D, 0x3F0E, 0x3F0F},
+};
+
 struct Color {
   uint8_t red;
   uint8_t green;
@@ -54,6 +80,7 @@ class Ppu {
   void UpdatePatternTable(uint16_t table_offset = 0);
   void UpdateNametable(uint16_t addr);
   void UpdateSprites();
+  void UpdatePalettes();
 
   std::vector<uint8_t> screen;
   std::vector<uint8_t> pat_table1;
@@ -63,6 +90,7 @@ class Ppu {
   std::vector<uint8_t> nametable3;
   std::vector<uint8_t> nametable4;
   std::vector<uint8_t> sprites;
+  std::vector<uint8_t> palettes;
 
  private:
   std::shared_ptr<mappers::Mapper> cartridge;
