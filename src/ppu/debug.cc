@@ -111,9 +111,9 @@ void Ppu::UpdateSprites() {
     int x = (n % SPRITES_COLS) * SPRITE_BOX_WIDTH;
     int y = (n / SPRITES_COLS) * SPRITE_BOX_HEIGHT;
     // draw 8x8 sprite
-    for (int row = y + 2; row < y + 2 + 8; row++) {
-      uint8_t lo = ReadVram(addr + row);
-      uint8_t hi = ReadVram(addr + row + 8);
+    for (int row = y + 2, i = 0; row < y + 2 + 8; row++, i++) {
+      uint8_t lo = ReadVram(addr + i);
+      uint8_t hi = ReadVram(addr + i + 8);
 
       for (int col = x + 2; col < x + 2 + 8; col++) {
         uint8_t value = ((hi >> 6) & 0x2) | (lo >> 7);
