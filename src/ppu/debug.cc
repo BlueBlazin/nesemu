@@ -132,13 +132,6 @@ void Ppu::UpdateSprites() {
   }
 
   // draw white border around sprites
-  // (<P> = padding, <B> = border, <X> = sprite pixel)
-  // <P><P><P><P><P><P><P><P><P><P><P><P>
-  // <P><B><B><B><B><B><B><B><B><B><B><P>
-  // <P><B><X><X><X><X><X><X><X><X><B><P>
-  // ... 15 more of above
-  // <P><B><B><B><B><B><B><B><B><B><B><P>
-  // <P><P><P><P><P><P><P><P><P><P><P><P>
   for (int i = 0; i < SPRITES_HEIGHT; i++) {
     for (int j = 0; j < SPRITES_WIDTH; j++) {
       int idx = (i * SPRITES_WIDTH + j) * SCREEN_CHANNELS;

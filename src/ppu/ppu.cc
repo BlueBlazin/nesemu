@@ -149,39 +149,90 @@ void Ppu::PixelTick() {
   uint8_t bg_palette_lo = palette_queue1 >> (15 - reg_X);
   uint8_t bg_palette_hi = palette_queue2 >> (15 - reg_X);
   uint8_t palette = (bg_palette_hi << 1) | bg_palette_lo;
-  Color color = GetRgb(value == 0 ? 0 : palette, value, 0);
 
+  uint16_t offset = 0;
+
+  // sprites
   if (show_sprites) {
-    int sprite_idx = 8;
+    for (int i = 0; i < num_sprites_on_line; i++) {
+      uint8_t sprite_value = GetSpriteValue(i);
 
-    for (int i = num_sprites_on_line; i >= 0; i--) {
-      if (sprite_counters[i] == 0 && GetSpriteValue(i) > 0) {
-        sprite_idx = i;
-      }
-    }
+      if (sprite_counters[i] == 0 && sprite_value != 0) {
+        if (i == 0 && sprite0_on_scanline && value != 0) {
+          sprite0_hit = true;
+        }
 
-    if (sprite_idx < 8) {
-      if (sprite_idx == 0 && sprite0_on_scanline && value != 0) {
-        sprite0_hit = true;
-      }
+        bool sprite_has_priority = (sprite_attrs[i] & 0x20) != 0;
 
-      bool sprite_priority =
-          static_cast<bool>((sprite_attrs[sprite_idx] >> 5) & 0x1);
+        if (sprite_has_priority || value == 0) {
+          value = sprite_value;
+          palette = sprite_attrs[i] & 0x3;
+          offset = 0x10;
+        }
 
-      if (sprite_priority || value == 0) {
-        color = GetRgb(sprite_attrs[sprite_idx] & 0x3,
-                       GetSpriteValue(sprite_idx), 0x10);
+        break;
       }
     }
   }
 
-  int idx = (line * SCREEN_WIDTH + dot) * SCREEN_CHANNELS;
+  Color color = GetRgb(value == 0 ? 0 : palette, value, offset);
+
+  int idx = (line * SCREEN_WIDTH + (dot - 1)) * SCREEN_CHANNELS;
 
   screen[idx + 0] = color.red;
   screen[idx + 1] = color.green;
   screen[idx + 2] = color.blue;
   screen[idx + 3] = 0xFF;
 }
+
+// void Ppu::PixelTick() {
+//   if (Disabled() || scanline_type != ScanlineType::Visible || dot == 0 ||
+//       dot > 256) {
+//     // PPU is disabled, don't draw pixels
+//     return;
+//   }
+
+//   // get correct bits using fine X scroll
+//   uint8_t bg_lo = static_cast<uint8_t>(pattern_queue1 >> (15 - reg_X));
+//   uint8_t bg_hi = static_cast<uint8_t>(pattern_queue2 >> (15 - reg_X));
+//   uint8_t value = (bg_hi << 1) | bg_lo;
+
+//   uint8_t bg_palette_lo = palette_queue1 >> (15 - reg_X);
+//   uint8_t bg_palette_hi = palette_queue2 >> (15 - reg_X);
+//   uint8_t palette = (bg_palette_hi << 1) | bg_palette_lo;
+//   Color color = GetRgb(value == 0 ? 0 : palette, value, 0);
+
+//   if (show_sprites) {
+//     int sprite_idx = 8;
+
+//     for (int i = num_sprites_on_line; i >= 0; i--) {
+//       if (sprite_counters[i] == 0 && GetSpriteValue(i) > 0) {
+//         sprite_idx = i;
+//       }
+//     }
+
+//     if (sprite_idx < 8) {
+//       if (sprite_idx == 0 && sprite0_on_scanline && value != 0) {
+//         sprite0_hit = true;
+//       }
+
+//       bool sprite_priority =
+//           static_cast<bool>((sprite_attrs[sprite_idx] >> 5) & 0x1);
+
+//       if (sprite_priority || value == 0) {
+//         color = GetRgb(sprite_attrs[sprite_idx] & 0x3,
+//                        GetSpriteValue(sprite_idx), 0x10);
+//       }
+//     }
+//   }
+
+//   int idx = (line * SCREEN_WIDTH + dot) * SCREEN_CHANNELS;
+
+//   screen[idx + 0] = color.red;
+//   screen[idx + 1] = color.green;
+//   screen[idx + 2] = color.blue;
+//   screen[idx + 3] = 0xFF;
+// }
 
 uint8_t Ppu::GetSpriteValue(int i) {
   uint8_t byte_lo = sprite_queues1[i];
@@ -191,7 +242,7 @@ uint8_t Ppu::GetSpriteValue(int i) {
   if (static_cast<bool>((sprite_attrs[i] >> 6) & 0x1)) {
     return (byte_hi & 0x2) | (byte_lo & 0x1);
   } else {
-    return ((byte_hi >> 6) & 0x2) | ((byte_lo >> 7) & 0x1);
+    return ((byte_hi >> 6) & 0x2) | (byte_lo >> 7);
   }
 }
 
