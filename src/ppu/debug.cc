@@ -42,11 +42,36 @@ void Ppu::UpdatePatternTable(uint16_t table_offset) {
 void Ppu::UpdateNametable(uint16_t addr) {
   // pattern table at 0x0000 or 0x1000
   uint16_t table_offset = pattern_table_addr == 0 ? 0x0000 : 0x1000;
+  uint16_t attr_base_addr = addr | 0x03C0;
 
   for (int byte = 0; byte < NAMETABLE_ROWS * NAMETABLE_COLS; byte++) {
     // pattern table index
     uint8_t offset = ReadVram(addr + static_cast<uint16_t>(byte));
     uint16_t pattern_addr = offset * 16;
+
+    // nametable row & col
+    int nt_row = byte / NAMETABLE_COLS;
+    int nt_col = byte % NAMETABLE_COLS;
+
+    // attribute table row & col
+    int at_row = nt_row / 4;
+    int at_col = nt_col / 4;
+    // attribute table offset
+    uint16_t attr_offset = at_row * 8 + at_col;
+    // attribute value address
+    uint16_t attr_addr = attr_base_addr + attr_offset;
+    // attribute value
+    uint8_t attr_value = ReadVram(attr_addr);
+
+    // attribute table quadrant row & col
+    int qd_row = (nt_row / 2) % 2;
+    int qd_col = (nt_col / 2) % 2;
+    // attribute value shift
+    int shift = qd_row * 2 + qd_col;
+
+    // palette
+    // uint8_t palette = (attr_value >> shift) & 0x3;
+    uint8_t palette = attr_value & 0x3;
 
     for (int i = 0; i < 8; i++) {
       uint8_t row_lo = ReadVram(table_offset + pattern_addr + i);
@@ -55,7 +80,8 @@ void Ppu::UpdateNametable(uint16_t addr) {
       for (int j = 0; j < 8; j++) {
         uint8_t col_lo = (row_lo >> (7 - j)) & 0x1;
         uint8_t col_hi = (row_hi >> (7 - j)) & 0x1;
-        uint8_t value = ((col_hi << 1) | col_lo) * 85;  // 85 == 255 / 3
+        uint8_t value = (col_hi << 1) | col_lo;  // 85 == 255 / 3
+        Color color = GetRgb(value == 0 ? 0 : palette, value, 0x0);
 
         int coarse_x = 8 * (byte % NAMETABLE_COLS);
         int coarse_y = 8 * (byte / NAMETABLE_COLS);
@@ -67,27 +93,27 @@ void Ppu::UpdateNametable(uint16_t addr) {
 
         switch (addr) {
           case 0x2000: {
-            nametable1[idx + 0] = value;
-            nametable1[idx + 1] = value;
-            nametable1[idx + 2] = value;
+            nametable1[idx + 0] = color.red;
+            nametable1[idx + 1] = color.green;
+            nametable1[idx + 2] = color.blue;
             nametable1[idx + 3] = 0xFF;
           }
           case 0x2400: {
-            nametable2[idx + 0] = value;
-            nametable2[idx + 1] = value;
-            nametable2[idx + 2] = value;
+            nametable2[idx + 0] = color.red;
+            nametable2[idx + 1] = color.green;
+            nametable2[idx + 2] = color.blue;
             nametable2[idx + 3] = 0xFF;
           }
           case 0x2800: {
-            nametable3[idx + 0] = value;
-            nametable3[idx + 1] = value;
-            nametable3[idx + 2] = value;
+            nametable3[idx + 0] = color.red;
+            nametable3[idx + 1] = color.green;
+            nametable3[idx + 2] = color.blue;
             nametable3[idx + 3] = 0xFF;
           }
           case 0x2C00: {
-            nametable4[idx + 0] = value;
-            nametable4[idx + 1] = value;
-            nametable4[idx + 2] = value;
+            nametable4[idx + 0] = color.red;
+            nametable4[idx + 1] = color.green;
+            nametable4[idx + 2] = color.blue;
             nametable4[idx + 3] = 0xFF;
           }
         }

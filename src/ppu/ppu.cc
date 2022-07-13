@@ -82,58 +82,6 @@ void Ppu::EvalSprites() {
   }
 }
 
-// void Ppu::PixelTick() {
-//   if (Disabled() || scanline_type != ScanlineType::Visible || dot == 0 ||
-//       dot > 256) {
-//     // PPU is disabled, don't shift pixels
-//     return;
-//   }
-
-//   // get correct bits using fine X scroll
-//   uint8_t bg_lo = static_cast<uint8_t>(pattern_queue1 >> (15 - reg_X));
-//   uint8_t bg_hi = static_cast<uint8_t>(pattern_queue2 >> (15 - reg_X));
-//   uint8_t value = (bg_hi << 1) | bg_lo;
-
-//   uint8_t bg_palette_lo = palette_queue1 >> (15 - reg_X);
-//   uint8_t bg_palette_hi = palette_queue2 >> (15 - reg_X);
-//   uint8_t palette = (bg_palette_hi << 1) | bg_palette_lo;
-//   Color color = GetRgb(value == 0 ? 0 : palette, value, 0);
-
-//   if (show_sprites) {
-//     uint8_t sprite_value = 0;
-//     uint8_t sprite_palette = 0;
-//     bool sprite_priority = false;
-
-//     for (int i = 0; i <= num_sprites_on_line; i++) {
-//       uint8_t x =
-//           ((sprite_queues2[i] >> 6) & 0x2) | ((sprite_queues1[i] >> 7) &
-//           0x1);
-
-//       // if flip horizontal, use rightmost bit
-//       if (static_cast<bool>((sprite_attrs[i] >> 6) & 0x1)) {
-//         x = (sprite_queues2[i] & 0x2) | (sprite_queues1[i] & 0x1);
-//       }
-
-//       if (sprite_counters[i] == 0 && x > 0) {
-//         sprite_value = x;
-//         sprite_palette = sprite_attrs[i] & 0x3;
-//         sprite_priority = static_cast<bool>((sprite_attrs[i] >> 5) & 0x1);
-
-//         if (i == 0 && sprite0_on_scanline && value != 0) {
-//           sprite0_hit = true;
-//         }
-
-//         break;
-//       }
-//     }
-
-//     if (sprite_value > 0 && sprite_priority) {
-//       value = sprite_value;
-//       palette = sprite_palette;
-//       color = GetRgb(palette, value, 0x10);
-//     }
-//   }
-
 void Ppu::PixelTick() {
   if (Disabled() || scanline_type != ScanlineType::Visible || dot == 0 ||
       dot > 256) {
@@ -162,7 +110,7 @@ void Ppu::PixelTick() {
           sprite0_hit = true;
         }
 
-        bool sprite_has_priority = (sprite_attrs[i] & 0x20) != 0;
+        bool sprite_has_priority = (sprite_attrs[i] & 0x20) == 0;
 
         if (sprite_has_priority || value == 0) {
           value = sprite_value;
@@ -185,62 +133,13 @@ void Ppu::PixelTick() {
   screen[idx + 3] = 0xFF;
 }
 
-// void Ppu::PixelTick() {
-//   if (Disabled() || scanline_type != ScanlineType::Visible || dot == 0 ||
-//       dot > 256) {
-//     // PPU is disabled, don't draw pixels
-//     return;
-//   }
-
-//   // get correct bits using fine X scroll
-//   uint8_t bg_lo = static_cast<uint8_t>(pattern_queue1 >> (15 - reg_X));
-//   uint8_t bg_hi = static_cast<uint8_t>(pattern_queue2 >> (15 - reg_X));
-//   uint8_t value = (bg_hi << 1) | bg_lo;
-
-//   uint8_t bg_palette_lo = palette_queue1 >> (15 - reg_X);
-//   uint8_t bg_palette_hi = palette_queue2 >> (15 - reg_X);
-//   uint8_t palette = (bg_palette_hi << 1) | bg_palette_lo;
-//   Color color = GetRgb(value == 0 ? 0 : palette, value, 0);
-
-//   if (show_sprites) {
-//     int sprite_idx = 8;
-
-//     for (int i = num_sprites_on_line; i >= 0; i--) {
-//       if (sprite_counters[i] == 0 && GetSpriteValue(i) > 0) {
-//         sprite_idx = i;
-//       }
-//     }
-
-//     if (sprite_idx < 8) {
-//       if (sprite_idx == 0 && sprite0_on_scanline && value != 0) {
-//         sprite0_hit = true;
-//       }
-
-//       bool sprite_priority =
-//           static_cast<bool>((sprite_attrs[sprite_idx] >> 5) & 0x1);
-
-//       if (sprite_priority || value == 0) {
-//         color = GetRgb(sprite_attrs[sprite_idx] & 0x3,
-//                        GetSpriteValue(sprite_idx), 0x10);
-//       }
-//     }
-//   }
-
-//   int idx = (line * SCREEN_WIDTH + dot) * SCREEN_CHANNELS;
-
-//   screen[idx + 0] = color.red;
-//   screen[idx + 1] = color.green;
-//   screen[idx + 2] = color.blue;
-//   screen[idx + 3] = 0xFF;
-// }
-
 uint8_t Ppu::GetSpriteValue(int i) {
   uint8_t byte_lo = sprite_queues1[i];
   uint8_t byte_hi = sprite_queues2[i];
 
   // if flip horizontal, use rightmost bit
-  if (static_cast<bool>((sprite_attrs[i] >> 6) & 0x1)) {
-    return (byte_hi & 0x2) | (byte_lo & 0x1);
+  if ((sprite_attrs[i] & 0x40) != 0) {
+    return ((byte_hi << 1) & 0x2) | (byte_lo & 0x1);
   } else {
     return ((byte_hi >> 6) & 0x2) | (byte_lo >> 7);
   }
@@ -267,6 +166,19 @@ void Ppu::VisibleOrPrerenderTick() {
 
   if (ShiftOnCycle()) {
     ShiftBgFifos();
+  }
+
+  if (scanline_type == ScanlineType::Visible && dot > 0 && dot <= 256) {
+    // decrement x value of all 8 sprite counters
+    for (int i = 0; i < num_sprites_on_line; i++) {
+      if (sprite_counters[i] == 0) {
+        ShiftSpriteFifos(i);
+      }
+
+      if (sprite_counters[i] > 0) {
+        sprite_counters[i]--;
+      }
+    }
   }
 
   switch (cycle_type) {
@@ -361,9 +273,9 @@ void Ppu::VisibleOrPrerenderTick() {
     }
     /******************************************************************/
     case CycleType::GarbageByte1: {
-      // uint16_t fine_y = (reg_V >> 12) & 0x7;
-      uint16_t value =
+      uint16_t tile_idx =
           static_cast<uint16_t>(secondary_oam[(sprite_idx << 2) | 1]);
+      bool flip_vertically = (secondary_oam[(sprite_idx << 2) | 2] >> 7) != 0;
 
       if (long_sprites) {
         // TODO
@@ -371,7 +283,11 @@ void Ppu::VisibleOrPrerenderTick() {
       } else {
         uint16_t fine_y = (line - secondary_oam[sprite_idx << 2]) % 8;
 
-        sprite_addr = sprite_table_addr | (((value << 4) | fine_y) & 0xFFF);
+        if (flip_vertically) {
+          fine_y = 7 - fine_y;
+        }
+
+        sprite_addr = sprite_table_addr | (tile_idx << 4) | fine_y;
       }
       cycle_type = CycleType::GarbageByte2;
       break;
@@ -384,8 +300,7 @@ void Ppu::VisibleOrPrerenderTick() {
     }
     /******************************************************************/
     case CycleType::GarbageByte3: {
-      sprite_counters[sprite_idx] =
-          static_cast<uint16_t>(secondary_oam[(sprite_idx << 2) | 3]);
+      sprite_counters[sprite_idx] = secondary_oam[(sprite_idx << 2) | 3];
       cycle_type = CycleType::NextSpriteTileLow0;
       break;
     }
@@ -442,17 +357,6 @@ void Ppu::VisibleOrPrerenderTick() {
   if (scanline_type == ScanlineType::PreRender && dot >= 280 && dot <= 304) {
     // vert(v) := vert(t)
     ReloadVertical();
-  } else if (scanline_type == ScanlineType::Visible && dot > 0 && dot <= 256) {
-    // decrement x value of all 8 sprite counters
-    for (int i = 0; i < 8; i++) {
-      if (sprite_counters[i] > 0) {
-        sprite_counters[i]--;
-      }
-
-      if (sprite_counters[i] == 0) {
-        ShiftSpriteFifos(i);
-      }
-    }
   }
 }
 
@@ -483,7 +387,7 @@ void Ppu::ShiftBgFifos() {
 }
 
 void Ppu::ShiftSpriteFifos(int i) {
-  if (static_cast<bool>((sprite_attrs[i] >> 6) & 0x1)) {
+  if ((sprite_attrs[i] & 0x40) != 0) {
     // flip horizontalally
     sprite_queues1[i] = sprite_queues1[i] >> 1;
     sprite_queues2[i] = sprite_queues2[i] >> 1;
@@ -511,8 +415,8 @@ Color Ppu::GetRgb(uint8_t palette, uint8_t value, uint16_t offset) {
 
 bool Ppu::ShiftOnCycle() {
   return (
-      (scanline_type == ScanlineType::Visible) &&
-          ((dot >= 1 && dot <= 256) || (dot >= 321 && dot <= 336)) ||
+      ((scanline_type == ScanlineType::Visible) &&
+       ((dot >= 1 && dot <= 256) || (dot >= 321 && dot <= 336))) ||
       (scanline_type == ScanlineType::PreRender && (dot >= 321 && dot <= 336)));
 }
 
@@ -759,7 +663,15 @@ uint8_t Ppu::ReadVram(uint16_t addr) {
   if (addr <= 0x3EFF) {
     return cartridge->PpuRead(addr);
   } else if (addr <= 0x3F1F) {
-    return palette_ram_idxs[addr - 0x3F00];
+    switch (addr) {
+      case 0x3F10:
+      case 0x3F14:
+      case 0x3F18:
+      case 0x3F1C:
+        return palette_ram_idxs[addr - 0x3F10];
+      default:
+        return palette_ram_idxs[addr - 0x3F00];
+    }
   } else {
     return 0x00;
   }
@@ -771,7 +683,16 @@ void Ppu::WriteVram(uint16_t addr, uint8_t value) {
   } else if (addr <= 0x3EFF) {
     cartridge->PpuWrite(addr, value);
   } else if (addr <= 0x3F1F) {
-    palette_ram_idxs[addr - 0x3F00] = value;
+    switch (addr) {
+      case 0x3F10:
+      case 0x3F14:
+      case 0x3F18:
+      case 0x3F1C:
+        palette_ram_idxs[addr - 0x3F10] = value;
+        break;
+      default:
+        palette_ram_idxs[addr - 0x3F00] = value;
+    }
   }
 }
 
