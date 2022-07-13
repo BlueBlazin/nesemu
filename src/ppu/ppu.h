@@ -32,15 +32,6 @@ constexpr int SPRITE_BOX_HEIGHT = 16 + 4;  // 2 pixels each for border & padding
 constexpr int SPRITES_HEIGHT = SPRITES_ROWS * SPRITE_BOX_HEIGHT;
 constexpr int SPRITES_WIDTH = SPRITES_COLS * SPRITE_BOX_WIDTH;
 constexpr int SPRITES_SIZE = SPRITES_HEIGHT * SPRITES_WIDTH * SCREEN_CHANNELS;
-
-// constexpr int PALETTE_SIZE = 8;
-// constexpr int PALETTES_BOX_HEIGHT = PALETTE_SIZE + 4;
-// constexpr int PALETTES_BOX_WIDTH = (PALETTE_SIZE + 1) * 3 + 1 + 2;
-// constexpr int PALETTES_WIDTH = (PALETTE_SIZE * 3 + 2) * 4 + 2;
-// constexpr int PALETTES_HEIGHT = (PALETTE_SIZE + 2) * 2 + 2;
-// constexpr int PALETTES_SIZE =
-//     PALETTES_WIDTH * PALETTES_HEIGHT * SCREEN_CHANNELS;
-
 constexpr int PALETTE_SIZE = 8 + 1;
 constexpr int PALETTE_PADDING = 5;
 constexpr int PALETTES_BOX_WIDTH = PALETTE_SIZE * 3 + 1;

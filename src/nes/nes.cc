@@ -265,7 +265,7 @@ void Nes::DrawWindows() {
   nametable3_window.draw(nt3_sprite);
   nametable4_window.draw(nt4_sprite);
   objects_window.draw(objects_sprite);
-  palettes_window.clear();
+  // palettes_window.clear();
   palettes_window.draw(palettes_sprite);
 }
 
