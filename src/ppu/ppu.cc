@@ -90,12 +90,12 @@ void Ppu::PixelTick() {
   }
 
   // get correct bits using fine X scroll
-  uint8_t bg_lo = static_cast<uint8_t>(pattern_queue1 >> (15 - reg_X));
-  uint8_t bg_hi = static_cast<uint8_t>(pattern_queue2 >> (15 - reg_X));
+  uint8_t bg_lo = static_cast<uint8_t>(pattern_queue1 >> (15 - reg_X)) & 0x1;
+  uint8_t bg_hi = static_cast<uint8_t>(pattern_queue2 >> (15 - reg_X)) & 0x1;
   uint8_t value = (bg_hi << 1) | bg_lo;
 
-  uint8_t bg_palette_lo = palette_queue1 >> (15 - reg_X);
-  uint8_t bg_palette_hi = palette_queue2 >> (15 - reg_X);
+  uint8_t bg_palette_lo = palette_queue1 >> (7 - reg_X) & 0x1;
+  uint8_t bg_palette_hi = palette_queue2 >> (7 - reg_X) & 0x1;
   uint8_t palette = (bg_palette_hi << 1) | bg_palette_lo;
 
   uint16_t offset = 0;
@@ -432,8 +432,9 @@ void Ppu::ReloadHorizontal() {
 
 void Ppu::IncHorizontal() {
   if ((reg_V & 0x1F) == 0x1F) {
-    reg_V &= ~0x001F;
-    reg_V ^= 0x0400;
+    // reg_V &= ~0x001F;
+    // reg_V ^= 0x0400;
+    reg_V ^= 0x041F;
   } else {
     reg_V++;
   }

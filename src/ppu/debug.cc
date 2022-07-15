@@ -70,8 +70,8 @@ void Ppu::UpdateNametable(uint16_t addr) {
     int shift = qd_row * 2 + qd_col;
 
     // palette
-    // uint8_t palette = (attr_value >> shift) & 0x3;
-    uint8_t palette = attr_value & 0x3;
+    uint8_t palette = (attr_value >> (shift * 2)) & 0x3;
+    // uint8_t palette = attr_value & 0x3;
 
     for (int i = 0; i < 8; i++) {
       uint8_t row_lo = ReadVram(table_offset + pattern_addr + i);
