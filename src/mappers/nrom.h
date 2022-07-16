@@ -30,6 +30,7 @@ class Nrom : public Mapper {
   std::vector<uint8_t> chr_rxm;
   std::array<uint8_t, 4096> vram;
   graphics::Mirroring mirroring;
+  bool flag = false;
 };
 
 }  // namespace mappers

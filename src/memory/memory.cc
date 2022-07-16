@@ -133,7 +133,7 @@ void Memory::Write(uint16_t addr, uint8_t value) {
         strobe = static_cast<bool>(value & 0x1);
         if (strobe) {
           p1_data = p1_input;
-          p1_input = 0;
+          // p1_input = 0;
         }
         return;
     }

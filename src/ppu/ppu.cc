@@ -358,6 +358,10 @@ void Ppu::VisibleOrPrerenderTick() {
     // vert(v) := vert(t)
     ReloadVertical();
   }
+
+  if (dot >= 257 && dot <= 320) {
+    oam_addr = 0;
+  }
 }
 
 void Ppu::LoadBg() {
@@ -366,9 +370,6 @@ void Ppu::LoadBg() {
   pattern_queue1 |= static_cast<uint16_t>(bg_tile_low);
   pattern_queue2 |= static_cast<uint16_t>(bg_tile_high);
 
-  // Each palette byte spans four quadrants/tiles. If we index
-  // each tile as `idx = 2 * y + x`, we can find the quadrant the
-  // current tile belongs to with `idx % 4`.
   uint8_t attr_x = (reg_V >> 1) & 0x1;
   uint8_t attr_y = (reg_V >> 6) & 0x1;
   uint8_t shift = ((attr_y << 1) | attr_x) * 2;
@@ -398,11 +399,11 @@ void Ppu::ShiftSpriteFifos(int i) {
 }
 
 Color Ppu::GetRgb(uint8_t palette, uint8_t value, uint16_t offset) {
-  uint8_t addr = ReadVram((static_cast<uint16_t>(palette) << 2) +
-                          static_cast<uint16_t>(value) + (0x3F00 | offset));
+  uint8_t idx = ReadVram((static_cast<uint16_t>(palette) << 2) +
+                         static_cast<uint16_t>(value) + (0x3F00 | offset));
 
   uint16_t pixel_color = (emph_blue << 8) | (emph_green << 7) |
-                         (emph_red << 6) | static_cast<uint16_t>(addr);
+                         (emph_red << 6) | static_cast<uint16_t>(idx);
 
   uint16_t master_palette_idx = pixel_color * 3;
 
@@ -674,6 +675,7 @@ uint8_t Ppu::ReadVram(uint16_t addr) {
         return palette_ram_idxs[addr - 0x3F00];
     }
   } else {
+    std::printf("Read addr outside range: 0x%X\n", addr);
     return 0x00;
   }
 }
@@ -694,6 +696,8 @@ void Ppu::WriteVram(uint16_t addr, uint8_t value) {
       default:
         palette_ram_idxs[addr - 0x3F00] = value;
     }
+  } else {
+    std::printf("Write addr outside range: 0x%X\n", addr);
   }
 }
 

@@ -43,6 +43,8 @@ class Nes {
   void InitialDraw();
   void DrawWindows();
   void DisplayWindows();
+  void HandleKeyPress();
+  void HandleKeyRelease();
 
   cpu::Cpu cpu;
 

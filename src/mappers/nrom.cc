@@ -118,6 +118,7 @@ void Nrom::VramWrite(uint16_t addr, uint8_t value) {
       } else {
         vram[addr - 0x2C00 + 0x0400] = value;
       }
+      break;
     }
     case graphics::Mirroring::Vertical: {
       if (addr < 0x2400) {
@@ -129,6 +130,7 @@ void Nrom::VramWrite(uint16_t addr, uint8_t value) {
       } else {
         vram[addr - 0x2C00 + 0x0400] = value;
       }
+      break;
     }
   }
 }

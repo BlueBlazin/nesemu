@@ -118,10 +118,15 @@ Nes::Nes(const std::string& rom_path)
   int nt_x = window_x + screen_width + padding;
   int nt_y = (height - nametables_height) / 2;
   nametable1_window.setPosition(sf::Vector2i(nt_x, nt_y));
+  // nametable2_window.setPosition(
+  //     sf::Vector2i(nt_x, nt_y + nametable_height + padding +
+  //     TITLEBAR_HEIGHT));
+  // nametable3_window.setPosition(
+  //     sf::Vector2i(nt_x + nametable_width + padding, nt_y));
   nametable2_window.setPosition(
-      sf::Vector2i(nt_x, nt_y + nametable_height + padding + TITLEBAR_HEIGHT));
-  nametable3_window.setPosition(
       sf::Vector2i(nt_x + nametable_width + padding, nt_y));
+  nametable3_window.setPosition(
+      sf::Vector2i(nt_x, nt_y + nametable_height + padding + TITLEBAR_HEIGHT));
   nametable4_window.setPosition(
       sf::Vector2i(nt_x + nametable_width + padding,
                    nt_y + nametable_height + padding + TITLEBAR_HEIGHT));
@@ -169,7 +174,7 @@ void Nes::Run() {
 
   while (window.isOpen()) {
     // handle events
-    HandleEvents();
+    // HandleEvents();
 
     // run emulation forward
     if ((elapsed = clock.getElapsedTime().asSeconds() + dt) >= TIME_PER_FRAME) {
@@ -184,6 +189,7 @@ void Nes::Emulate() {
   while (true) {
     switch (cpu.RunTillEvent(MAX_CYCLES)) {
       case cpu::Event::VBlank:
+        HandleEvents();
         UpdateWindows();
         break;
       case cpu::Event::MaxCycles:
@@ -193,6 +199,8 @@ void Nes::Emulate() {
 }
 
 void Nes::HandleEvents() {
+  cpu.p1_input = 0;
+
   if (!window.pollEvent(event)) {
     return;
   }
@@ -233,6 +241,54 @@ void Nes::HandleEvents() {
       default:
         break;
     }
+  }
+}
+
+void Nes::HandleKeyPress() {
+  switch (event.key.code) {
+    case sf::Keyboard::A:
+    case sf::Keyboard::S:
+    case sf::Keyboard::Space:
+    case sf::Keyboard::Enter:
+    case sf::Keyboard::Up:
+    case sf::Keyboard::Down:
+    case sf::Keyboard::Left:
+    case sf::Keyboard::Right:
+      cpu.p1_input |= (1 << key_offsets[event.key.code]);
+      break;
+    case sf::Keyboard::LSystem:
+    case sf::Keyboard::RSystem:
+      cmd_pressed = true;
+      break;
+    case sf::Keyboard::Q:
+    case sf::Keyboard::W:
+      if (cmd_pressed) {
+        window.close();
+      }
+      break;
+    default:
+      break;
+  }
+}
+
+void Nes::HandleKeyRelease() {
+  switch (event.key.code) {
+    case sf::Keyboard::A:
+    case sf::Keyboard::S:
+    case sf::Keyboard::Space:
+    case sf::Keyboard::Enter:
+    case sf::Keyboard::Up:
+    case sf::Keyboard::Down:
+    case sf::Keyboard::Left:
+    case sf::Keyboard::Right:
+      cpu.p1_input &= ~(1 << key_offsets[event.key.code]);
+      break;
+    case sf::Keyboard::LSystem:
+    case sf::Keyboard::RSystem:
+      cmd_pressed = false;
+      break;
+    default:
+      break;
   }
 }
 
