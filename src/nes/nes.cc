@@ -199,12 +199,6 @@ void Nes::Emulate() {
 }
 
 void Nes::HandleEvents() {
-  // cpu.p1_input = 0;
-
-  // if (!window.pollEvent(event)) {
-  //   return;
-  // }
-
   while (window.pollEvent(event)) {
     switch (event.type) {
       case sf::Event::Closed:
@@ -216,23 +210,10 @@ void Nes::HandleEvents() {
       case sf::Event::KeyReleased:
         HandleKeyRelease();
         break;
+      default:
+        return;
     }
   }
-
-  // if (event.type == sf::Event::Closed) {
-  //   window.close();
-  // } else if (event.type == sf::Event::KeyPressed) {
-  //   //
-  // } else if (event.type == sf::Event::KeyReleased) {
-  //   switch (event.key.code) {
-  //     case sf::Keyboard::LSystem:
-  //     case sf::Keyboard::RSystem:
-  //       cmd_pressed = false;
-  //       break;
-  //     default:
-  //       break;
-  //   }
-  // }
 }
 
 void Nes::HandleKeyPress() {

@@ -85,7 +85,7 @@ void Ppu::EvalSprites() {
 void Ppu::PixelTick() {
   if (Disabled() || scanline_type != ScanlineType::Visible || dot == 0 ||
       dot > 256) {
-    // PPU is disabled, don't draw pixels
+    // don't draw pixels
     return;
   }
 
@@ -249,8 +249,10 @@ void Ppu::VisibleOrPrerenderTick() {
       // increment reg_V hori(v)
       if (dot == 256) {
         IncVertical();
-        // evaluate all sprites for next scanline
-        EvalSprites();
+        if (scanline_type == ScanlineType::Visible) {
+          // evaluate all sprites for next scanline
+          EvalSprites();
+        }
         // init sprite idx to 0
         sprite_idx = 0;
         cycle_type = CycleType::GarbageByte0;
