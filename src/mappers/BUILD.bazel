@@ -4,12 +4,16 @@ cc_library(
     name = "mappers",
     srcs = [
         "ines.cc",
+        # "mmc1.cc",
         "nrom.cc",
+        "uxrom.cc",
     ],
     hdrs = [
         "ines.h",
         "mapper.h",
+        # "mmc1.h",
         "nrom.h",
+        "uxrom.h",
     ],
     visibility = ["//visibility:public"],
     deps = ["//src/mirroring"],

@@ -1,4 +1,4 @@
-#include "src/mappers/nrom.h"
+#include "nrom.h"
 
 #include <array>
 #include <cstdint>
