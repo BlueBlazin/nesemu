@@ -199,49 +199,40 @@ void Nes::Emulate() {
 }
 
 void Nes::HandleEvents() {
-  cpu.p1_input = 0;
+  // cpu.p1_input = 0;
 
-  if (!window.pollEvent(event)) {
-    return;
-  }
+  // if (!window.pollEvent(event)) {
+  //   return;
+  // }
 
-  if (event.type == sf::Event::Closed) {
-    window.close();
-  } else if (event.type == sf::Event::KeyPressed) {
-    switch (event.key.code) {
-      case sf::Keyboard::A:
-      case sf::Keyboard::S:
-      case sf::Keyboard::Space:
-      case sf::Keyboard::Enter:
-      case sf::Keyboard::Up:
-      case sf::Keyboard::Down:
-      case sf::Keyboard::Left:
-      case sf::Keyboard::Right:
-        cpu.p1_input |= (1 << key_offsets[event.key.code]);
+  while (window.pollEvent(event)) {
+    switch (event.type) {
+      case sf::Event::Closed:
+        window.close();
         break;
-      case sf::Keyboard::LSystem:
-      case sf::Keyboard::RSystem:
-        cmd_pressed = true;
+      case sf::Event::KeyPressed:
+        HandleKeyPress();
         break;
-      case sf::Keyboard::Q:
-      case sf::Keyboard::W:
-        if (cmd_pressed) {
-          window.close();
-        }
-        break;
-      default:
-        break;
-    }
-  } else if (event.type == sf::Event::KeyReleased) {
-    switch (event.key.code) {
-      case sf::Keyboard::LSystem:
-      case sf::Keyboard::RSystem:
-        cmd_pressed = false;
-        break;
-      default:
+      case sf::Event::KeyReleased:
+        HandleKeyRelease();
         break;
     }
   }
+
+  // if (event.type == sf::Event::Closed) {
+  //   window.close();
+  // } else if (event.type == sf::Event::KeyPressed) {
+  //   //
+  // } else if (event.type == sf::Event::KeyReleased) {
+  //   switch (event.key.code) {
+  //     case sf::Keyboard::LSystem:
+  //     case sf::Keyboard::RSystem:
+  //       cmd_pressed = false;
+  //       break;
+  //     default:
+  //       break;
+  //   }
+  // }
 }
 
 void Nes::HandleKeyPress() {
