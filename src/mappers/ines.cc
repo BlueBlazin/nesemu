@@ -40,9 +40,9 @@ std::shared_ptr<Mapper> ReadCartridge(std::string path) {
       .has_trainer = static_cast<bool>(flag6 & 4),
   };
 
-  std::cout << "flag6: " << (flag6 & 0xF) << std::endl;
+  std::cout << "flag6: " << ((flag6 >> 4) & 0xF) << std::endl;
 
-  switch (flag6 & 0xF) {
+  switch ((flag6 >> 4) & 0xF) {
     case 0x00:
       return std::make_shared<Nrom>(header, std::move(data));
   }

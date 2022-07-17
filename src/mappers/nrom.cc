@@ -62,7 +62,7 @@ uint8_t Nrom::PpuRead(uint16_t addr) {
     return chr_rxm[addr];
   } else if (addr <= 0x2FFF) {
     return VramRead(addr);
-  } else if (addr <= 0x3EFF) {
+  } else if (addr <= 0x3FFF) {
     return VramRead(addr - 0x1000);
   } else {
     return 0x00;
@@ -74,6 +74,8 @@ void Nrom::PpuWrite(uint16_t addr, uint8_t value) {
     chr_rxm[addr] = value;
   } else if (addr <= 0x2FFF) {
     VramWrite(addr, value);
+  } else if (addr <= 0x3FFF) {
+    VramWrite(addr - 0x1000, value);
   } else {
     return;
   }

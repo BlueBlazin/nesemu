@@ -275,14 +275,24 @@ void Ppu::VisibleOrPrerenderTick() {
     }
     /******************************************************************/
     case CycleType::GarbageByte1: {
-      uint16_t tile_idx =
-          static_cast<uint16_t>(secondary_oam[(sprite_idx << 2) | 1]);
+      uint8_t value = secondary_oam[(sprite_idx << 2) | 1];
       bool flip_vertically = (secondary_oam[(sprite_idx << 2) | 2] >> 7) != 0;
 
       if (long_sprites) {
-        // TODO
-        throw "8x16 sprites are unimplemented";
+        uint16_t tile_idx = static_cast<uint16_t>(value >> 1);
+        uint16_t sprite_table_addr = (value & 0x1) == 0 ? 0x0000 : 0x1000;
+        uint16_t fine_y = (line - secondary_oam[sprite_idx << 2]);
+
+        if (flip_vertically) {
+          fine_y = 15 - fine_y;
+        }
+
+        tile_idx += static_cast<uint16_t>(fine_y >= 8);
+        fine_y = fine_y % 8;
+
+        sprite_addr = sprite_table_addr | (tile_idx << 4) | fine_y;
       } else {
+        uint16_t tile_idx = static_cast<uint16_t>(value);
         uint16_t fine_y = (line - secondary_oam[sprite_idx << 2]) % 8;
 
         if (flip_vertically) {
@@ -435,8 +445,6 @@ void Ppu::ReloadHorizontal() {
 
 void Ppu::IncHorizontal() {
   if ((reg_V & 0x1F) == 0x1F) {
-    // reg_V &= ~0x001F;
-    // reg_V ^= 0x0400;
     reg_V ^= 0x041F;
   } else {
     reg_V++;
@@ -600,7 +608,7 @@ uint8_t Ppu::ReadPpuStatus() {
 
 void Ppu::WritePpuScroll(uint8_t value) {
   if (reg_W == Toggle::Write1) {
-    reg_X = static_cast<uint16_t>(value & 0x3);
+    reg_X = static_cast<uint16_t>(value & 0x7);
     reg_T &= 0x7FE0;
     reg_T |= static_cast<uint16_t>(value >> 3);
     reg_W = Toggle::Write2;
@@ -630,14 +638,13 @@ uint8_t Ppu::ReadPpuData() {
 
   if (reg_V <= 0x3EFF) {
     value = read_buffer;
-    IncVram();
     read_buffer = ReadVram(reg_V);
   } else {
+    read_buffer = cartridge->PpuRead(reg_V);
     value = ReadVram(reg_V);
-    read_buffer = value;
-    IncVram();
   }
 
+  IncVram();
   return value;
 }
 
