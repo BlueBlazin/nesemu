@@ -317,6 +317,7 @@ class Cpu {
   uint64_t cycles = 0;
   uint64_t event_cycles = 0;
   DmaState dma_state = DmaState::PreDma;
+  uint8_t opcode = 0;
 
   /* Registers */
   uint8_t A = 0x0;

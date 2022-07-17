@@ -54,7 +54,7 @@ void Cpu::Tick() {
     mmu.ClearNmi();
     Interrupt(InterruptType::Nmi);
   } else {
-    DecodeExecute(Fetch());
+    DecodeExecute(opcode = Fetch());
   }
 }
 
@@ -1408,7 +1408,8 @@ void Cpu::RolAbsoluteX() {
 void Cpu::Rol(uint16_t addr, uint8_t value) {
   WriteMemory(addr, value);
   uint8_t old_C = static_cast<uint8_t>(flag_C);
-  flag_C = static_cast<bool>(A >> 7);
+  // flag_C = static_cast<bool>(A >> 7);
+  flag_C = static_cast<bool>(value >> 7);
   value = ((value << 1) & 0xFE) | old_C;
   AddCycles(1);
   WriteMemory(addr, value);

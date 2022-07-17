@@ -477,6 +477,14 @@ void Ppu::VBlankTick() {
   if (line == 241 and dot == 1) {
     in_vblank = true;
     UpdateNmi();
+
+    // for (int i = 0; i < 16; i++) {
+    //   if (i < 15) {
+    //     std::printf("0x%X, ", ReadVram(0x23F0 + i));
+    //   } else {
+    //     std::printf("0x%X\n", ReadVram(0x23F0 + i));
+    //   }
+    // }
   }
 }
 
@@ -684,7 +692,6 @@ uint8_t Ppu::ReadVram(uint16_t addr) {
         return palette_ram_idxs[addr - 0x3F00];
     }
   } else {
-    std::printf("Read addr outside range: 0x%X\n", addr);
     return 0x00;
   }
 }
