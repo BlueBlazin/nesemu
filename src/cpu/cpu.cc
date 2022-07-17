@@ -1451,7 +1451,8 @@ void Cpu::RorAbsoluteX() {
 void Cpu::Ror(uint16_t addr, uint8_t value) {
   WriteMemory(addr, value);
   uint8_t old_C = static_cast<uint8_t>(flag_C);
-  flag_C = static_cast<bool>(A & 0x1);
+  // flag_C = static_cast<bool>(A & 0x1);
+  flag_C = static_cast<bool>(value & 0x1);
   value = ((value >> 1) & 0x7F) | (old_C << 7);
   AddCycles(1);
   WriteMemory(addr, value);
