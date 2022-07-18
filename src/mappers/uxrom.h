@@ -11,6 +11,12 @@
 
 namespace mappers {
 
+namespace {
+
+constexpr int BANK_SIZE = 16 * 1024;
+
+}  // namespace
+
 class UxRom : public Mapper {
  public:
   UxRom(INesHeader header, std::vector<uint8_t> data);
@@ -21,8 +27,15 @@ class UxRom : public Mapper {
   void PpuWrite(uint16_t addr, uint8_t value) override;
 
  private:
-  std::vector<uint8_t> prg_ram;
+  uint8_t VramRead(uint16_t addr);
+  void VramWrite(uint16_t addr, uint8_t value);
+
   std::vector<uint8_t> prg_rom;
+  std::vector<uint8_t> chr_rxm;
+  std::array<uint8_t, 4096> vram;
+  graphics::Mirroring mirroring;
+  int num_banks;
+  uint16_t bank = 0;
 };
 
 }  // namespace mappers

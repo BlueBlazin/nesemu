@@ -258,6 +258,10 @@ class Ppu {
   uint8_t bg_tile_high = 0x0;
   // NMI
   bool nmi_pending = false;
+
+  /*---------------------------------------------------
+    Selected Palette
+  ---------------------------------------------------*/
 };
 
 }  // namespace graphics

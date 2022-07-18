@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "src/mappers/nrom.h"
+#include "src/mappers/uxrom.h"
 #include "src/mirroring/mirroring.h"
 
 namespace mappers {
@@ -43,8 +44,10 @@ std::shared_ptr<Mapper> ReadCartridge(std::string path) {
   std::cout << "flag6: " << ((flag6 >> 4) & 0xF) << std::endl;
 
   switch ((flag6 >> 4) & 0xF) {
-    case 0x00:
+    case 0:
       return std::make_shared<Nrom>(header, std::move(data));
+    case 2:
+      return std::make_unique<UxRom>(header, std::move(data));
   }
 
   return nullptr;

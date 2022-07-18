@@ -26,6 +26,7 @@ Nrom::Nrom(INesHeader header, std::vector<uint8_t> data)
   chr_rxm = std::vector<uint8_t>(data.begin() + offset,
                                  data.begin() + offset + header.chr_rom_size);
 
+  std::cout << "Mapper type: NROM" << std::endl;
   std::cout << "nrom256: " << nrom256 << std::endl;
   std::cout << "prg_rom: " << prg_rom.size() << std::endl;
   std::cout << "prg_ram: " << prg_ram.size() << std::endl;
@@ -81,29 +82,40 @@ void Nrom::PpuWrite(uint16_t addr, uint8_t value) {
   }
 }
 
+// uint8_t Nrom::VramRead(uint16_t addr) {
+//   switch (mirroring) {
+//     case graphics::Mirroring::Horizontal: {
+//       if (addr < 0x2400) {
+//         return vram[addr - 0x2000 + 0x0000];
+//       } else if (addr < 0x2800) {
+//         return vram[addr - 0x2400 + 0x0000];
+//       } else if (addr < 0x2C00) {
+//         return vram[addr - 0x2800 + 0x0400];
+//       } else {
+//         return vram[addr - 0x2C00 + 0x0400];
+//       }
+//     }
+//     case graphics::Mirroring::Vertical: {
+//       if (addr < 0x2400) {
+//         return vram[addr - 0x2000 + 0x0000];
+//       } else if (addr < 0x2800) {
+//         return vram[addr - 0x2400 + 0x0400];
+//       } else if (addr < 0x2C00) {
+//         return vram[addr - 0x2800 + 0x0000];
+//       } else {
+//         return vram[addr - 0x2C00 + 0x0400];
+//       }
+//     }
+//   }
+// }
+
 uint8_t Nrom::VramRead(uint16_t addr) {
   switch (mirroring) {
     case graphics::Mirroring::Horizontal: {
-      if (addr < 0x2400) {
-        return vram[addr - 0x2000 + 0x0000];
-      } else if (addr < 0x2800) {
-        return vram[addr - 0x2400 + 0x0000];
-      } else if (addr < 0x2C00) {
-        return vram[addr - 0x2800 + 0x0400];
-      } else {
-        return vram[addr - 0x2C00 + 0x0400];
-      }
+      return vram[graphics::horizontal_mirrored(addr)];
     }
     case graphics::Mirroring::Vertical: {
-      if (addr < 0x2400) {
-        return vram[addr - 0x2000 + 0x0000];
-      } else if (addr < 0x2800) {
-        return vram[addr - 0x2400 + 0x0400];
-      } else if (addr < 0x2C00) {
-        return vram[addr - 0x2800 + 0x0000];
-      } else {
-        return vram[addr - 0x2C00 + 0x0400];
-      }
+      return vram[graphics::vertical_mirrored(addr)];
     }
   }
 }
@@ -111,30 +123,43 @@ uint8_t Nrom::VramRead(uint16_t addr) {
 void Nrom::VramWrite(uint16_t addr, uint8_t value) {
   switch (mirroring) {
     case graphics::Mirroring::Horizontal: {
-      if (addr < 0x2400) {
-        vram[addr - 0x2000 + 0x0000] = value;
-      } else if (addr < 0x2800) {
-        vram[addr - 0x2400 + 0x0000] = value;
-      } else if (addr < 0x2C00) {
-        vram[addr - 0x2800 + 0x0400] = value;
-      } else {
-        vram[addr - 0x2C00 + 0x0400] = value;
-      }
-      break;
+      vram[graphics::horizontal_mirrored(addr)] = value;
+      return;
     }
     case graphics::Mirroring::Vertical: {
-      if (addr < 0x2400) {
-        vram[addr - 0x2000 + 0x0000] = value;
-      } else if (addr < 0x2800) {
-        vram[addr - 0x2400 + 0x0400] = value;
-      } else if (addr < 0x2C00) {
-        vram[addr - 0x2800 + 0x0000] = value;
-      } else {
-        vram[addr - 0x2C00 + 0x0400] = value;
-      }
-      break;
+      vram[graphics::vertical_mirrored(addr)] = value;
+      return;
     }
   }
 }
+
+// void Nrom::VramWrite(uint16_t addr, uint8_t value) {
+//   switch (mirroring) {
+//     case graphics::Mirroring::Horizontal: {
+//       if (addr < 0x2400) {
+//         vram[addr - 0x2000 + 0x0000] = value;
+//       } else if (addr < 0x2800) {
+//         vram[addr - 0x2400 + 0x0000] = value;
+//       } else if (addr < 0x2C00) {
+//         vram[addr - 0x2800 + 0x0400] = value;
+//       } else {
+//         vram[addr - 0x2C00 + 0x0400] = value;
+//       }
+//       break;
+//     }
+//     case graphics::Mirroring::Vertical: {
+//       if (addr < 0x2400) {
+//         vram[addr - 0x2000 + 0x0000] = value;
+//       } else if (addr < 0x2800) {
+//         vram[addr - 0x2400 + 0x0400] = value;
+//       } else if (addr < 0x2C00) {
+//         vram[addr - 0x2800 + 0x0000] = value;
+//       } else {
+//         vram[addr - 0x2C00 + 0x0400] = value;
+//       }
+//       break;
+//     }
+//   }
+// }
 
 }  // namespace mappers
