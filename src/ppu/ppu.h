@@ -3,14 +3,15 @@
 
 #include <array>
 #include <cstdint>
-#include <deque>
 #include <fstream>
+#include <functional>
 #include <memory>
 #include <queue>
 #include <vector>
 
 #include "src/mappers/mapper.h"
 #include "src/mirroring/mirroring.h"
+#include "src/ppu/palette.h"
 #include "src/ppu/state.h"
 
 namespace graphics {
@@ -72,6 +73,9 @@ class Ppu {
   void UpdateNametable(uint16_t addr);
   void UpdateSprites();
   void UpdatePalettes();
+
+  void UseFceuxPalette();
+  void UseNtscPalette();
 
   std::vector<uint8_t> screen;
   std::vector<uint8_t> pat_table1;
@@ -262,6 +266,8 @@ class Ppu {
   /*---------------------------------------------------
     Selected Palette
   ---------------------------------------------------*/
+  std::reference_wrapper<const std::array<uint8_t, PALETTE_ARRAY_SIZE>>
+      selected_palette;
 };
 
 }  // namespace graphics

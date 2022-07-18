@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <deque>
+#include <functional>
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -33,7 +34,8 @@ Ppu::Ppu(std::shared_ptr<mappers::Mapper> mapper)
       palette_queue2(),
       palette_ram_idxs(),
       obj_attr_memory(),
-      secondary_oam() {
+      secondary_oam(),
+      selected_palette(std::ref(NTSC_PALETTE)) {
   // Initialize screen
   for (int i = 0; i < SCREEN_HEIGHT * SCREEN_WIDTH * SCREEN_CHANNELS; i++) {
     screen[i] = 0x00;
@@ -420,9 +422,9 @@ Color Ppu::GetRgb(uint8_t palette, uint8_t value, uint16_t offset) {
   uint16_t master_palette_idx = pixel_color * 3;
 
   return Color{
-      .red = NTSC_PALETTE[master_palette_idx + 0],
-      .green = NTSC_PALETTE[master_palette_idx + 1],
-      .blue = NTSC_PALETTE[master_palette_idx + 2],
+      .red = selected_palette.get()[master_palette_idx + 0],
+      .green = selected_palette.get()[master_palette_idx + 1],
+      .blue = selected_palette.get()[master_palette_idx + 2],
   };
 }
 
@@ -716,5 +718,8 @@ void Ppu::WriteVram(uint16_t addr, uint8_t value) {
     std::printf("Write addr outside range: 0x%X\n", addr);
   }
 }
+
+void Ppu::UseFceuxPalette() { selected_palette = std::ref(FCEUX_PALETTE); }
+void Ppu::UseNtscPalette() { selected_palette = std::ref(NTSC_PALETTE); }
 
 }  // namespace graphics

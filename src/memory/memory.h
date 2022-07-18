@@ -37,6 +37,9 @@ class Memory {
   void ClearNmi();
   bool InDma();
 
+  inline void UseFceuxPalette() { ppu.UseFceuxPalette(); }
+  inline void UseNtscPalette() { ppu.UseNtscPalette(); }
+
  private:
   std::shared_ptr<mappers::Mapper> cartridge;
   graphics::Ppu ppu;

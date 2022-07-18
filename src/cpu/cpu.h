@@ -42,6 +42,9 @@ class Cpu {
   uint8_t* GetSprites();
   uint8_t* GetPalettes();
 
+  void UseFceuxPalette() { mmu.UseFceuxPalette(); }
+  void UseNtscPalette() { mmu.UseNtscPalette(); }
+
   // controller
   uint8_t p1_input = 0x00;
   std::ofstream myfile;

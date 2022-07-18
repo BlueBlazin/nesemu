@@ -220,9 +220,9 @@ void Ppu::UpdatePalettes() {
       uint16_t offset = i < rect_height ? 0 : 0x10;
       uint16_t master_palette_idx =
           static_cast<uint16_t>(ReadVram(PALETTE_ADDRS[slot][n] | offset)) * 3;
-      palettes[idx + 0] = NTSC_PALETTE[master_palette_idx + 0];
-      palettes[idx + 1] = NTSC_PALETTE[master_palette_idx + 1];
-      palettes[idx + 2] = NTSC_PALETTE[master_palette_idx + 2];
+      palettes[idx + 0] = selected_palette.get()[master_palette_idx + 0];
+      palettes[idx + 1] = selected_palette.get()[master_palette_idx + 1];
+      palettes[idx + 2] = selected_palette.get()[master_palette_idx + 2];
       palettes[idx + 3] = 0xFF;
     }
   }

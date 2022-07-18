@@ -162,6 +162,9 @@ Nes::Nes(const std::string& rom_path)
 void Nes::Run() {
   // start cpu
   cpu.Startup();
+  // change palette to FCEUX
+  cpu.UseFceuxPalette();
+
   // display windows
   InitialDraw();
 
