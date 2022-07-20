@@ -87,6 +87,8 @@ class Ppu {
   std::vector<uint8_t> sprites;
   std::vector<uint8_t> palettes;
 
+  bool vblank_event = false;
+
  private:
   std::shared_ptr<mappers::Mapper> cartridge;
 

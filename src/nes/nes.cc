@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <cstdint>
+#include <iostream>
 #include <string>
 
 #include "SFML/Audio.hpp"
@@ -118,11 +119,6 @@ Nes::Nes(const std::string& rom_path)
   int nt_x = window_x + screen_width + padding;
   int nt_y = (height - nametables_height) / 2;
   nametable1_window.setPosition(sf::Vector2i(nt_x, nt_y));
-  // nametable2_window.setPosition(
-  //     sf::Vector2i(nt_x, nt_y + nametable_height + padding +
-  //     TITLEBAR_HEIGHT));
-  // nametable3_window.setPosition(
-  //     sf::Vector2i(nt_x + nametable_width + padding, nt_y));
   nametable2_window.setPosition(
       sf::Vector2i(nt_x + nametable_width + padding, nt_y));
   nametable3_window.setPosition(
@@ -164,10 +160,8 @@ void Nes::Run() {
   cpu.Startup();
   // change palette to FCEUX
   cpu.UseFceuxPalette();
-
   // display windows
   InitialDraw();
-
   // define clock
   sf::Clock clock;
   // time delta
@@ -176,9 +170,6 @@ void Nes::Run() {
   float elapsed = 0.0F;
 
   while (window.isOpen()) {
-    // handle events
-    // HandleEvents();
-
     // run emulation forward
     if ((elapsed = clock.getElapsedTime().asSeconds() + dt) >= TIME_PER_FRAME) {
       dt = elapsed - TIME_PER_FRAME;
@@ -296,7 +287,6 @@ void Nes::DrawWindows() {
   nametable3_window.draw(nt3_sprite);
   nametable4_window.draw(nt4_sprite);
   objects_window.draw(objects_sprite);
-  // palettes_window.clear();
   palettes_window.draw(palettes_sprite);
 }
 

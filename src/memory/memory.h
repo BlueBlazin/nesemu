@@ -36,6 +36,8 @@ class Memory {
   bool NmiPending();
   void ClearNmi();
   bool InDma();
+  bool VblankEvent();
+  void ClearVBlankEvent();
 
   inline void UseFceuxPalette() { ppu.UseFceuxPalette(); }
   inline void UseNtscPalette() { ppu.UseNtscPalette(); }

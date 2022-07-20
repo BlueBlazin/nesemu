@@ -84,6 +84,10 @@ void Memory::ClearNmi() { ppu.ClearNmi(); }
 
 bool Memory::InDma() { return in_dma; }
 
+bool Memory::VblankEvent() { return ppu.vblank_event; }
+
+void Memory::ClearVBlankEvent() { ppu.vblank_event = false; }
+
 uint8_t Memory::Read(uint16_t addr) {
   if (addr <= 0x1FFF) {
     return ram[addr % 0x800];

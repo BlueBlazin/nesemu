@@ -27,7 +27,8 @@ Event Cpu::RunTillEvent(uint64_t max_cycles) {
   while (event_cycles <= max_cycles) {
     Tick();
 
-    if (NmiPending()) {
+    if (mmu.VblankEvent()) {
+      mmu.ClearVBlankEvent();
       return Event::VBlank;
     }
   }
@@ -69,13 +70,13 @@ uint8_t* Cpu::GetPalettes() { return mmu.GetPalettes(); }
 void Cpu::RunDma() {
   if (dma_state == DmaState::PreDma) {
     dma_state = cycles % 2 == 1 ? DmaState::OddCycleWait : DmaState::Running;
-    AddCycles(1);
   } else if (dma_state == DmaState::OddCycleWait) {
     dma_state = DmaState::Running;
-    AddCycles(1);
   } else {
     mmu.DmaTick();
   }
+
+  AddCycles(1);
 }
 
 void Cpu::DecodeExecute(uint8_t opcode) {
@@ -603,6 +604,7 @@ void Cpu::DecodeExecute(uint8_t opcode) {
 *  Instructions
 =================================================================*/
 
+/* 3 cycles */
 uint16_t Cpu::IndirectX() {
   uint16_t ptr = static_cast<uint16_t>(Fetch());
   ReadMemory(ptr);
@@ -613,6 +615,7 @@ uint16_t Cpu::IndirectX() {
   return (hi << 8) | lo;
 }
 
+/* 3 cycles */
 uint16_t Cpu::IndirectY() {
   uint16_t ptr = static_cast<uint16_t>(Fetch());
   uint16_t lo = static_cast<uint16_t>(ReadMemory(ptr & 0xFF));
@@ -620,26 +623,31 @@ uint16_t Cpu::IndirectY() {
   return ((hi << 8) | lo) + static_cast<uint16_t>(Y);
 }
 
+/* 2 cycles */
 uint16_t Cpu::ZeroPageX() {
   uint16_t addr = static_cast<uint16_t>(Fetch());
   ReadMemory(addr);
   return (addr + static_cast<uint16_t>(X)) & 0xFF;
 }
 
+/* 2 cycles */
 uint16_t Cpu::ZeroPageY() {
   uint16_t addr = static_cast<uint16_t>(Fetch());
   ReadMemory(addr);
   return (addr + static_cast<uint16_t>(Y)) & 0xFF;
 }
 
+/* 1 cycle */
 uint16_t Cpu::ZeroPage() { return static_cast<uint16_t>(Fetch()); }
 
+/* 2 cycles */
 uint16_t Cpu::Absolute() {
   uint16_t lo = static_cast<uint16_t>(Fetch());
   uint16_t hi = static_cast<uint16_t>(Fetch());
   return (hi << 8) | lo;
 }
 
+/* 2 cycles */
 uint16_t Cpu::AbsoluteX() {
   uint16_t lo = static_cast<uint16_t>(Fetch());
   uint16_t hi = static_cast<uint16_t>(Fetch());
@@ -647,6 +655,7 @@ uint16_t Cpu::AbsoluteX() {
   return ((hi << 8) | lo) + static_cast<uint16_t>(X);
 }
 
+/* 2 cycles */
 uint16_t Cpu::AbsoluteY() {
   uint16_t lo = static_cast<uint16_t>(Fetch());
   uint16_t hi = static_cast<uint16_t>(Fetch());
@@ -1695,6 +1704,257 @@ void Cpu::Bit(uint16_t addr) {
   flag_Z = (A & value) == 0;
   flag_N = static_cast<bool>(value & 0x80);
   flag_V = static_cast<bool>(value & 0x40);
+}
+
+/*****************************************************************
+   Illegal Opcodes
+ *****************************************************************/
+void Cpu::AlrImmediate() {
+  A &= Fetch();
+  flag_C = static_cast<bool>(A & 0x1);
+  A = A >> 1;
+  UpdateNZ(A);
+}
+
+void Cpu::AncImmediate() {
+  A &= Fetch();
+  flag_C = static_cast<bool>(A >> 7);
+  A = (A << 1) & 0xFE;
+  UpdateNZ(A);
+}
+
+void Cpu::AneImmediate() {
+  A = (A | 0x00) & X & Fetch();
+  UpdateNZ(A);
+}
+
+void Cpu::ArrImmediate() {
+  A = ((static_cast<uint8_t>(flag_C) << 7) | (A & Fetch()) >> 1);
+  flag_C = static_cast<bool>((A >> 6) & 0x1);
+  flag_V = static_cast<bool>(static_cast<uint8_t>(flag_C) ^ ((A >> 5) & 0x1));
+  UpdateNZ(A);
+}
+
+void Cpu::DcpZeroPage() { Dcp(ZeroPage()); }
+
+void Cpu::DcpZeroPageX() { Dcp(ZeroPageX()); }
+
+void Cpu::DcpAbsolute() { Dcp(Absolute()); }
+
+void Cpu::DcpAbsoluteX() { Dcp(AbsoluteX()); }
+
+void Cpu::DcpAbsoluteY() { Dcp(AbsoluteY()); }
+
+void Cpu::DcpIndirectX() { Dcp(IndirectX()); }
+
+void Cpu::DcpIndirectY() { Dcp(IndirectY()); }
+
+void Cpu::Dcp(uint16_t addr) {
+  uint8_t value = ReadMemory(addr);
+  WriteMemory(addr, value);
+  Cmp(A, value - 1);
+  WriteMemory(addr, value - 1);
+}
+
+void Cpu::IscZeroPage() { Isc(ZeroPage()); }
+
+void Cpu::IscZeroPageX() { Isc(ZeroPageX()); }
+
+void Cpu::IscAbsolute() { Isc(Absolute()); }
+
+void Cpu::IscAbsoluteX() { Isc(AbsoluteX()); }
+
+void Cpu::IscAbsoluteY() { Isc(AbsoluteY()); }
+
+void Cpu::IscIndirectX() { Isc(IndirectX()); }
+
+void Cpu::IscIndirectY() { Isc(IndirectY()); }
+
+void Cpu::Isc(uint16_t addr) {
+  uint8_t value = ReadMemory(addr);
+  WriteMemory(addr, value);
+  Sbc(value + 1);
+  WriteMemory(addr, value + 1);
+}
+
+void Cpu::LasAbsoluteY() {
+  uint8_t value = SP & ReadMemory(AbsoluteY());
+  A = value;
+  X = value;
+  SP = value;
+  UpdateNZ(value);
+}
+
+void Cpu::LaxZeroPage() { Lax(ZeroPage()); }
+
+void Cpu::LaxZeroPageY() { Lax(ZeroPageY()); }
+
+void Cpu::LaxAbsolute() { Lax(Absolute()); }
+
+void Cpu::LaxAbsoluteY() { Lax(AbsoluteY()); }
+
+void Cpu::LaxIndirectX() { Lax(IndirectX()); }
+
+void Cpu::LaxIndirectY() { Lax(IndirectY()); }
+
+void Cpu::Lax(uint16_t addr) {
+  A = ReadMemory(addr);
+  X = A;
+  UpdateNZ(A);
+}
+
+void Cpu::LxaImmediate() {
+  uint8_t value = Fetch();
+  A = value & 0xFF;
+  X = A;
+  UpdateNZ(A);
+}
+
+void Cpu::RlaZeroPage() { Rla(ZeroPage()); }
+
+void Cpu::RlaZeroPageX() { Rla(ZeroPageX()); }
+
+void Cpu::RlaAbsolute() { Rla(Absolute()); }
+
+void Cpu::RlaAbsoluteX() { Rla(AbsoluteX()); }
+
+void Cpu::RlaAbsoluteY() { Rla(AbsoluteY()); }
+
+void Cpu::RlaIndirectX() { Rla(IndirectX()); }
+
+void Cpu::RlaIndirectY() { Rla(IndirectY()); }
+
+void Cpu::Rla(uint16_t addr) {
+  uint8_t value = ReadMemory(addr);
+  WriteMemory(addr, value);
+  bool carry = static_cast<uint8_t>(flag_C);
+  flag_C = static_cast<bool>((value >> 7) & 0x1);
+  value = (value << 1) | carry;
+  A &= value;
+  UpdateNZ(A);
+  WriteMemory(addr, value);
+}
+
+void Cpu::RraZeroPage() { Rra(ZeroPage()); }
+
+void Cpu::RraZeroPageX() { Rra(ZeroPageX()); }
+
+void Cpu::RraAbsolute() { Rra(Absolute()); }
+
+void Cpu::RraAbsoluteX() { Rra(AbsoluteX()); }
+
+void Cpu::RraAbsoluteY() { Rra(AbsoluteY()); }
+
+void Cpu::RraIndirectX() { Rra(IndirectX()); }
+
+void Cpu::RraIndirectY() { Rra(IndirectY()); }
+
+void Cpu::Rra(uint16_t addr) {
+  uint8_t value = ReadMemory(addr);
+  WriteMemory(addr, value);
+  bool carry = static_cast<uint8_t>(flag_C);
+  flag_C = static_cast<bool>(value & 0x1);
+  value = (carry << 7) | (value >> 1);
+  uint16_t result = static_cast<uint16_t>(A) + static_cast<uint16_t>(value) +
+                    static_cast<uint16_t>(flag_C);
+  flag_V = static_cast<bool>(
+      ~(static_cast<uint16_t>(A) ^ static_cast<uint16_t>(value)) &
+      (static_cast<uint16_t>(A) ^ static_cast<uint16_t>(result)) & 0x80);
+  flag_C = static_cast<bool>(result & 0x100);
+  A = static_cast<uint8_t>(result & 0xFF);
+  UpdateNZ(A);
+  WriteMemory(addr, value);
+}
+
+void Cpu::SaxZeroPage() { Sax(ZeroPage()); }
+
+void Cpu::SaxZeroPageY() { Sax(ZeroPageY()); }
+
+void Cpu::SaxAbsolute() { Sax(Absolute()); }
+
+void Cpu::SaxIndirectX() { Sax(IndirectX()); }
+
+void Cpu::Sax(uint16_t addr) { WriteMemory(addr, A & X); }
+
+void Cpu::SbxImmediate() {
+  uint16_t result = (static_cast<uint16_t>(A) & static_cast<uint16_t>(X)) -
+                    static_cast<uint16_t>(Fetch());
+  flag_C = static_cast<bool>(result >= 0);
+  flag_Z = result == 0;
+  X = static_cast<uint8_t>(result & 0xFF);
+  flag_N = static_cast<bool>((result >> 7) & 0x1);
+}
+
+void Cpu::ShaAbsoluteY() { Sha(AbsoluteY()); }
+
+void Cpu::ShaIndirectY() { Sha(IndirectY()); }
+
+void Cpu::Sha(uint16_t addr) {
+  WriteMemory(addr, A & X & (static_cast<uint8_t>(addr >> 8) + 1));
+}
+
+void Cpu::ShxAbsoluteY() {
+  uint16_t addr = AbsoluteY();
+  WriteMemory(addr, X & (static_cast<uint8_t>(addr >> 8) + 1));
+}
+
+void Cpu::ShyAbsoluteX() {
+  uint16_t addr = AbsoluteX();
+  WriteMemory(addr, Y & (static_cast<uint8_t>(addr >> 8) + 1));
+}
+
+void Cpu::SloZeroPage() { Slo(ZeroPage()); }
+
+void Cpu::SloZeroPageX() { Slo(ZeroPageX()); }
+
+void Cpu::SloAbsolute() { Slo(Absolute()); }
+
+void Cpu::SloAbsoluteX() { Slo(AbsoluteX()); }
+
+void Cpu::SloAbsoluteY() { Slo(AbsoluteY()); }
+
+void Cpu::SloIndirectX() { Slo(IndirectX()); }
+
+void Cpu::SloIndirectY() { Slo(IndirectY()); }
+
+void Cpu::Slo(uint16_t addr) {
+  uint8_t value = ReadMemory(addr);
+  WriteMemory(addr, value);
+  flag_C = static_cast<bool>((value >> 7) & 0x1);
+  value <<= 1;
+  A |= value;
+  UpdateNZ(A);
+  WriteMemory(addr, A);
+}
+
+void Cpu::SreZeroPage() { Sre(ZeroPage()); }
+
+void Cpu::SreZeroPageX() { Sre(ZeroPageX()); }
+
+void Cpu::SreAbsolute() { Sre(Absolute()); }
+
+void Cpu::SreAbsoluteX() { Sre(AbsoluteX()); }
+
+void Cpu::SreAbsoluteY() { Sre(AbsoluteY()); }
+
+void Cpu::SreIndirectX() { Sre(IndirectX()); }
+
+void Cpu::SreIndirectY() { Sre(IndirectY()); }
+
+void Cpu::Sre(uint16_t addr) {
+  uint8_t value = ReadMemory(addr);
+  WriteMemory(addr, value);
+  flag_C = static_cast<bool>(value & 0x1);
+  value >>= 1;
+  A ^= value;
+  UpdateNZ(A);
+  WriteMemory(addr, value);
+}
+
+void Cpu::TasAbsoluteY() {
+  uint16_t addr = AbsoluteY();
+  SP = A & X;
+  WriteMemory(addr, A & X & (static_cast<uint8_t>(addr >> 8) + 1));
 }
 
 /*****************************************************************

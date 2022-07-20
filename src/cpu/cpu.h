@@ -32,9 +32,6 @@ class Cpu {
   void Run();
   void Tick();
 
-  // void PressKey(controllers::Key key);
-  // void ReleaseKey(controllers::Key key);
-
   uint8_t* GetScreen();
   uint8_t* GetPatTable1();
   uint8_t* GetPatTable2();
@@ -54,6 +51,7 @@ class Cpu {
 
   void DecodeExecute(uint8_t opcode);
 
+  /* Addressing */
   uint16_t IndirectX();
   uint16_t IndirectY();
   uint16_t ZeroPageX();
@@ -298,6 +296,95 @@ class Cpu {
   void BitZeroPage();
   void BitAbsolute();
   void Bit(uint16_t addr);
+
+  /* Illegal Opcodes */
+  void AlrImmediate();
+  void AncImmediate();
+  void AneImmediate();
+  void ArrImmediate();
+
+  void DcpZeroPage();
+  void DcpZeroPageX();
+  void DcpAbsolute();
+  void DcpAbsoluteX();
+  void DcpAbsoluteY();
+  void DcpIndirectX();
+  void DcpIndirectY();
+  void Dcp(uint16_t addr);
+
+  void IscZeroPage();
+  void IscZeroPageX();
+  void IscAbsolute();
+  void IscAbsoluteX();
+  void IscAbsoluteY();
+  void IscIndirectX();
+  void IscIndirectY();
+  void Isc(uint16_t addr);
+
+  void LasAbsoluteY();
+
+  void LaxZeroPage();
+  void LaxZeroPageY();
+  void LaxAbsolute();
+  void LaxAbsoluteY();
+  void LaxIndirectX();
+  void LaxIndirectY();
+  void Lax(uint16_t addr);
+
+  void LxaImmediate();
+
+  void RlaZeroPage();
+  void RlaZeroPageX();
+  void RlaAbsolute();
+  void RlaAbsoluteX();
+  void RlaAbsoluteY();
+  void RlaIndirectX();
+  void RlaIndirectY();
+  void Rla(uint16_t addr);
+
+  void RraZeroPage();
+  void RraZeroPageX();
+  void RraAbsolute();
+  void RraAbsoluteX();
+  void RraAbsoluteY();
+  void RraIndirectX();
+  void RraIndirectY();
+  void Rra(uint16_t addr);
+
+  void SaxZeroPage();
+  void SaxZeroPageY();
+  void SaxAbsolute();
+  void SaxIndirectX();
+  void Sax(uint16_t addr);
+
+  void SbxImmediate();
+
+  void ShaAbsoluteY();
+  void ShaIndirectY();
+  void Sha(uint16_t addr);
+
+  void ShxAbsoluteY();
+  void ShyAbsoluteX();
+
+  void SloZeroPage();
+  void SloZeroPageX();
+  void SloAbsolute();
+  void SloAbsoluteX();
+  void SloAbsoluteY();
+  void SloIndirectX();
+  void SloIndirectY();
+  void Slo(uint16_t addr);
+
+  void SreZeroPage();
+  void SreZeroPageX();
+  void SreAbsolute();
+  void SreAbsoluteX();
+  void SreAbsoluteY();
+  void SreIndirectX();
+  void SreIndirectY();
+  void Sre(uint16_t addr);
+
+  void TasAbsoluteY();
 
   /* Utility methods */
   bool NmiPending();

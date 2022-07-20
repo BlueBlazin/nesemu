@@ -478,15 +478,8 @@ void Ppu::PostRenderTick() {}
 void Ppu::VBlankTick() {
   if (line == 241 and dot == 1) {
     in_vblank = true;
+    vblank_event = true;
     UpdateNmi();
-
-    // for (int i = 0; i < 16; i++) {
-    //   if (i < 15) {
-    //     std::printf("0x%X, ", ReadVram(0x23F0 + i));
-    //   } else {
-    //     std::printf("0x%X\n", ReadVram(0x23F0 + i));
-    //   }
-    // }
   }
 }
 
