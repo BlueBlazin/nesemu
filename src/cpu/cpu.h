@@ -386,6 +386,15 @@ class Cpu {
 
   void TasAbsoluteY();
 
+  void NopImplied();
+  void NopImmediate();
+  void NopZeroPage();
+  void NopZeroPageX();
+  void NopAbsolute();
+  void NopAbsoluteX();
+
+  void Stp();
+
   /* Utility methods */
   bool NmiPending();
   bool IrqPending();
@@ -408,6 +417,7 @@ class Cpu {
   uint64_t event_cycles = 0;
   DmaState dma_state = DmaState::PreDma;
   uint8_t opcode = 0;
+  bool stopped = false;
 
   /* Registers */
   uint8_t A = 0x0;

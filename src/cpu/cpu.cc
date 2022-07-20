@@ -24,6 +24,10 @@ void Cpu::Startup() {
 }
 
 Event Cpu::RunTillEvent(uint64_t max_cycles) {
+  if (stopped) {
+    return Event::Stopped;
+  }
+
   while (event_cycles <= max_cycles) {
     Tick();
 
@@ -87,14 +91,23 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0x01:
       OraIndirectX();
       break;
+    case 0x02:
+      Stp();
+      break;
+    case 0x03:
+      SloIndirectX();
+      break;
     case 0x04:
-      ZeroPage();
+      NopZeroPage();
       break;
     case 0x05:
       OraZeroPage();
       break;
     case 0x06:
       AslZeroPage();
+      break;
+    case 0x07:
+      SloZeroPage();
       break;
     case 0x08:
       PhpImplied();
@@ -105,8 +118,11 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0x0A:
       AslAccumulator();
       break;
+    case 0x0B:
+      AncImmediate();
+      break;
     case 0x0C:
-      Absolute();
+      NopAbsolute();
       break;
     case 0x0D:
       OraAbsolute();
@@ -114,14 +130,23 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0x0E:
       AslAbsolute();
       break;
+    case 0x0F:
+      SloAbsolute();
+      break;
     case 0x10:
       BplRelative();
       break;
     case 0x11:
       OraIndirectY();
       break;
+    case 0x12:
+      Stp();
+      break;
+    case 0x13:
+      SloIndirectY();
+      break;
     case 0x14:
-      ZeroPageX();
+      NopZeroPageX();
       break;
     case 0x15:
       OraZeroPageX();
@@ -129,14 +154,23 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0x16:
       AslZeroPageX();
       break;
+    case 0x17:
+      SloZeroPageX();
+      break;
     case 0x18:
       ClcImplied();
       break;
     case 0x19:
       OraAbsoluteY();
       break;
+    case 0x1A:
+      NopImplied();
+      break;
+    case 0x1B:
+      SloAbsoluteY();
+      break;
     case 0x1C:
-      AbsoluteX();
+      NopAbsoluteX();
       break;
     case 0x1D:
       OraAbsoluteX();
@@ -144,11 +178,20 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0x1E:
       AslAbsoluteX();
       break;
+    case 0x1F:
+      SloAbsoluteX();
+      break;
     case 0x20:
       JsrAbsolute();
       break;
     case 0x21:
       AndIndirectX();
+      break;
+    case 0x22:
+      Stp();
+      break;
+    case 0x23:
+      RlaIndirectX();
       break;
     case 0x24:
       BitZeroPage();
@@ -159,6 +202,9 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0x26:
       RolZeroPage();
       break;
+    case 0x27:
+      RlaZeroPage();
+      break;
     case 0x28:
       PlpImplied();
       break;
@@ -167,6 +213,9 @@ void Cpu::DecodeExecute(uint8_t opcode) {
       break;
     case 0x2A:
       RolAccumulator();
+      break;
+    case 0x2B:
+      AncImmediate();
       break;
     case 0x2C:
       BitAbsolute();
@@ -177,14 +226,23 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0x2E:
       RolAbsolute();
       break;
+    case 0x2F:
+      RlaAbsolute();
+      break;
     case 0x30:
       BmiRelative();
       break;
     case 0x31:
       AndIndirectY();
       break;
+    case 0x32:
+      Stp();
+      break;
+    case 0x33:
+      RlaIndirectY();
+      break;
     case 0x34:
-      ZeroPageX();
+      NopZeroPageX();
       break;
     case 0x35:
       AndZeroPageX();
@@ -192,14 +250,23 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0x36:
       RolZeroPageX();
       break;
+    case 0x37:
+      RlaZeroPageX();
+      break;
     case 0x38:
       SecImplied();
       break;
     case 0x39:
       AndAbsoluteY();
       break;
+    case 0x3A:
+      NopImplied();
+      break;
+    case 0x3B:
+      RlaAbsoluteY();
+      break;
     case 0x3C:
-      AbsoluteX();
+      NopAbsoluteX();
       break;
     case 0x3D:
       AndAbsoluteX();
@@ -207,20 +274,32 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0x3E:
       RolAbsoluteX();
       break;
+    case 0x3F:
+      RlaAbsoluteX();
+      break;
     case 0x40:
       RtiImplied();
       break;
     case 0x41:
       EorIndirectX();
       break;
+    case 0x42:
+      Stp();
+      break;
+    case 0x43:
+      SreIndirectX();
+      break;
     case 0x44:
-      ZeroPage();
+      NopZeroPage();
       break;
     case 0x45:
       EorZeroPage();
       break;
     case 0x46:
       LsrZeroPage();
+      break;
+    case 0x47:
+      SreZeroPage();
       break;
     case 0x48:
       PhaImplied();
@@ -231,6 +310,9 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0x4A:
       LsrAccumulator();
       break;
+    case 0x4B:
+      AlrImmediate();
+      break;
     case 0x4C:
       JmpAbsolute();
       break;
@@ -240,14 +322,23 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0x4E:
       LsrAbsolute();
       break;
+    case 0x4F:
+      SreAbsolute();
+      break;
     case 0x50:
       BvcRelative();
       break;
     case 0x51:
       EorIndirectY();
       break;
+    case 0x52:
+      Stp();
+      break;
+    case 0x53:
+      SreIndirectY();
+      break;
     case 0x54:
-      ZeroPageX();
+      NopZeroPageX();
       break;
     case 0x55:
       EorZeroPageX();
@@ -255,14 +346,23 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0x56:
       LsrZeroPageX();
       break;
+    case 0x57:
+      SreZeroPageX();
+      break;
     case 0x58:
       CliImplied();
       break;
     case 0x59:
       EorAbsoluteY();
       break;
+    case 0x5A:
+      NopImplied();
+      break;
+    case 0x5B:
+      SreAbsoluteY();
+      break;
     case 0x5C:
-      AbsoluteX();
+      NopAbsoluteX();
       break;
     case 0x5D:
       EorAbsoluteX();
@@ -270,20 +370,32 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0x5E:
       LsrAbsoluteX();
       break;
+    case 0x5F:
+      SreAbsoluteX();
+      break;
     case 0x60:
       RtsImplied();
       break;
     case 0x61:
       AdcIndirectX();
       break;
+    case 0x62:
+      Stp();
+      break;
+    case 0x63:
+      RraIndirectX();
+      break;
     case 0x64:
-      ZeroPage();
+      NopZeroPage();
       break;
     case 0x65:
       AdcZeroPage();
       break;
     case 0x66:
       RorZeroPage();
+      break;
+    case 0x67:
+      RraZeroPage();
       break;
     case 0x68:
       PlaImplied();
@@ -294,6 +406,9 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0x6A:
       RorAccumulator();
       break;
+    case 0x6B:
+      ArrImmediate();
+      break;
     case 0x6C:
       JmpIndirect();
       break;
@@ -303,14 +418,23 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0x6E:
       RorAbsolute();
       break;
+    case 0x6F:
+      RraAbsolute();
+      break;
     case 0x70:
       BvsRelative();
       break;
     case 0x71:
       AdcIndirectY();
       break;
+    case 0x72:
+      Stp();
+      break;
+    case 0x73:
+      RraIndirectY();
+      break;
     case 0x74:
-      ZeroPageX();
+      NopZeroPageX();
       break;
     case 0x75:
       AdcZeroPageX();
@@ -318,14 +442,23 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0x76:
       RorZeroPageX();
       break;
+    case 0x77:
+      RraZeroPageX();
+      break;
     case 0x78:
       SeiImplied();
       break;
     case 0x79:
       AdcAbsoluteY();
       break;
+    case 0x7A:
+      NopImplied();
+      break;
+    case 0x7B:
+      RraAbsoluteY();
+      break;
     case 0x7C:
-      AbsoluteX();
+      NopAbsoluteX();
       break;
     case 0x7D:
       AdcAbsoluteX();
@@ -333,14 +466,20 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0x7E:
       RorAbsoluteX();
       break;
+    case 0x7F:
+      RraAbsoluteX();
+      break;
     case 0x80:
-      Fetch();
+      NopImmediate();
       break;
     case 0x81:
       StaIndirectX();
       break;
     case 0x82:
-      Fetch();
+      NopImmediate();
+      break;
+    case 0x83:
+      SaxIndirectX();
       break;
     case 0x84:
       StyZeroPage();
@@ -351,14 +490,20 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0x86:
       StxZeroPage();
       break;
+    case 0x87:
+      SaxZeroPage();
+      break;
     case 0x88:
       DeyImplied();
       break;
     case 0x89:
-      Fetch();
+      NopImmediate();
       break;
     case 0x8A:
       TxaImplied();
+      break;
+    case 0x8B:
+      AneImmediate();
       break;
     case 0x8C:
       StyAbsolute();
@@ -369,11 +514,20 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0x8E:
       StxAbsolute();
       break;
+    case 0x8F:
+      SaxAbsolute();
+      break;
     case 0x90:
       BccRelative();
       break;
     case 0x91:
       StaIndirectY();
+      break;
+    case 0x92:
+      Stp();
+      break;
+    case 0x93:
+      ShaIndirectY();
       break;
     case 0x94:
       StyZeroPageX();
@@ -384,6 +538,9 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0x96:
       StxZeroPageY();
       break;
+    case 0x97:
+      SaxZeroPageY();
+      break;
     case 0x98:
       TyaImplied();
       break;
@@ -393,8 +550,20 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0x9A:
       TxsImplied();
       break;
+    case 0x9B:
+      TasAbsoluteY();
+      break;
+    case 0x9C:
+      ShyAbsoluteX();
+      break;
     case 0x9D:
       StaAbsoluteX();
+      break;
+    case 0x9E:
+      ShxAbsoluteY();
+      break;
+    case 0x9F:
+      ShaAbsoluteY();
       break;
     case 0xA0:
       LdyImmediate();
@@ -405,6 +574,9 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0xA2:
       LdxImmediate();
       break;
+    case 0xA3:
+      LaxIndirectX();
+      break;
     case 0xA4:
       LdyZeroPage();
       break;
@@ -413,6 +585,9 @@ void Cpu::DecodeExecute(uint8_t opcode) {
       break;
     case 0xA6:
       LdxZeroPage();
+      break;
+    case 0xA7:
+      LaxZeroPage();
       break;
     case 0xA8:
       TayImplied();
@@ -423,6 +598,9 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0xAA:
       TaxImplied();
       break;
+    case 0xAB:
+      LxaImmediate();
+      break;
     case 0xAC:
       LdyAbsolute();
       break;
@@ -432,11 +610,20 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0xAE:
       LdxAbsolute();
       break;
+    case 0xAF:
+      LaxAbsolute();
+      break;
     case 0xB0:
       BcsRelative();
       break;
     case 0xB1:
       LdaIndirectY();
+      break;
+    case 0xB2:
+      Stp();
+      break;
+    case 0xB3:
+      LaxIndirectY();
       break;
     case 0xB4:
       LdyZeroPageX();
@@ -447,6 +634,9 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0xB6:
       LdxZeroPageY();
       break;
+    case 0xB7:
+      LaxZeroPageY();
+      break;
     case 0xB8:
       ClvImplied();
       break;
@@ -455,6 +645,9 @@ void Cpu::DecodeExecute(uint8_t opcode) {
       break;
     case 0xBA:
       TsxImplied();
+      break;
+    case 0xBB:
+      LasAbsoluteY();
       break;
     case 0xBC:
       LdyAbsoluteX();
@@ -465,6 +658,9 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0xBE:
       LdxAbsoluteY();
       break;
+    case 0xBF:
+      LaxAbsoluteY();
+      break;
     case 0xC0:
       CpyImmediate();
       break;
@@ -472,7 +668,10 @@ void Cpu::DecodeExecute(uint8_t opcode) {
       CmpIndirectX();
       break;
     case 0xC2:
-      Fetch();
+      NopImmediate();
+      break;
+    case 0xC3:
+      DcpIndirectX();
       break;
     case 0xC4:
       CpyZeroPage();
@@ -483,6 +682,9 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0xC6:
       DecZeroPage();
       break;
+    case 0xC7:
+      DcpZeroPage();
+      break;
     case 0xC8:
       InyImplied();
       break;
@@ -491,6 +693,9 @@ void Cpu::DecodeExecute(uint8_t opcode) {
       break;
     case 0xCA:
       DexImplied();
+      break;
+    case 0xCB:
+      SbxImmediate();
       break;
     case 0xCC:
       CpyAbsolute();
@@ -501,14 +706,23 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0xCE:
       DecAbsolute();
       break;
+    case 0xCF:
+      DcpAbsolute();
+      break;
     case 0xD0:
       BneRelative();
       break;
     case 0xD1:
       CmpIndirectY();
       break;
+    case 0xD2:
+      Stp();
+      break;
+    case 0xD3:
+      DcpIndirectY();
+      break;
     case 0xD4:
-      ZeroPageX();
+      NopZeroPageX();
       break;
     case 0xD5:
       CmpZeroPageX();
@@ -516,20 +730,32 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0xD6:
       DecZeroPageX();
       break;
+    case 0xD7:
+      DcpZeroPageX();
+      break;
     case 0xD8:
       CldImplied();
       break;
     case 0xD9:
       CmpAbsoluteY();
       break;
+    case 0xDA:
+      NopImplied();
+      break;
+    case 0xDB:
+      DcpAbsoluteY();
+      break;
     case 0xDC:
-      AbsoluteX();
+      NopAbsoluteX();
       break;
     case 0xDD:
       CmpAbsoluteX();
       break;
     case 0xDE:
       DecAbsoluteX();
+      break;
+    case 0xDF:
+      DcpAbsoluteX();
       break;
     case 0xE0:
       CpxImmediate();
@@ -538,7 +764,10 @@ void Cpu::DecodeExecute(uint8_t opcode) {
       SbcIndirectX();
       break;
     case 0xE2:
-      Fetch();
+      NopImmediate();
+      break;
+    case 0xE3:
+      IscIndirectX();
       break;
     case 0xE4:
       CpxZeroPage();
@@ -549,6 +778,9 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0xE6:
       IncZeroPage();
       break;
+    case 0xE7:
+      IscZeroPage();
+      break;
     case 0xE8:
       InxImplied();
       break;
@@ -556,7 +788,10 @@ void Cpu::DecodeExecute(uint8_t opcode) {
       SbcImmediate();
       break;
     case 0xEA:
-      AddCycles(1);
+      NopImplied();
+      break;
+    case 0xEB:
+      SbcImmediate();
       break;
     case 0xEC:
       CpxAbsolute();
@@ -567,14 +802,23 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0xEE:
       IncAbsolute();
       break;
+    case 0xEF:
+      IscAbsolute();
+      break;
     case 0xF0:
       BeqRelative();
       break;
     case 0xF1:
       SbcIndirectY();
       break;
+    case 0xF2:
+      Stp();
+      break;
+    case 0xF3:
+      IscIndirectY();
+      break;
     case 0xF4:
-      ZeroPageX();
+      NopZeroPageX();
       break;
     case 0xF5:
       SbcZeroPageX();
@@ -582,20 +826,32 @@ void Cpu::DecodeExecute(uint8_t opcode) {
     case 0xF6:
       IncZeroPageX();
       break;
+    case 0xF7:
+      IscZeroPageX();
+      break;
     case 0xF8:
       SedImplied();
       break;
     case 0xF9:
       SbcAbsoluteY();
       break;
+    case 0xFA:
+      NopImplied();
+      break;
+    case 0xFB:
+      IscAbsoluteY();
+      break;
     case 0xFC:
-      AbsoluteX();
+      NopAbsoluteX();
       break;
     case 0xFD:
       SbcAbsoluteX();
       break;
     case 0xFE:
       IncAbsoluteX();
+      break;
+    case 0xFF:
+      IscAbsoluteX();
       break;
   }
 }
@@ -1956,6 +2212,20 @@ void Cpu::TasAbsoluteY() {
   SP = A & X;
   WriteMemory(addr, A & X & (static_cast<uint8_t>(addr >> 8) + 1));
 }
+
+void Cpu::NopImplied() { AddCycles(1); }
+
+void Cpu::NopImmediate() { Fetch(); }
+
+void Cpu::NopZeroPage() { ZeroPage(); }
+
+void Cpu::NopZeroPageX() { ZeroPageX(); }
+
+void Cpu::NopAbsolute() { Absolute(); }
+
+void Cpu::NopAbsoluteX() { AbsoluteX(); }
+
+void Cpu::Stp() { stopped = true; }
 
 /*****************************************************************
    Utility

@@ -6,6 +6,7 @@ namespace cpu {
 enum class Event {
   VBlank,
   MaxCycles,
+  Stopped,
 };
 
 }  // namespace cpu
