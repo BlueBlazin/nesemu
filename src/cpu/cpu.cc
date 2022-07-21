@@ -1974,8 +1974,8 @@ void Cpu::AlrImmediate() {
 
 void Cpu::AncImmediate() {
   A &= Fetch();
-  flag_C = static_cast<bool>(A >> 7);
-  A = (A << 1) & 0xFE;
+  flag_C = static_cast<bool>((A >> 7) & 0x1);
+  // A = (A << 1) & 0xFE;
   UpdateNZ(A);
 }
 
@@ -2133,8 +2133,8 @@ void Cpu::SaxIndirectX() { Sax(IndirectX()); }
 void Cpu::Sax(uint16_t addr) { WriteMemory(addr, A & X); }
 
 void Cpu::SbxImmediate() {
-  uint16_t result = (static_cast<uint16_t>(A) & static_cast<uint16_t>(X)) -
-                    static_cast<uint16_t>(Fetch());
+  int16_t result = (static_cast<int16_t>(A) & static_cast<int16_t>(X)) -
+                   static_cast<int16_t>(Fetch());
   flag_C = static_cast<bool>(result >= 0);
   flag_Z = result == 0;
   X = static_cast<uint8_t>(result & 0xFF);
@@ -2155,8 +2155,16 @@ void Cpu::ShxAbsoluteY() {
 }
 
 void Cpu::ShyAbsoluteX() {
-  uint16_t addr = AbsoluteX();
-  WriteMemory(addr, Y & (static_cast<uint8_t>(addr >> 8) + 1));
+  uint16_t addr_lo = static_cast<uint16_t>(Fetch());
+  uint16_t addr_hi = static_cast<uint16_t>(Fetch());
+  uint16_t addr = (addr_hi << 8) | addr_lo;
+  bool inc = (addr_lo + static_cast<uint16_t>(X)) >= 0x100;
+  addr_lo += X;
+  ReadMemory(addr);
+  if (inc) {
+    addr_hi &= static_cast<uint16_t>(Y);
+  }
+  WriteMemory(addr, Y & static_cast<uint8_t>(addr_hi + 1));
 }
 
 void Cpu::SloZeroPage() { Slo(ZeroPage()); }
@@ -2180,7 +2188,7 @@ void Cpu::Slo(uint16_t addr) {
   value <<= 1;
   A |= value;
   UpdateNZ(A);
-  WriteMemory(addr, A);
+  WriteMemory(addr, value);
 }
 
 void Cpu::SreZeroPage() { Sre(ZeroPage()); }

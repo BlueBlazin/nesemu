@@ -188,6 +188,8 @@ void Nes::Emulate() {
         break;
       case cpu::Event::MaxCycles:
         return;
+      case cpu::Event::Stopped:
+        throw "Emulator Stopped";
     }
   }
 }
