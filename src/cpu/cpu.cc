@@ -891,21 +891,8 @@ uint16_t Cpu::IndirectY() {
     ReadMemory((static_cast<uint16_t>(hi) << 8) | static_cast<uint16_t>(lo));
     hi++;
   }
-  return ReadMemory((static_cast<uint16_t>(hi) << 8) |
-                    static_cast<uint16_t>(lo));
+  return (static_cast<uint16_t>(hi) << 8) | static_cast<uint16_t>(lo);
 }
-// uint16_t Cpu::IndirectY() {
-//   uint8_t ptr = Fetch();
-//   uint8_t lo = ReadMemory(static_cast<uint16_t>(ptr));
-//   uint8_t hi = ReadMemory(static_cast<uint16_t>(ptr + 1));
-//   bool inc = static_cast<uint16_t>(lo) + static_cast<uint16_t>(Y) > 0xFF;
-//   lo += Y;
-//   if (inc) {
-//     ReadMemory((static_cast<uint16_t>(hi) << 8) | static_cast<uint16_t>(lo));
-//     hi++;
-//   }
-//   return (static_cast<uint16_t>(hi) << 8) | static_cast<uint16_t>(lo);
-// }
 
 /* 4 cycles */
 uint16_t Cpu::IndirectYW() {
@@ -922,21 +909,8 @@ uint16_t Cpu::IndirectYW() {
   if (inc) {
     hi++;
   }
-  return ReadMemory((static_cast<uint16_t>(hi) << 8) |
-                    static_cast<uint16_t>(lo));
+  return (static_cast<uint16_t>(hi) << 8) | static_cast<uint16_t>(lo);
 }
-// uint16_t Cpu::IndirectYW() {
-//   uint8_t ptr = Fetch();
-//   uint8_t lo = ReadMemory(static_cast<uint16_t>(ptr));
-//   uint8_t hi = ReadMemory(static_cast<uint16_t>(ptr + 1));
-//   bool inc = static_cast<uint16_t>(lo) + static_cast<uint16_t>(Y) > 0xFF;
-//   lo += Y;
-//   ReadMemory((static_cast<uint16_t>(hi) << 8) | static_cast<uint16_t>(lo));
-//   if (inc) {
-//     hi++;
-//   }
-//   return (static_cast<uint16_t>(hi) << 8) | static_cast<uint16_t>(lo);
-// }
 
 /* 2 cycles */
 uint16_t Cpu::ZeroPageX() {
@@ -2085,20 +2059,6 @@ void Cpu::Isc(uint16_t addr) {
   Sbc(value + 1);
   WriteMemory(addr, value + 1);
 }
-// void Cpu::Isc(uint16_t addr) {
-//   uint8_t value = ReadMemory(addr);
-//   WriteMemory(addr, value);
-//   value++;
-//   int16_t result = static_cast<int16_t>(A) + ~static_cast<int16_t>(value) +
-//                    static_cast<int16_t>(flag_C);
-//   flag_V = static_cast<bool>((A ^ value) & (A ^ static_cast<uint8_t>(result))
-//   &
-//                              0x80);
-//   flag_C = !static_cast<bool>(result & 0x100);
-//   A = static_cast<uint8_t>(result & 0xFF);
-//   UpdateNZ(A);
-//   WriteMemory(addr, value);
-// }
 
 void Cpu::LasAbsoluteY() {
   uint8_t value = SP & ReadMemory(AbsoluteY());
