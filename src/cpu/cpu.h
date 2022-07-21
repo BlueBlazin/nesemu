@@ -54,12 +54,15 @@ class Cpu {
   /* Addressing */
   uint16_t IndirectX();
   uint16_t IndirectY();
+  uint16_t IndirectYW();
   uint16_t ZeroPageX();
   uint16_t ZeroPageY();
   uint16_t ZeroPage();
   uint16_t Absolute();
   uint16_t AbsoluteX();
   uint16_t AbsoluteY();
+  uint16_t AbsoluteXW();
+  uint16_t AbsoluteYW();
 
   /* LDA */
   void LdaImmediate();
