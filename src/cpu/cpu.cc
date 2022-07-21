@@ -1920,14 +1920,12 @@ void Cpu::RtsImplied() {
 
 void Cpu::BrkImplied() {
   Fetch();
-  uint8_t lo = static_cast<uint8_t>(PC & 0xFF);
-  uint8_t hi = static_cast<uint8_t>((PC >> 8) & 0xFF);
-
-  Push(hi);
-  Push(lo);
+  Push(static_cast<uint8_t>(PC >> 8));
+  Push(static_cast<uint8_t>(PC));
   uint8_t SR = (static_cast<uint8_t>(flag_N) << 7) |
                (static_cast<uint8_t>(flag_V) << 6) |
-               (/*static_cast<uint8_t>(flag_B)*/ 1 << 4) |
+               (/*                      */ 1 << 5) |
+               (/*                      */ 1 << 4) |
                (static_cast<uint8_t>(flag_D) << 3) |
                (static_cast<uint8_t>(flag_I) << 2) |
                (static_cast<uint8_t>(flag_Z) << 1) |
