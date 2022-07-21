@@ -860,55 +860,83 @@ void Cpu::DecodeExecute(uint8_t opcode) {
 *  Instructions
 =================================================================*/
 
-// /* 3 cycles */
-// uint16_t Cpu::IndirectX() {
-//   uint16_t ptr = static_cast<uint16_t>(Fetch());
-//   ReadMemory(ptr);
-//   uint16_t lo_addr = ptr + static_cast<uint16_t>(X);
-//   uint16_t hi_addr = ptr + static_cast<uint16_t>(X) + 1;
-//   uint16_t lo = static_cast<uint16_t>(ReadMemory(lo_addr & 0xFF));
-//   uint16_t hi = static_cast<uint16_t>(ReadMemory(hi_addr & 0xFF));
-//   return (hi << 8) | lo;
-// }
-
-/* 4 cycles */
+// /* 4 cycles */
 uint16_t Cpu::IndirectX() {
-  uint8_t ptr = Fetch();
-  ReadMemory(static_cast<uint16_t>(ptr));
-  ptr += X;
-  uint8_t lo = ReadMemory(static_cast<uint16_t>(ptr));
-  uint8_t hi = ReadMemory(static_cast<uint16_t>(ptr + 1));
+  uint8_t ptr_lo = Fetch();
+  uint8_t ptr_hi = 0x00;
+  ReadMemory((static_cast<uint16_t>(ptr_hi) << 8) |
+             static_cast<uint16_t>(ptr_lo));
+  ptr_lo += X;
+  uint8_t lo = ReadMemory((static_cast<uint16_t>(ptr_hi) << 8) |
+                          static_cast<uint16_t>(ptr_lo));
+  ptr_lo++;
+  uint8_t hi = ReadMemory((static_cast<uint16_t>(ptr_hi) << 8) |
+                          static_cast<uint16_t>(ptr_lo));
 
   return (static_cast<uint16_t>(hi) << 8) | static_cast<uint16_t>(lo);
 }
 
 /* 3 or 4 cycles */
 uint16_t Cpu::IndirectY() {
-  uint8_t ptr = Fetch();
-  uint8_t lo = ReadMemory(static_cast<uint16_t>(ptr));
-  uint8_t hi = ReadMemory(static_cast<uint16_t>(ptr + 1));
+  uint8_t ptr_lo = Fetch();
+  uint8_t ptr_hi = 0x00;
+  uint8_t lo = ReadMemory((static_cast<uint16_t>(ptr_hi) << 8) |
+                          static_cast<uint16_t>(ptr_lo));
+  ptr_lo++;
+  uint8_t hi = ReadMemory((static_cast<uint16_t>(ptr_hi) << 8) |
+                          static_cast<uint16_t>(ptr_lo));
   bool inc = static_cast<uint16_t>(lo) + static_cast<uint16_t>(Y) > 0xFF;
   lo += Y;
   if (inc) {
     ReadMemory((static_cast<uint16_t>(hi) << 8) | static_cast<uint16_t>(lo));
     hi++;
   }
-  return (static_cast<uint16_t>(hi) << 8) | static_cast<uint16_t>(lo);
+  return ReadMemory((static_cast<uint16_t>(hi) << 8) |
+                    static_cast<uint16_t>(lo));
 }
+// uint16_t Cpu::IndirectY() {
+//   uint8_t ptr = Fetch();
+//   uint8_t lo = ReadMemory(static_cast<uint16_t>(ptr));
+//   uint8_t hi = ReadMemory(static_cast<uint16_t>(ptr + 1));
+//   bool inc = static_cast<uint16_t>(lo) + static_cast<uint16_t>(Y) > 0xFF;
+//   lo += Y;
+//   if (inc) {
+//     ReadMemory((static_cast<uint16_t>(hi) << 8) | static_cast<uint16_t>(lo));
+//     hi++;
+//   }
+//   return (static_cast<uint16_t>(hi) << 8) | static_cast<uint16_t>(lo);
+// }
 
 /* 4 cycles */
 uint16_t Cpu::IndirectYW() {
-  uint8_t ptr = Fetch();
-  uint8_t lo = ReadMemory(static_cast<uint16_t>(ptr));
-  uint8_t hi = ReadMemory(static_cast<uint16_t>(ptr + 1));
+  uint8_t ptr_lo = Fetch();
+  uint8_t ptr_hi = 0x00;
+  uint8_t lo = ReadMemory((static_cast<uint16_t>(ptr_hi) << 8) |
+                          static_cast<uint16_t>(ptr_lo));
+  ptr_lo++;
+  uint8_t hi = ReadMemory((static_cast<uint16_t>(ptr_hi) << 8) |
+                          static_cast<uint16_t>(ptr_lo));
   bool inc = static_cast<uint16_t>(lo) + static_cast<uint16_t>(Y) > 0xFF;
   lo += Y;
   ReadMemory((static_cast<uint16_t>(hi) << 8) | static_cast<uint16_t>(lo));
   if (inc) {
     hi++;
   }
-  return (static_cast<uint16_t>(hi) << 8) | static_cast<uint16_t>(lo);
+  return ReadMemory((static_cast<uint16_t>(hi) << 8) |
+                    static_cast<uint16_t>(lo));
 }
+// uint16_t Cpu::IndirectYW() {
+//   uint8_t ptr = Fetch();
+//   uint8_t lo = ReadMemory(static_cast<uint16_t>(ptr));
+//   uint8_t hi = ReadMemory(static_cast<uint16_t>(ptr + 1));
+//   bool inc = static_cast<uint16_t>(lo) + static_cast<uint16_t>(Y) > 0xFF;
+//   lo += Y;
+//   ReadMemory((static_cast<uint16_t>(hi) << 8) | static_cast<uint16_t>(lo));
+//   if (inc) {
+//     hi++;
+//   }
+//   return (static_cast<uint16_t>(hi) << 8) | static_cast<uint16_t>(lo);
+// }
 
 /* 2 cycles */
 uint16_t Cpu::ZeroPageX() {
@@ -2057,6 +2085,20 @@ void Cpu::Isc(uint16_t addr) {
   Sbc(value + 1);
   WriteMemory(addr, value + 1);
 }
+// void Cpu::Isc(uint16_t addr) {
+//   uint8_t value = ReadMemory(addr);
+//   WriteMemory(addr, value);
+//   value++;
+//   int16_t result = static_cast<int16_t>(A) + ~static_cast<int16_t>(value) +
+//                    static_cast<int16_t>(flag_C);
+//   flag_V = static_cast<bool>((A ^ value) & (A ^ static_cast<uint8_t>(result))
+//   &
+//                              0x80);
+//   flag_C = !static_cast<bool>(result & 0x100);
+//   A = static_cast<uint8_t>(result & 0xFF);
+//   UpdateNZ(A);
+//   WriteMemory(addr, value);
+// }
 
 void Cpu::LasAbsoluteY() {
   uint8_t value = SP & ReadMemory(AbsoluteY());
@@ -2175,21 +2217,29 @@ void Cpu::Sha(uint16_t addr) {
 }
 
 void Cpu::ShxAbsoluteY() {
-  uint16_t addr = AbsoluteY();
-  WriteMemory(addr, X & (static_cast<uint8_t>(addr >> 8) + 1));
+  uint8_t lo = Fetch();
+  uint8_t hi = Fetch();
+  bool inc = static_cast<uint16_t>(lo) + static_cast<uint16_t>(Y) > 0xFF;
+  lo += Y;
+  ReadMemory((static_cast<uint16_t>(hi) << 8) | static_cast<uint16_t>(lo));
+  if (inc) {
+    hi &= X;
+  }
+  WriteMemory((static_cast<uint16_t>(hi) << 8) | static_cast<uint16_t>(lo),
+              X & (hi + 1));
 }
 
 void Cpu::ShyAbsoluteX() {
-  uint16_t addr_lo = static_cast<uint16_t>(Fetch());
-  uint16_t addr_hi = static_cast<uint16_t>(Fetch());
-  uint16_t addr = (addr_hi << 8) | addr_lo;
-  bool inc = (addr_lo + static_cast<uint16_t>(X)) >= 0x100;
-  addr_lo += X;
-  ReadMemory(addr);
+  uint8_t lo = Fetch();
+  uint8_t hi = Fetch();
+  bool inc = (static_cast<uint16_t>(lo) + X) > 0xFF;
+  lo += X;
+  ReadMemory((static_cast<uint16_t>(hi) << 8) | static_cast<uint16_t>(lo));
   if (inc) {
-    addr_hi &= static_cast<uint16_t>(Y);
+    hi &= Y;
   }
-  WriteMemory(addr, Y & static_cast<uint8_t>(addr_hi + 1));
+  WriteMemory((static_cast<uint16_t>(hi) << 8) | static_cast<uint16_t>(lo),
+              Y & (hi + 1));
 }
 
 void Cpu::SloZeroPage() { Slo(ZeroPage()); }
