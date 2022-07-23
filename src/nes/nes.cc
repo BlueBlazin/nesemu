@@ -179,6 +179,30 @@ void Nes::Run() {
   }
 }
 
+void Nes::Test(uint64_t num_frames, std::string filepath) {
+  // start cpu
+  cpu.Startup();
+  // change palette to FCEUX
+  cpu.UseFceuxPalette();
+
+  while (frames < num_frames) {
+    switch (cpu.RunTillEvent(MAX_CYCLES)) {
+      case cpu::Event::VBlank:
+        frames++;
+        break;
+      case cpu::Event::MaxCycles:
+        break;
+      case cpu::Event::Stopped:
+        throw "Emulator Stopped";
+    }
+  }
+
+  texture.update(cpu.GetScreen());
+  if (texture.copyToImage().saveToFile(filepath)) {
+    std::cout << "Screenshot saved to " << filepath << std::endl;
+  }
+}
+
 void Nes::Emulate() {
   while (true) {
     switch (cpu.RunTillEvent(MAX_CYCLES)) {

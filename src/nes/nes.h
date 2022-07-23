@@ -35,6 +35,7 @@ class Nes {
   Nes(const std::string& rom_path);
 
   void Run();
+  void Test(uint64_t num_frames, std::string filepath);
 
  private:
   void Emulate();
@@ -95,6 +96,7 @@ class Nes {
   // internal
   bool cmd_pressed = false;
   std::unordered_map<int, int> key_offsets;
+  uint64_t frames = 0;
 };
 
 }  // namespace nes
