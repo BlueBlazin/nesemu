@@ -21,20 +21,80 @@ void Apu::Tick(uint64_t cycles) {
 
 void Apu::ModeZeroTick() {
   switch (half_cycles) {
-    case STEP1_HALF_CYCLES:
+    case STEP1: {
+      ClockEnvelopesAndLinear();
       break;
-    case STEP2_HALF_CYCLES:
+    }
+    case STEP2: {
+      ClockEnvelopesAndLinear();
+      ClockLengthAndSweep();
       break;
-    case STEP3_HALF_CYCLES:
+    }
+    case STEP3: {
+      ClockEnvelopesAndLinear();
       break;
-    case STEP4_HALF_CYCLES:
+    }
+    case STEP4_1: {
+      if (!interrupt_inhibit) {
+        frame_interrupt = true;
+      }
       break;
-    case MODE0_RESET:
+    }
+    case STEP4_2: {
+      ClockEnvelopesAndLinear();
+      ClockLengthAndSweep();
+      if (!interrupt_inhibit) {
+        frame_interrupt = true;
+      }
+      break;
+    }
+    case MODE0_RESET: {
+      if (!interrupt_inhibit) {
+        frame_interrupt = true;
+      }
       half_cycles = 0;
       break;
+    }
     default:
       break;
   }
+}
+
+void Apu::ModeOneTick() {
+  switch (half_cycles) {
+    case STEP1: {
+      ClockEnvelopesAndLinear();
+      break;
+    }
+    case STEP2: {
+      ClockEnvelopesAndLinear();
+      ClockLengthAndSweep();
+      break;
+    }
+    case STEP3: {
+      ClockEnvelopesAndLinear();
+      break;
+    }
+    case STEP5: {
+      ClockEnvelopesAndLinear();
+      ClockLengthAndSweep();
+      break;
+    }
+    case MODE1_RESET: {
+      half_cycles = 0;
+      break;
+    }
+    default:
+      break;
+  }
+}
+
+void Apu::ClockEnvelopesAndLinear() {
+  //
+}
+
+void Apu::ClockLengthAndSweep() {
+  //
 }
 
 uint8_t Apu::Read(uint16_t addr) {

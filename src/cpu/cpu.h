@@ -7,6 +7,7 @@
 #include <fstream>
 #include <iostream>
 
+#include "src/apu/apu.h"
 #include "src/cpu/event.h"
 #include "src/memory/memory.h"
 

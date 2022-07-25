@@ -1,14 +1,17 @@
-#ifndef SRC_PPU_PPU_H_
-#define SRC_PPU_PPU_H_
+#ifndef SRC_APU_APU_H_
+#define SRC_APU_APU_H_
 
 #include <cstdint>
 #include <iostream>
 
-constexpr uint64_t STEP1_CYCLES = 3728 * 2 + 1;
-constexpr uint64_t STEP2_CYCLES = 7456 * 2 + 1;
-constexpr uint64_t STEP3_CYCLES = 11185 * 2 + 1;
-constexpr uint64_t STEP4_CYCLES = 14914 * 2 + 1;
-constexpr uint64_t STEP5_CYCLES = 18640 * 2 + 1;
+#include "src/apu/pulse.h"
+
+constexpr uint64_t STEP1 = 3728 * 2 + 1;
+constexpr uint64_t STEP2 = 7456 * 2 + 1;
+constexpr uint64_t STEP3 = 11185 * 2 + 1;
+constexpr uint64_t STEP4_1 = 14914 * 2;
+constexpr uint64_t STEP4_2 = STEP4_1 + 1;
+constexpr uint64_t STEP5 = 18640 * 2 + 1;
 constexpr uint64_t MODE0_RESET = 14915 * 2;
 constexpr uint64_t MODE1_RESET = 18641 * 2;
 
@@ -28,6 +31,8 @@ class Apu {
  private:
   void ModeZeroTick();
   void ModeOneTick();
+  void ClockEnvelopesAndLinear();
+  void ClockLengthAndSweep();
 
   /*---------------------------------------------------
     APU Internal
@@ -39,4 +44,4 @@ class Apu {
 
 }  // namespace audio
 
-#endif  // SRC_PPU_PPU_H_
+#endif  // SRC_APU_APU_H_

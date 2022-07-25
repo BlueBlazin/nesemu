@@ -4,9 +4,17 @@ cc_library(
     name = "apu",
     srcs = [
         "apu.cc",
+        "envelope.cc",
+        "length_counter.cc",
+        "pulse.cc",
+        "sweep.cc",
     ],
     hdrs = [
         "apu.h",
+        "envelope.h",
+        "length_counter.h",
+        "pulse.h",
+        "sweep.h",
     ],
     visibility = ["//visibility:public"],
     deps = [
