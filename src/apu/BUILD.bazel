@@ -14,6 +14,7 @@ cc_library(
         "envelope.h",
         "length_counter.h",
         "pulse.h",
+        "pulse_channel.h",
         "sweep.h",
     ],
     visibility = ["//visibility:public"],

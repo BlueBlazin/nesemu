@@ -1,10 +1,16 @@
 #include "apu.h"
 
 #include <cstdint>
+#include <utility>
+
+#include "src/apu/pulse.h"
 
 namespace audio {
 
-Apu::Apu() {}
+Apu::Apu()
+    : audio_buffer(),
+      pulse1(PulseChannel::Pulse1),
+      pulse2(PulseChannel::Pulse2) {}
 
 void Apu::Tick(uint64_t cycles) {
   while (cycles > 0) {
@@ -15,6 +21,12 @@ void Apu::Tick(uint64_t cycles) {
       ModeZeroTick();
     } else {
       ModeOneTick();
+    }
+
+    sample_counter++;
+    if (sample_counter >= SAMPLE_CLOCKS) {
+      sample_counter = 0;
+      Sample();
     }
   }
 }
@@ -90,11 +102,31 @@ void Apu::ModeOneTick() {
 }
 
 void Apu::ClockEnvelopesAndLinear() {
-  //
+  pulse1.envelope.Clock();
+  pulse2.envelope.Clock();
 }
 
 void Apu::ClockLengthAndSweep() {
-  //
+  pulse1.length_counter.Clock();
+  pulse2.length_counter.Clock();
+
+  pulse1.sweep.Clock();
+  pulse2.sweep.Clock();
+}
+
+void Apu::Sample() {
+  uint16_t pulse1_out = pulse1.Volume();
+  uint16_t pulse2_out = pulse2.Volume();
+
+  double pulse_out = MIXER_PULSE_TABLE[pulse1_out + pulse2_out];
+
+  audio_buffer.push_back(INT16_MAX * (pulse_out - 0.5));
+}
+
+bool Apu::AudioBufferFull() { return audio_buffer.size() >= AUDIO_BUFFER_SIZE; }
+
+std::vector<int16_t> Apu::GetAudioBuffer() {
+  return std::exchange(audio_buffer, std::vector<int16_t>());
 }
 
 uint8_t Apu::Read(uint16_t addr) {

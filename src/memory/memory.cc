@@ -10,7 +10,8 @@
 namespace memory {
 
 Memory::Memory(const std::string& path, uint8_t& p1_input)
-    : cartridge(mappers::ReadCartridge(path)),
+    : apu(),
+      cartridge(mappers::ReadCartridge(path)),
       ppu(cartridge),
       ram(),
       p1_input(p1_input) {
@@ -18,8 +19,6 @@ Memory::Memory(const std::string& path, uint8_t& p1_input)
     ram[i] = 0x00;
   }
 }
-
-void Memory::PpuTick(uint64_t n) { ppu.Tick(n); }
 
 void Memory::DmaTick() {
   switch (dma_state) {

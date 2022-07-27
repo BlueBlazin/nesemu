@@ -7,6 +7,7 @@ enum class Event {
   VBlank,
   MaxCycles,
   Stopped,
+  AudioBufferFull,
 };
 
 }  // namespace cpu

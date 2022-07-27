@@ -8,16 +8,18 @@ namespace audio {
 class Envelope {
  public:
   Envelope();
-
   void Clock();
   void Write(uint8_t value);
 
-  bool start = true;
+  uint8_t Volume() { return const_volume ? volume : decay; }
+
+  bool restart = true;
 
  private:
   bool loop = false;
   bool const_volume = false;
   uint8_t decay = 15;
+  uint16_t divider = 0x0000;
   uint16_t period = 0x0000;
   uint8_t volume = 0x00;
 };

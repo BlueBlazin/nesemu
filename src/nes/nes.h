@@ -13,6 +13,7 @@
 #include "src/cpu/cpu.h"
 #include "src/cpu/event.h"
 #include "src/mappers/mapper.h"
+#include "src/nes/audio_stream.h"
 
 namespace nes {
 
@@ -46,6 +47,7 @@ class Nes {
   void DisplayWindows();
   void HandleKeyPress();
   void HandleKeyRelease();
+  void QueueAudio();
 
   cpu::Cpu cpu;
 
@@ -89,6 +91,12 @@ class Nes {
   sf::Sprite nt4_sprite;
   sf::Sprite objects_sprite;
   sf::Sprite palettes_sprite;
+
+  // audio
+  // sf::SoundBuffer buffer;
+  // sf::Sound sound;
+  // std::vector<sf::Int16> samples;
+  AudioStream stream;
 
   // events
   sf::Event event;

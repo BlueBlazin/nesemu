@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 
+#include "src/apu/apu.h"
 #include "src/mappers/ines.h"
 #include "src/mappers/mapper.h"
 #include "src/ppu/ppu.h"
@@ -21,7 +22,6 @@ class Memory {
  public:
   Memory(const std::string& path, uint8_t& p1_input);
 
-  void PpuTick(uint64_t n);
   void DmaTick();
 
   uint8_t* GetScreen();
@@ -39,8 +39,12 @@ class Memory {
   bool VblankEvent();
   void ClearVBlankEvent();
 
-  inline void UseFceuxPalette() { ppu.UseFceuxPalette(); }
-  inline void UseNtscPalette() { ppu.UseNtscPalette(); }
+  void UseFceuxPalette() { ppu.UseFceuxPalette(); }
+  void UseNtscPalette() { ppu.UseNtscPalette(); }
+  void PpuTick(uint64_t n) { ppu.Tick(n); }
+  void ApuTick(uint64_t n) { apu.Tick(n); }
+
+  audio::Apu apu;
 
  private:
   std::shared_ptr<mappers::Mapper> cartridge;

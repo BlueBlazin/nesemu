@@ -34,6 +34,8 @@ Event Cpu::RunTillEvent(uint64_t max_cycles) {
     if (mmu.VblankEvent()) {
       mmu.ClearVBlankEvent();
       return Event::VBlank;
+    } else if (mmu.apu.AudioBufferFull()) {
+      return Event::AudioBufferFull;
     }
   }
 
@@ -2315,6 +2317,7 @@ void Cpu::AddCycles(uint64_t n) {
   cycles += n;
   event_cycles += n;
   mmu.PpuTick(3 * n);
+  mmu.ApuTick(n);
 }
 
 }  // namespace cpu

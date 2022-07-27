@@ -45,7 +45,8 @@ Nes::Nes(const std::string& rom_path)
           {sf::Keyboard::Space, 2}, {sf::Keyboard::Enter, 3},
           {sf::Keyboard::Up, 4},    {sf::Keyboard::Down, 5},
           {sf::Keyboard::Left, 6},  {sf::Keyboard::Right, 7},
-      } {
+      },
+      stream() {
   // get screen dimensions
   uint64_t width = sf::VideoMode::getDesktopMode().width;
   uint64_t height = sf::VideoMode::getDesktopMode().height;
@@ -153,6 +154,9 @@ Nes::Nes(const std::string& rom_path)
   nt4_sprite = sf::Sprite(nt4_texture);
   objects_sprite = sf::Sprite(objects_texture);
   palettes_sprite = sf::Sprite(palettes_texture);
+
+  // audio
+  // sound.setBuffer(buffer);
 }
 
 void Nes::Run() {
@@ -209,12 +213,26 @@ void Nes::Emulate() {
       case cpu::Event::VBlank:
         HandleEvents();
         UpdateWindows();
-        break;
+        return;
       case cpu::Event::MaxCycles:
+        return;
+      case cpu::Event::AudioBufferFull:
+        QueueAudio();
         return;
       case cpu::Event::Stopped:
         throw "Emulator Stopped";
     }
+  }
+}
+
+void Nes::QueueAudio() {
+  // samples = cpu.GetAudioBuffer();
+  // buffer.loadFromSamples(&samples[0], samples.size(), 2, 44100);
+  // sound.play();
+  stream.QueueAudio(std::move(cpu.GetAudioBuffer()));
+
+  if (stream.getStatus() != sf::SoundStream::Status::Playing) {
+    stream.play();
   }
 }
 

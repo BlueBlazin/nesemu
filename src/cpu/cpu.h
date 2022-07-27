@@ -2,10 +2,11 @@
 #define SRC_CPU_CPU_H_
 
 #include <cstdint>
-#include <string>
-//
 #include <fstream>
 #include <iostream>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "src/apu/apu.h"
 #include "src/cpu/event.h"
@@ -42,6 +43,9 @@ class Cpu {
 
   void UseFceuxPalette() { mmu.UseFceuxPalette(); }
   void UseNtscPalette() { mmu.UseNtscPalette(); }
+  std::vector<int16_t> GetAudioBuffer() {
+    return std::move(mmu.apu.GetAudioBuffer());
+  }
 
   // controller
   uint8_t p1_input = 0x00;
