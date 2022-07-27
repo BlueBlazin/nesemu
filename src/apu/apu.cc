@@ -135,14 +135,12 @@ uint8_t Apu::Read(uint16_t addr) {
     case 0x4001:
     case 0x4002:
     case 0x4003:
-      // pulse 1
-      break;
+      return 0x00;
     case 0x4004:
     case 0x4005:
     case 0x4006:
     case 0x4007:
-      // pulse 2
-      break;
+      return 0x00;
     case 0x4008:
     case 0x4009:
     case 0x400A:
@@ -175,13 +173,13 @@ void Apu::Write(uint16_t addr, uint8_t value) {
     case 0x4001:
     case 0x4002:
     case 0x4003:
-      // pulse 1
+      pulse1.Write(addr, value);
       break;
     case 0x4004:
     case 0x4005:
     case 0x4006:
     case 0x4007:
-      // pulse 2
+      pulse2.Write(addr, value);
       break;
     case 0x4008:
     case 0x4009:

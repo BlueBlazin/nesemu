@@ -87,6 +87,10 @@ bool Memory::VblankEvent() { return ppu.vblank_event; }
 
 void Memory::ClearVBlankEvent() { ppu.vblank_event = false; }
 
+bool Memory::IrqPending() { return apu.frame_interrupt; }
+
+void Memory::ClearIrq() { apu.frame_interrupt = false; }
+
 uint8_t Memory::Read(uint16_t addr) {
   if (addr <= 0x1FFF) {
     return ram[addr % 0x800];
@@ -94,6 +98,8 @@ uint8_t Memory::Read(uint16_t addr) {
     return ppu.Read(addr);
   } else if (addr <= 0x3FFF) {
     return ppu.Read(0x2000 | ((addr - 0x2000) & 0x7));
+  } else if (addr <= 0x4013) {
+    return apu.Read(addr);
   } else if (addr <= 0x4017) {
     switch (addr) {
       case 0x4016: {
@@ -123,22 +129,23 @@ void Memory::Write(uint16_t addr, uint8_t value) {
   } else if (addr <= 0x2007) {
     ppu.Write(addr, value);
   } else if (addr <= 0x3FFF) {
-    return ppu.Write(0x2000 | ((addr - 0x2000) & 0x7), value);
+    ppu.Write(0x2000 | ((addr - 0x2000) & 0x7), value);
+  } else if (addr <= 0x4013) {
+    apu.Write(addr, value);
   } else if (addr <= 0x4017) {
     switch (addr) {
       case 0x4014: {
         in_dma = true;
         dma_state = DmaState::Read;
         dma_addr = static_cast<uint16_t>(value) << 8;
-        return;
+        break;
       }
       case 0x4016:
         strobe = static_cast<bool>(value & 0x1);
         if (strobe) {
           p1_data = p1_input;
-          // p1_input = 0;
         }
-        return;
+        break;
     }
   } else if (addr <= 0x401F) {
     // TODO

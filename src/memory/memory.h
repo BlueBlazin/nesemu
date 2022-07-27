@@ -38,6 +38,8 @@ class Memory {
   bool InDma();
   bool VblankEvent();
   void ClearVBlankEvent();
+  bool IrqPending();
+  void ClearIrq();
 
   void UseFceuxPalette() { ppu.UseFceuxPalette(); }
   void UseNtscPalette() { ppu.UseNtscPalette(); }
