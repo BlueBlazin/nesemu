@@ -13,7 +13,7 @@
 #include "src/cpu/cpu.h"
 #include "src/cpu/event.h"
 #include "src/mappers/mapper.h"
-#include "src/nes/audio_stream.h"
+// #include "src/nes/audio_stream.h"
 
 namespace nes {
 
@@ -30,6 +30,12 @@ constexpr int PALETTES_HEIGHT = 35;
 constexpr int TITLEBAR_HEIGHT = 65;
 constexpr uint64_t MAX_CYCLES = 29815;
 constexpr float TIME_PER_FRAME = 1.0 / 60.0;
+constexpr float SAMPLING_RATE = 44100.0F;
+
+struct AudioChunk {
+  float start_time;
+  std::vector<int16_t> samples;
+};
 
 class Nes {
  public:
@@ -93,10 +99,11 @@ class Nes {
   sf::Sprite palettes_sprite;
 
   // audio
-  // sf::SoundBuffer buffer;
-  // sf::Sound sound;
+  sf::SoundBuffer buffer;
+  sf::Sound sound;
+  std::queue<AudioChunk> queue;
   // std::vector<sf::Int16> samples;
-  AudioStream stream;
+  // AudioStream stream;
 
   // events
   sf::Event event;

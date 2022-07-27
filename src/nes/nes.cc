@@ -46,7 +46,7 @@ Nes::Nes(const std::string& rom_path)
           {sf::Keyboard::Up, 4},    {sf::Keyboard::Down, 5},
           {sf::Keyboard::Left, 6},  {sf::Keyboard::Right, 7},
       },
-      stream() {
+      queue() {
   // get screen dimensions
   uint64_t width = sf::VideoMode::getDesktopMode().width;
   uint64_t height = sf::VideoMode::getDesktopMode().height;
@@ -156,7 +156,7 @@ Nes::Nes(const std::string& rom_path)
   palettes_sprite = sf::Sprite(palettes_texture);
 
   // audio
-  // sound.setBuffer(buffer);
+  sound.setBuffer(buffer);
 }
 
 void Nes::Run() {
@@ -174,6 +174,15 @@ void Nes::Run() {
   float elapsed = 0.0F;
 
   while (window.isOpen()) {
+    // check audio queue
+    if (!queue.empty() &&
+        clock.getElapsedTime().asSeconds() >= queue.front().start_time) {
+      auto samples = queue.front().samples;
+      buffer.loadFromSamples(samples.data(), samples.size(), 2, 44100);
+      sound.play();
+      queue.pop();
+    }
+
     // run emulation forward
     if ((elapsed = clock.getElapsedTime().asSeconds() + dt) >= TIME_PER_FRAME) {
       dt = elapsed - TIME_PER_FRAME;
@@ -213,12 +222,12 @@ void Nes::Emulate() {
       case cpu::Event::VBlank:
         HandleEvents();
         UpdateWindows();
-        return;
+        break;
       case cpu::Event::MaxCycles:
         return;
       case cpu::Event::AudioBufferFull:
         QueueAudio();
-        return;
+        break;
       case cpu::Event::Stopped:
         throw "Emulator Stopped";
     }
@@ -226,14 +235,23 @@ void Nes::Emulate() {
 }
 
 void Nes::QueueAudio() {
-  // samples = cpu.GetAudioBuffer();
+  auto samples = cpu.GetAudioBuffer();
+  float duration = samples.size() / SAMPLING_RATE;
+
+  if (queue.empty()) {
+    queue.push({sf::Clock().getElapsedTime().asSeconds(), std::move(samples)});
+  } else {
+    float start_time = queue.back().start_time + duration;
+    queue.push({start_time, std::move(samples)});
+  }
+
   // buffer.loadFromSamples(&samples[0], samples.size(), 2, 44100);
   // sound.play();
-  stream.QueueAudio(std::move(cpu.GetAudioBuffer()));
+  // stream.QueueAudio(std::move(cpu.GetAudioBuffer()));
 
-  if (stream.getStatus() != sf::SoundStream::Status::Playing) {
-    stream.play();
-  }
+  // if (stream.getStatus() != sf::SoundStream::Status::Playing) {
+  //   stream.play();
+  // }
 }
 
 void Nes::HandleEvents() {

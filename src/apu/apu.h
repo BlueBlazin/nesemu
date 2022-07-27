@@ -18,7 +18,7 @@ constexpr uint64_t STEP5 = 18640 * 2 + 1;
 constexpr uint64_t MODE0_RESET = 14915 * 2;
 constexpr uint64_t MODE1_RESET = 18641 * 2;
 
-constexpr int AUDIO_BUFFER_SIZE = 512;
+constexpr int AUDIO_BUFFER_SIZE = 1024;
 constexpr int SAMPLE_RATE = 44100;
 constexpr int BUFFER_FILL_TIME = AUDIO_BUFFER_SIZE / SAMPLE_RATE;
 constexpr int CPU_FREQUENCY = 1789773;
