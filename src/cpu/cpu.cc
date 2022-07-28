@@ -60,6 +60,9 @@ void Cpu::Tick() {
   if (NmiPending()) {
     mmu.ClearNmi();
     Interrupt(InterruptType::Nmi);
+  } else if (!flag_I && IrqPending()) {
+    mmu.ClearIrq();
+    Interrupt(InterruptType::Irq);
   } else {
     DecodeExecute(opcode = Fetch());
   }
@@ -2276,7 +2279,7 @@ void Cpu::Stp() { stopped = true; }
 
 bool Cpu::NmiPending() { return mmu.NmiPending(); }
 
-bool Cpu::IrqPending() {}
+bool Cpu::IrqPending() { return mmu.IrqPending(); }
 
 void Cpu::Push(uint8_t value) {
   WriteMemory(0x0100 | static_cast<uint16_t>(SP--), value);

@@ -102,6 +102,7 @@ class Nes {
   sf::SoundBuffer buffer;
   sf::Sound sound;
   std::queue<AudioChunk> queue;
+  sf::Clock audio_clock;
   // std::vector<sf::Int16> samples;
   // AudioStream stream;
 

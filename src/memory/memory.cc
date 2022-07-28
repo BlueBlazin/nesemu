@@ -102,6 +102,8 @@ uint8_t Memory::Read(uint16_t addr) {
     return apu.Read(addr);
   } else if (addr <= 0x4017) {
     switch (addr) {
+      case 0x4017:
+        return apu.Read(addr);
       case 0x4016: {
         if (strobe) {
           p1_data = p1_input;
@@ -140,11 +142,18 @@ void Memory::Write(uint16_t addr, uint8_t value) {
         dma_addr = static_cast<uint16_t>(value) << 8;
         break;
       }
-      case 0x4016:
+      case 0x4015:
+        apu.Write(addr, value);
+        break;
+      case 0x4016: {
         strobe = static_cast<bool>(value & 0x1);
         if (strobe) {
           p1_data = p1_input;
         }
+        break;
+      }
+      case 0x4017:
+        apu.Write(addr, value);
         break;
     }
   } else if (addr <= 0x401F) {

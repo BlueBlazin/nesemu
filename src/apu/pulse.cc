@@ -1,5 +1,7 @@
 #include "pulse.h"
 
+#include <iostream>
+
 #include "src/apu/envelope.h"
 
 namespace audio {
@@ -8,18 +10,22 @@ Pulse::Pulse(PulseChannel pulse_channel)
     : envelope(), sweep(pulse_channel), length_counter() {}
 
 void Pulse::Clock() {
-  timer--;
+  if (clock_toggle) {
+    timer--;
 
-  if (timer == 0) {
-    // reset timer
-    timer = sweep.pulse_period;
+    if (timer == 0) {
+      // reset timer
+      timer = sweep.pulse_period;
 
-    if (waveform_idx == 0) {
-      waveform_idx = 7;
-    } else {
-      waveform_idx--;
+      if (waveform_idx == 0) {
+        waveform_idx = 7;
+      } else {
+        waveform_idx--;
+      }
     }
   }
+
+  clock_toggle = !clock_toggle;
 }
 
 uint16_t Pulse::Volume() {
@@ -50,7 +56,8 @@ void Pulse::Write(uint16_t addr, uint8_t value) {
     case 0x4007:
       sweep.pulse_period =
           (static_cast<uint16_t>(value & 0x7) << 8) | period_low;
-      // TODO: length counter load
+      length_counter.Reset();
+      envelope.Restart();
       timer = sweep.pulse_period;
       waveform_idx = 0;
       break;

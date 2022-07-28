@@ -176,7 +176,7 @@ void Nes::Run() {
   while (window.isOpen()) {
     // check audio queue
     if (!queue.empty() &&
-        clock.getElapsedTime().asSeconds() >= queue.front().start_time) {
+        audio_clock.getElapsedTime().asSeconds() >= queue.front().start_time) {
       auto samples = queue.front().samples;
       buffer.loadFromSamples(samples.data(), samples.size(), 2, 44100);
       sound.play();
@@ -229,6 +229,7 @@ void Nes::Emulate() {
         QueueAudio();
         break;
       case cpu::Event::Stopped:
+        std::cout << "Emulator Stopped" << std::endl;
         throw "Emulator Stopped";
     }
   }
@@ -239,7 +240,7 @@ void Nes::QueueAudio() {
   float duration = samples.size() / SAMPLING_RATE;
 
   if (queue.empty()) {
-    queue.push({sf::Clock().getElapsedTime().asSeconds(), std::move(samples)});
+    queue.push({audio_clock.getElapsedTime().asSeconds(), std::move(samples)});
   } else {
     float start_time = queue.back().start_time + duration;
     queue.push({start_time, std::move(samples)});

@@ -68,6 +68,7 @@ class Apu {
   std::vector<int16_t> GetAudioBuffer();
 
   bool frame_interrupt = false;
+  bool dmc_interrupt = false;
 
  private:
   void ModeZeroTick();
@@ -81,6 +82,14 @@ class Apu {
   Pulse pulse1;
   Pulse pulse2;
 
+  /*---------------------------------------------------
+    Status
+  ---------------------------------------------------*/
+  bool dmc_enabled = false;
+  bool noise_enabled = false;
+  bool triangle_enabled = false;
+  bool pulse2_enabled = false;
+  bool pulse1_enabled = false;
   /*---------------------------------------------------
     APU Internal
   ---------------------------------------------------*/

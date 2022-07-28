@@ -29,6 +29,7 @@ class Pulse {
   LengthCounter length_counter;
 
  private:
+  bool clock_toggle = false;
   uint8_t duty_cycle = 0;
   uint8_t waveform_idx = 0;
   uint16_t timer = 0x0000;
