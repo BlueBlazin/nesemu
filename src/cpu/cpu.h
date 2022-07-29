@@ -43,9 +43,7 @@ class Cpu {
 
   void UseFceuxPalette() { mmu.UseFceuxPalette(); }
   void UseNtscPalette() { mmu.UseNtscPalette(); }
-  std::vector<int16_t> GetAudioBuffer() {
-    return std::move(mmu.apu.GetAudioBuffer());
-  }
+  std::vector<int16_t> GetAudioBuffer() { return mmu.apu.GetAudioBuffer(); }
 
   // controller
   uint8_t p1_input = 0x00;

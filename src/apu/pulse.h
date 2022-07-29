@@ -33,7 +33,6 @@ class Pulse {
   uint8_t duty_cycle = 0;
   uint8_t waveform_idx = 0;
   uint16_t timer = 0x0000;
-  uint16_t period_low = 0x0000;
 };
 
 }  // namespace audio

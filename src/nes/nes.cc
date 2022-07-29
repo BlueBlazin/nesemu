@@ -40,13 +40,13 @@ Nes::Nes(const std::string& rom_path)
                      sf::Style::Titlebar | sf::Style::Resize),
       palettes_window(sf::VideoMode(PALETTES_WIDTH, PALETTES_HEIGHT),
                       "Palettes", sf::Style::Titlebar | sf::Style::Resize),
+      stream(),
       key_offsets{
           {sf::Keyboard::A, 0},     {sf::Keyboard::S, 1},
           {sf::Keyboard::Space, 2}, {sf::Keyboard::Enter, 3},
           {sf::Keyboard::Up, 4},    {sf::Keyboard::Down, 5},
           {sf::Keyboard::Left, 6},  {sf::Keyboard::Right, 7},
-      },
-      stream() {
+      } {
   // get screen dimensions
   uint64_t width = sf::VideoMode::getDesktopMode().width;
   uint64_t height = sf::VideoMode::getDesktopMode().height;
@@ -154,9 +154,6 @@ Nes::Nes(const std::string& rom_path)
   nt4_sprite = sf::Sprite(nt4_texture);
   objects_sprite = sf::Sprite(objects_texture);
   palettes_sprite = sf::Sprite(palettes_texture);
-
-  // audio
-  // sound.setBuffer(buffer);
 }
 
 void Nes::Run() {
@@ -174,16 +171,6 @@ void Nes::Run() {
   float elapsed = 0.0F;
 
   while (window.isOpen()) {
-    // check audio queue
-    // if (!queue.empty() &&
-    //     audio_clock.getElapsedTime().asSeconds() >= queue.front().start_time)
-    //     {
-    //   auto samples = queue.front().samples;
-    //   buffer.loadFromSamples(samples.data(), samples.size(), 2, 44100);
-    //   sound.play();
-    //   queue.pop();
-    // }
-
     // run emulation forward
     if ((elapsed = clock.getElapsedTime().asSeconds() + dt) >= TIME_PER_FRAME) {
       dt = elapsed - TIME_PER_FRAME;
@@ -205,6 +192,7 @@ void Nes::Test(uint64_t num_frames, std::string filepath) {
         frames++;
         break;
       case cpu::Event::MaxCycles:
+      case cpu::Event::AudioBufferFull:
         break;
       case cpu::Event::Stopped:
         throw "Emulator Stopped";
@@ -237,21 +225,6 @@ void Nes::Emulate() {
 }
 
 void Nes::QueueAudio() {
-  // auto samples = cpu.GetAudioBuffer();
-  // float duration = samples.size() / SAMPLING_RATE;
-
-  // if (queue.empty()) {
-  //   queue.push({audio_clock.getElapsedTime().asSeconds(),
-  //   std::move(samples)});
-  // } else {
-  //   float start_time = queue.back().start_time + duration;
-  //   queue.push({start_time, std::move(samples)});
-  // }
-
-  // buffer.loadFromSamples(&samples[0], samples.size(), 2, 44100);
-  // sound.play();
-  // stream.QueueAudio(std::move(cpu.GetAudioBuffer()));
-
   stream.QueueAudio(cpu.GetAudioBuffer());
 
   if (stream.getStatus() != sf::SoundStream::Status::Playing) {

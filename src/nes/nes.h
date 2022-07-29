@@ -99,11 +99,6 @@ class Nes {
   sf::Sprite palettes_sprite;
 
   // audio
-  // sf::SoundBuffer buffer;
-  // sf::Sound sound;
-  // std::queue<AudioChunk> queue;
-  // sf::Clock audio_clock;
-  // std::vector<sf::Int16> samples;
   AudioStream stream;
 
   // events

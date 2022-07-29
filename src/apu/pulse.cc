@@ -50,15 +50,15 @@ void Pulse::Write(uint16_t addr, uint8_t value) {
       break;
     case 0x4002:
     case 0x4006:
-      period_low = static_cast<uint16_t>(value);
+      sweep.pulse_period =
+          (sweep.pulse_period & 0x00FF) | static_cast<uint16_t>(value);
       break;
     case 0x4003:
     case 0x4007:
-      sweep.pulse_period =
-          (static_cast<uint16_t>(value & 0x7) << 8) | period_low;
-      length_counter.Reset();
+      sweep.pulse_period = (static_cast<uint16_t>(value & 0x7) << 8) |
+                           (sweep.pulse_period & 0x00FF);
+      length_counter.Write(value);
       envelope.Restart();
-      timer = sweep.pulse_period;
       waveform_idx = 0;
       break;
   }

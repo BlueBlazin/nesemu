@@ -11,9 +11,11 @@ void LengthCounter::Clock() {
 }
 
 void LengthCounter::Write(uint8_t value) {
-  entry = (value >> 3) & 0x1F;
   if (enabled) {
+    entry = (value >> 3) & 0x1F;
     length = LENGTHS[entry];
+  } else {
+    length = 0;
   }
 }
 
