@@ -8,6 +8,7 @@
 #include <string>
 #include <unordered_map>
 
+#include "SDL_audio.h"
 #include "SFML/Audio.hpp"
 #include "SFML/Graphics.hpp"
 #include "SFML/System.hpp"

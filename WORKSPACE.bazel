@@ -1,5 +1,11 @@
 new_local_repository(
     name = "SFML",
+    build_file = "third_party/SFML/BUILD.bazel",
     path = "/opt/homebrew",
-    build_file = "third_party/SFML/BUILD.bazel"
+)
+
+new_local_repository(
+    name = "SDL",
+    build_file = "third_party/SDL/BUILD.bazel",
+    path = "/opt/homebrew",
 )

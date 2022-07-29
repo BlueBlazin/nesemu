@@ -1,0 +1,10 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+cc_library(
+    name = "sdl",
+    srcs = ["lib/libSDL2.dylib"],
+    hdrs = glob(["include/SDL2/**/*.*"]),
+    include_prefix = "",
+    strip_include_prefix = "include/SDL2",
+    visibility = ["//visibility:public"],
+)
