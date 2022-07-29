@@ -26,9 +26,13 @@ uint16_t Sweep::TargetPeriod() {
 
   if (negate) {
     switch (channel) {
-      case PulseChannel::Pulse1:
+      case PulseChannel::Pulse1: {
+        if (shift == 0 || pulse_period == 0) {
+          return 0x0000;
+        }
         change = -change - 1;
         break;
+      }
       case PulseChannel::Pulse2:
         change = -change;
         break;

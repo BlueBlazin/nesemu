@@ -12,10 +12,9 @@ void Envelope::Clock() {
     return;
   }
 
-  divider--;
-
   if (divider == 0) {
     divider = period;
+
     if (decay == 0) {
       if (loop) {
         decay = 15;
@@ -23,6 +22,8 @@ void Envelope::Clock() {
     } else {
       decay--;
     }
+  } else {
+    divider--;
   }
 }
 

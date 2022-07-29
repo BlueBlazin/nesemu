@@ -18,11 +18,10 @@ constexpr uint64_t STEP5 = 18640 * 2 + 1;
 constexpr uint64_t MODE0_RESET = 14915 * 2;
 constexpr uint64_t MODE1_RESET = 18641 * 2;
 
-constexpr int AUDIO_BUFFER_SIZE = 2048;
-constexpr int SAMPLE_RATE = 44100;
-constexpr int BUFFER_FILL_TIME = AUDIO_BUFFER_SIZE / SAMPLE_RATE;
-constexpr int CPU_FREQUENCY = 1789773;
-constexpr int SAMPLE_CLOCKS = CPU_FREQUENCY * BUFFER_FILL_TIME;
+constexpr int AUDIO_BUFFER_SIZE = 1024;
+constexpr float CPU_FREQUENCY = 1789773.0F;
+constexpr float SAMPLE_RATE = 44100.0F;
+constexpr float SAMPLE_CLOCKS = CPU_FREQUENCY / SAMPLE_RATE;
 
 constexpr double MIXER_PULSE_TABLE[31] = {0,
                                           0.011609139523578026,
@@ -96,7 +95,7 @@ class Apu {
   bool mode0 = true;
   uint64_t half_cycles = 0;
   bool interrupt_inhibit = false;
-  int sample_counter = 0;
+  float sample_counter = 0.0F;
 };
 
 }  // namespace audio

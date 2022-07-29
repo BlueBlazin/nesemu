@@ -17,9 +17,8 @@ class LengthCounter {
   void WriteHalt(bool value);
   void SetEnabled(bool value);
 
-  bool Muting() { return enabled && length == 0; }
+  bool Muting() { return length == 0; }
   bool NonZero() { return length > 0; }
-  void Reset() { length = 0; }
 
  private:
   bool enabled = false;

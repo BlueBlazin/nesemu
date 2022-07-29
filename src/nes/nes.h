@@ -3,6 +3,8 @@
 
 #include <cmath>
 #include <cstdint>
+#include <fstream>
+#include <iostream>
 #include <string>
 #include <unordered_map>
 
@@ -43,6 +45,7 @@ class Nes {
 
   void Run();
   void Test(uint64_t num_frames, std::string filepath);
+  void TestAudio(uint64_t num_frames, std::string filepath);
 
  private:
   void Emulate();

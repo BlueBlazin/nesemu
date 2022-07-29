@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <cstdint>
+#include <fstream>
 #include <iostream>
 #include <string>
 
@@ -191,7 +192,9 @@ void Nes::Test(uint64_t num_frames, std::string filepath) {
         frames++;
         break;
       case cpu::Event::MaxCycles:
+        break;
       case cpu::Event::AudioBufferFull:
+        cpu.GetAudioBuffer();
         break;
       case cpu::Event::Stopped:
         throw "Emulator Stopped";
@@ -201,6 +204,38 @@ void Nes::Test(uint64_t num_frames, std::string filepath) {
   texture.update(cpu.GetScreen());
   if (texture.copyToImage().saveToFile(filepath)) {
     std::cout << "Screenshot saved to " << filepath << std::endl;
+  }
+}
+
+void Nes::TestAudio(uint64_t num_frames, std::string filepath) {
+  // start cpu
+  cpu.Startup();
+  // change palette to FCEUX
+  cpu.UseFceuxPalette();
+  // open audio file
+  std::ofstream audio_file;
+  audio_file.open(filepath);
+
+  while (frames < num_frames) {
+    switch (cpu.RunTillEvent(MAX_CYCLES)) {
+      case cpu::Event::VBlank:
+        frames++;
+        break;
+      case cpu::Event::MaxCycles:
+        break;
+      case cpu::Event::AudioBufferFull: {
+        auto buffer = cpu.GetAudioBuffer();
+        for (int16_t word : buffer) {
+          // little-endian
+          audio_file << static_cast<int8_t>(word);
+          audio_file << static_cast<int8_t>(word >> 8);
+        }
+        break;
+      }
+      case cpu::Event::Stopped:
+        std::cout << "Emulator Stopped exception in TestAudio" << std::endl;
+        throw "Emulator Stopped";
+    }
   }
 }
 

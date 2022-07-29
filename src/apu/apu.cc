@@ -11,7 +11,9 @@ namespace audio {
 Apu::Apu()
     : audio_buffer(),
       pulse1(PulseChannel::Pulse1),
-      pulse2(PulseChannel::Pulse2) {}
+      pulse2(PulseChannel::Pulse2) {
+  std::cout << "SAMPLE_CLOCKS: " << SAMPLE_CLOCKS << std::endl;
+}
 
 void Apu::Tick(uint64_t cycles) {
   while (cycles > 0) {
@@ -28,9 +30,9 @@ void Apu::Tick(uint64_t cycles) {
       ModeOneTick();
     }
 
-    sample_counter++;
+    sample_counter += 1.0;
     if (sample_counter >= SAMPLE_CLOCKS) {
-      sample_counter = 0;
+      sample_counter -= SAMPLE_CLOCKS;
       Sample();
     }
   }
@@ -120,12 +122,11 @@ void Apu::ClockLengthAndSweep() {
 }
 
 void Apu::Sample() {
-  uint16_t pulse1_out = pulse1.Volume();
-  uint16_t pulse2_out = pulse2.Volume();
+  uint16_t pulse1_out = pulse1_enabled ? pulse1.Volume() : 0;
+  uint16_t pulse2_out = pulse2_enabled ? pulse2.Volume() : 0;
 
   double pulse_out = MIXER_PULSE_TABLE[pulse1_out + pulse2_out];
 
-  // std::cout << INT16_MAX * (pulse_out - 0.5) << std::endl;
   audio_buffer.push_back(INT16_MAX * (pulse_out - 0.5));
 }
 
@@ -192,13 +193,8 @@ void Apu::Write(uint16_t addr, uint8_t value) {
       pulse2_enabled = static_cast<bool>(value & 0x2);
       pulse1_enabled = static_cast<bool>(value & 0x1);
 
-      if (!pulse1_enabled) {
-        pulse1.length_counter.Reset();
-      }
-
-      if (!pulse2_enabled) {
-        pulse1.length_counter.Reset();
-      }
+      pulse1.length_counter.SetEnabled(pulse1_enabled);
+      pulse2.length_counter.SetEnabled(pulse2_enabled);
 
       // TODO: check and reset length counters for other channels
 
@@ -206,8 +202,9 @@ void Apu::Write(uint16_t addr, uint8_t value) {
       break;
     }
     case 0x4017: {
-      mode0 = static_cast<bool>(value >> 7);
+      mode0 = (value >> 7) == 0;
       interrupt_inhibit = static_cast<bool>((value >> 6) & 0x1);
+      half_cycles = 0;
       break;
     }
   }

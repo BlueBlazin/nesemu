@@ -17,10 +17,10 @@ void Pulse::Clock() {
       // reset timer
       timer = sweep.pulse_period;
 
-      if (waveform_idx == 0) {
-        waveform_idx = 7;
+      if (phase == 0) {
+        phase = 7;
       } else {
-        waveform_idx--;
+        phase--;
       }
     }
   }
@@ -33,7 +33,7 @@ uint16_t Pulse::Volume() {
     return 0x0000;
   }
 
-  uint16_t value = PULSE_DUTY[duty_cycle][waveform_idx];
+  uint16_t value = PULSE_DUTY[duty_cycle][phase];
   return value * static_cast<uint16_t>(envelope.Volume());
 }
 
@@ -43,6 +43,7 @@ void Pulse::Write(uint16_t addr, uint8_t value) {
     case 0x4004:
       duty_cycle = (value >> 6);
       envelope.Write(value);
+      length_counter.WriteHalt(static_cast<bool>(value & 0x20));
       break;
     case 0x4001:
     case 0x4005:
@@ -51,7 +52,7 @@ void Pulse::Write(uint16_t addr, uint8_t value) {
     case 0x4002:
     case 0x4006:
       sweep.pulse_period =
-          (sweep.pulse_period & 0x00FF) | static_cast<uint16_t>(value);
+          (sweep.pulse_period & 0xFF00) | static_cast<uint16_t>(value);
       break;
     case 0x4003:
     case 0x4007:
@@ -59,7 +60,7 @@ void Pulse::Write(uint16_t addr, uint8_t value) {
                            (sweep.pulse_period & 0x00FF);
       length_counter.Write(value);
       envelope.Restart();
-      waveform_idx = 0;
+      phase = 0;
       break;
   }
 }

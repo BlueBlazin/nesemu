@@ -28,7 +28,7 @@ Event Cpu::RunTillEvent(uint64_t max_cycles) {
     return Event::Stopped;
   }
 
-  while (event_cycles <= max_cycles) {
+  while (event_cycles < max_cycles) {
     Tick();
 
     if (mmu.VblankEvent()) {
