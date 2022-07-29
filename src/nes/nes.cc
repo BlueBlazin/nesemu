@@ -144,7 +144,6 @@ Nes::Nes(const std::string& rom_path)
   palettes_texture.create(PALETTES_WIDTH, PALETTES_HEIGHT);
 
   // define sprites
-  // TODO: can this be done in initializer list instead?
   window_sprite = sf::Sprite(texture);
   pt1_sprite = sf::Sprite(pt1_texture);
   pt2_sprite = sf::Sprite(pt2_texture);
