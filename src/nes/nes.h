@@ -8,7 +8,7 @@
 #include <string>
 #include <unordered_map>
 
-#include "SDL_audio.h"
+#include "SDL.h"
 #include "SFML/Audio.hpp"
 #include "SFML/Graphics.hpp"
 #include "SFML/System.hpp"
@@ -25,14 +25,13 @@ constexpr int SCREEN_HEIGHT = 240;
 constexpr int PAT_TABLE_SIZE = 128;
 constexpr int SPRITES_WIDTH = (8 + 4) * 8;
 constexpr int SPRITES_HEIGHT = (16 + 4) * 8;
-// constexpr int PALETTES_WIDTH = 162;
-// constexpr int PALETTES_HEIGHT = 50;
 constexpr int PALETTES_WIDTH = 137;
 constexpr int PALETTES_HEIGHT = 35;
 // rough estimate of title bar height
 constexpr int TITLEBAR_HEIGHT = 65;
-constexpr uint64_t MAX_CYCLES = 29815;
-constexpr float TIME_PER_FRAME = 1.0 / 60.0;
+// constexpr uint64_t MAX_CYCLES = 29815;
+constexpr uint64_t MAX_CYCLES = 29780;
+constexpr float TIME_PER_FRAME = 1.0 / 60.1;
 constexpr float SAMPLING_RATE = 44100.0F;
 
 struct AudioChunk {
@@ -103,7 +102,10 @@ class Nes {
   sf::Sprite palettes_sprite;
 
   // audio
-  AudioStream stream;
+  // AudioStream stream;
+  SDL_AudioDeviceID audio_device;
+  SDL_AudioSpec audio_spec;
+  bool paused = true;
 
   // events
   sf::Event event;

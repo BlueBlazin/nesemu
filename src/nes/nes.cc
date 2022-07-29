@@ -41,7 +41,6 @@ Nes::Nes(const std::string& rom_path)
                      sf::Style::Titlebar | sf::Style::Resize),
       palettes_window(sf::VideoMode(PALETTES_WIDTH, PALETTES_HEIGHT),
                       "Palettes", sf::Style::Titlebar | sf::Style::Resize),
-      stream(),
       key_offsets{
           {sf::Keyboard::A, 0},     {sf::Keyboard::S, 1},
           {sf::Keyboard::Space, 2}, {sf::Keyboard::Enter, 3},
@@ -98,14 +97,11 @@ Nes::Nes(const std::string& rom_path)
   objects_window.setPosition(sf::Vector2i(objs_x, objs_y + TITLEBAR_HEIGHT));
 
   // position palettes window
-  // int pal_x =
-  //     (width - (total_windows_width - objects_width + palettes_width)) / 2;
   int pal_x = (width - total_windows_width) / 2;
   palettes_window.setPosition(sf::Vector2i(
       pal_x, objs_y + objects_height + padding + 2 * TITLEBAR_HEIGHT));
 
   // position pattern tables
-  // int pt_x = (width - total_windows_width) / 2;
   int pt_x = pal_x + palettes_width + padding;
   int pt_y = (height - pat_tables_height) / 2;
   pat_table1_window.setPosition(sf::Vector2i(pt_x, pt_y));
@@ -154,6 +150,16 @@ Nes::Nes(const std::string& rom_path)
   nt4_sprite = sf::Sprite(nt4_texture);
   objects_sprite = sf::Sprite(objects_texture);
   palettes_sprite = sf::Sprite(palettes_texture);
+
+  // audio
+  SDL_Init(SDL_INIT_AUDIO);
+  SDL_zero(audio_spec);
+  audio_spec.freq = 44100;
+  audio_spec.format = AUDIO_S16;
+  audio_spec.channels = 1;
+  audio_spec.samples = 1024;
+  audio_spec.callback = NULL;
+  audio_device = SDL_OpenAudioDevice(NULL, 0, &audio_spec, NULL, 0);
 }
 
 void Nes::Run() {
@@ -169,6 +175,8 @@ void Nes::Run() {
   float dt = 0.0F;
   // total elapsed time
   float elapsed = 0.0F;
+
+  SDL_PauseAudioDevice(audio_device, 0);
 
   while (window.isOpen()) {
     // run emulation forward
@@ -259,11 +267,9 @@ void Nes::Emulate() {
 }
 
 void Nes::QueueAudio() {
-  stream.QueueAudio(cpu.GetAudioBuffer());
-
-  if (stream.getStatus() != sf::SoundStream::Status::Playing) {
-    stream.play();
-  }
+  auto samples = cpu.GetAudioBuffer();
+  SDL_QueueAudio(audio_device, samples.data(),
+                 sizeof(int16_t) * samples.size());
 }
 
 void Nes::HandleEvents() {

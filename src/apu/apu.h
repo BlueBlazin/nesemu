@@ -20,6 +20,7 @@ constexpr uint64_t MODE1_RESET = 18641 * 2;
 
 constexpr int AUDIO_BUFFER_SIZE = 1024;
 constexpr float CPU_FREQUENCY = 1789773.0F;
+// constexpr float CPU_FREQUENCY = 1786840.0F;
 constexpr float SAMPLE_RATE = 44100.0F;
 constexpr float SAMPLE_CLOCKS = CPU_FREQUENCY / SAMPLE_RATE;
 
