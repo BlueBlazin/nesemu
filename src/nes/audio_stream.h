@@ -11,14 +11,19 @@ namespace nes {
 
 class AudioStream : public sf::SoundStream {
  public:
-  AudioStream() { initialize(1, 44100); }
+  AudioStream() : q() {
+    initialize(1, 44100);
+    q.push({});
+  }
 
-  void QueueAudio(std::vector<int16_t> samples) { q.push(std::move(samples)); }
+  void QueueAudio(std::vector<int16_t>&& samples) {
+    q.pop();
+    q.push(samples);
+  }
 
  private:
   bool onGetData(Chunk& data) override {
-    std::vector<int16_t> samples = q.front();
-    q.pop();
+    auto& samples = q.front();
     data.sampleCount = samples.size();
     data.samples = samples.data();
 

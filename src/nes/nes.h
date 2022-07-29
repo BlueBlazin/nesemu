@@ -13,7 +13,7 @@
 #include "src/cpu/cpu.h"
 #include "src/cpu/event.h"
 #include "src/mappers/mapper.h"
-// #include "src/nes/audio_stream.h"
+#include "src/nes/audio_stream.h"
 
 namespace nes {
 
@@ -99,12 +99,12 @@ class Nes {
   sf::Sprite palettes_sprite;
 
   // audio
-  sf::SoundBuffer buffer;
-  sf::Sound sound;
-  std::queue<AudioChunk> queue;
-  sf::Clock audio_clock;
+  // sf::SoundBuffer buffer;
+  // sf::Sound sound;
+  // std::queue<AudioChunk> queue;
+  // sf::Clock audio_clock;
   // std::vector<sf::Int16> samples;
-  // AudioStream stream;
+  AudioStream stream;
 
   // events
   sf::Event event;
