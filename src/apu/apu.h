@@ -71,6 +71,7 @@ class Apu {
   bool dmc_interrupt = false;
 
  private:
+  void ClockSequencer();
   void ModeZeroTick();
   void ModeOneTick();
   void ClockEnvelopesAndLinear();
@@ -97,6 +98,7 @@ class Apu {
   uint64_t half_cycles = 0;
   bool interrupt_inhibit = false;
   float sample_counter = 0.0F;
+  int frame_reset_delay = 0;
 };
 
 }  // namespace audio

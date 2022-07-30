@@ -24,17 +24,34 @@ void Apu::Tick(uint64_t cycles) {
     pulse1.Clock();
     pulse2.Clock();
 
-    if (mode0) {
-      ModeZeroTick();
-    } else {
-      ModeOneTick();
-    }
+    ClockSequencer();
 
     sample_counter += 1.0;
     if (sample_counter >= SAMPLE_CLOCKS) {
       sample_counter -= SAMPLE_CLOCKS;
       Sample();
     }
+  }
+}
+
+void Apu::ClockSequencer() {
+  if (frame_reset_delay > 0) {
+    frame_reset_delay--;
+
+    if (frame_reset_delay == 0) {
+      half_cycles = 0;
+
+      if (!mode0) {
+        ClockEnvelopesAndLinear();
+        ClockLengthAndSweep();
+      }
+    }
+  }
+
+  if (mode0) {
+    ModeZeroTick();
+  } else {
+    ModeOneTick();
   }
 }
 
@@ -204,7 +221,17 @@ void Apu::Write(uint16_t addr, uint8_t value) {
     case 0x4017: {
       mode0 = (value >> 7) == 0;
       interrupt_inhibit = static_cast<bool>((value >> 6) & 0x1);
-      half_cycles = 0;
+
+      if (half_cycles % 2 == 1) {
+        frame_reset_delay = 3;
+      } else {
+        frame_reset_delay = 4;
+      }
+
+      if (interrupt_inhibit) {
+        frame_interrupt = false;
+      }
+
       break;
     }
   }
