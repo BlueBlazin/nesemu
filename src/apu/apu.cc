@@ -11,9 +11,9 @@ namespace audio {
 Apu::Apu()
     : audio_buffer(),
       pulse1(PulseChannel::Pulse1),
-      pulse2(PulseChannel::Pulse2) {
-  std::cout << "SAMPLE_CLOCKS: " << SAMPLE_CLOCKS << std::endl;
-}
+      pulse2(PulseChannel::Pulse2),
+      triangle(),
+      noise() {}
 
 void Apu::Tick(uint64_t cycles) {
   while (cycles > 0) {
@@ -23,6 +23,8 @@ void Apu::Tick(uint64_t cycles) {
     // clock channels
     pulse1.Clock();
     pulse2.Clock();
+    triangle.Clock();
+    noise.Clock();
 
     ClockSequencer();
 
@@ -128,11 +130,15 @@ void Apu::ModeOneTick() {
 void Apu::ClockEnvelopesAndLinear() {
   pulse1.envelope.Clock();
   pulse2.envelope.Clock();
+  triangle.ClockLinear();
+  noise.envelope.Clock();
 }
 
 void Apu::ClockLengthAndSweep() {
   pulse1.length_counter.Clock();
   pulse2.length_counter.Clock();
+  triangle.length_counter.Clock();
+  noise.length_counter.Clock();
 
   pulse1.sweep.Clock();
   pulse2.sweep.Clock();
@@ -141,10 +147,14 @@ void Apu::ClockLengthAndSweep() {
 void Apu::Sample() {
   uint16_t pulse1_out = pulse1_enabled ? pulse1.Volume() : 0;
   uint16_t pulse2_out = pulse2_enabled ? pulse2.Volume() : 0;
+  uint16_t triangle_out = triangle_enabled ? triangle.Volume() : 0;
+  uint16_t noise_out = noise_enabled ? noise.Volume() : 0;
 
   double pulse_out = MIXER_PULSE_TABLE[pulse1_out + pulse2_out];
+  double tnd_out = MIXER_TND_TABLE[3 * triangle_out + 2 * noise_out];
+  double output = pulse_out + tnd_out;
 
-  audio_buffer.push_back(INT16_MAX * (pulse_out - 0.5));
+  audio_buffer.push_back(INT16_MAX * (output - 0.5));
 }
 
 bool Apu::AudioBufferFull() { return audio_buffer.size() >= AUDIO_BUFFER_SIZE; }
@@ -189,19 +199,19 @@ void Apu::Write(uint16_t addr, uint8_t value) {
     case 0x4009:
     case 0x400A:
     case 0x400B:
-      // Triangle
+      triangle.Write(addr, value);
       break;
     case 0x400C:
     case 0x400D:
     case 0x400E:
     case 0x400F:
-      // Noise
+      noise.Write(addr, value);
       break;
     case 0x4010:
     case 0x4011:
     case 0x4012:
     case 0x4013:
-      // Noise
+      // DMC
       break;
     case 0x4015: {
       dmc_enabled = static_cast<bool>(value & 0x10);
@@ -212,6 +222,8 @@ void Apu::Write(uint16_t addr, uint8_t value) {
 
       pulse1.length_counter.SetEnabled(pulse1_enabled);
       pulse2.length_counter.SetEnabled(pulse2_enabled);
+      triangle.length_counter.SetEnabled(triangle_enabled);
+      noise.length_counter.SetEnabled(noise_enabled);
 
       // TODO: check and reset length counters for other channels
 

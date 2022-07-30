@@ -105,7 +105,6 @@ class Nes {
   // AudioStream stream;
   SDL_AudioDeviceID audio_device;
   SDL_AudioSpec audio_spec;
-  bool paused = true;
 
   // events
   sf::Event event;
