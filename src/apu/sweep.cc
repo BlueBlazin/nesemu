@@ -13,7 +13,9 @@ void Sweep::Clock() {
 
   if (divider == 0 && enabled && !Muting(target_period)) {
     pulse_period = target_period;
-  } else if (divider == 0 || restart) {
+  }
+
+  if (divider == 0 || restart) {
     divider = period;
     restart = false;
   } else {
