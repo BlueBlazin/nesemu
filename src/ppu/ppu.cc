@@ -46,7 +46,6 @@ void Ppu::Tick(uint64_t cycles) {
   while (cycles > 0) {
     PixelTick();
     DataFetcherTick();
-    // SpriteEvalTick();
 
     NextDot();
     cycles--;
@@ -68,7 +67,7 @@ void Ppu::EvalSprites() {
 
     if ((y <= line) && (line < y + (long_sprites ? 16 : 8))) {
       if (num_sprites_on_line < 8) {
-        if (secondary_oam_idx == 0) {
+        if (n == 0) {
           sprite0_on_scanline = true;
         }
 
