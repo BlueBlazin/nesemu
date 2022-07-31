@@ -144,6 +144,7 @@ class Ppu {
   void ShiftSpriteFifos(int i);
   Color GetRgb(uint8_t palette, uint8_t value, uint16_t offset);
   uint8_t GetSpriteValue(int i);
+  void PutSpritePixel(uint8_t value, int row, int col, uint8_t palette);
 
   uint16_t CalcNametableAddr(uint8_t x);
 

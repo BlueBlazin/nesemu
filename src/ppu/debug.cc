@@ -125,34 +125,42 @@ void Ppu::UpdateNametable(uint16_t addr) {
 void Ppu::UpdateSprites() {
   for (int n = 0; n < 64; n++) {
     uint16_t addr;
+    uint16_t addr_bot;
     uint8_t palette = obj_attr_memory[n << 2 | 2] & 0x3;
+    uint8_t byte1 = obj_attr_memory[n << 2 | 1];
 
     if (long_sprites) {
-      // TODO
+      uint16_t tile_idx = static_cast<uint16_t>(byte1 & 0xFE);
+      uint16_t bank = static_cast<bool>(byte1 & 0x1) ? 0x1000 : 0x0000;
+      addr = bank | (tile_idx << 4);
+      addr_bot = bank | ((tile_idx + 1) << 4);
     } else {
-      uint8_t tile_idx = obj_attr_memory[n << 2 | 1];
+      uint16_t tile_idx = static_cast<uint16_t>(byte1);
       addr = sprite_table_addr | (tile_idx << 4);
     }
 
     int x = (n % SPRITES_COLS) * SPRITE_BOX_WIDTH;
     int y = (n / SPRITES_COLS) * SPRITE_BOX_HEIGHT;
-    // draw 8x8 sprite
+
+    // draw 8x16 sprite
     for (int row = y + 2, i = 0; row < y + 2 + 8; row++, i++) {
       uint8_t lo = ReadVram(addr + i);
       uint8_t hi = ReadVram(addr + i + 8);
 
+      uint8_t lo_bot = long_sprites ? ReadVram(addr_bot + i) : 0x00;
+      uint8_t hi_bot = long_sprites ? ReadVram(addr_bot + i + 8) : 0x00;
+
       for (int col = x + 2; col < x + 2 + 8; col++) {
+        // top half
         uint8_t value = ((hi >> 6) & 0x2) | (lo >> 7);
-        Color color = GetRgb(value == 0 ? 0 : palette, value, 0x10);
-
-        int idx = (row * SPRITES_WIDTH + col) * SCREEN_CHANNELS;
-        sprites[idx + 0] = color.red;
-        sprites[idx + 1] = color.green;
-        sprites[idx + 2] = color.blue;
-        sprites[idx + 3] = 0xFF;
-
+        PutSpritePixel(value, row, col, palette);
         lo = lo << 1;
         hi = hi << 1;
+        // bottom half
+        value = ((hi_bot >> 6) & 0x2) | (lo_bot >> 7);
+        PutSpritePixel(value, row + 8, col, palette);
+        lo_bot = lo_bot << 1;
+        hi_bot = hi_bot << 1;
       }
     }
   }
@@ -177,6 +185,16 @@ void Ppu::UpdateSprites() {
       }
     }
   }
+}
+
+void Ppu::PutSpritePixel(uint8_t value, int row, int col, uint8_t palette) {
+  Color color = GetRgb(value == 0 ? 0 : palette, value, 0x10);
+
+  int idx = (row * SPRITES_WIDTH + col) * SCREEN_CHANNELS;
+  sprites[idx + 0] = color.red;
+  sprites[idx + 1] = color.green;
+  sprites[idx + 2] = color.blue;
+  sprites[idx + 3] = 0xFF;
 }
 
 void Ppu::UpdatePalettes() {

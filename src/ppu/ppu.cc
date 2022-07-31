@@ -280,8 +280,8 @@ void Ppu::VisibleOrPrerenderTick() {
       bool flip_vertically = (secondary_oam[(sprite_idx << 2) | 2] >> 7) != 0;
 
       if (long_sprites) {
-        uint16_t tile_idx = static_cast<uint16_t>(value >> 1);
-        uint16_t sprite_table_addr = (value & 0x1) == 0 ? 0x0000 : 0x1000;
+        uint16_t tile_idx = static_cast<uint16_t>(value & 0xFE);
+        uint16_t sprite_table_addr = ((value & 0x1) == 1) ? 0x1000 : 0x0000;
         uint16_t fine_y = (line - secondary_oam[sprite_idx << 2]);
 
         if (flip_vertically) {
@@ -572,12 +572,12 @@ void Ppu::Write(uint16_t addr, uint8_t value) {
 
 void Ppu::WritePpuCtrl(uint8_t value) {
   base_nametable_addr = CalcNametableAddr(value & 0x3);
-  vram_addr_inc = static_cast<bool>((value >> 2) & 0x1) ? 32 : 1;
-  sprite_table_addr = static_cast<bool>(((value >> 3) & 0x1)) ? 0x1000 : 0x0;
+  vram_addr_inc = static_cast<bool>(value & 0x4) ? 32 : 1;
+  sprite_table_addr = static_cast<bool>(value & 0x8) ? 0x1000 : 0x0;
   pattern_table_addr = static_cast<uint16_t>((value >> 4) & 0x1);
-  long_sprites = static_cast<bool>((value >> 5) & 0x1);
-  ppu_select = static_cast<bool>((value >> 6) & 0x1);
-  generate_vblank_nmi = static_cast<bool>((value >> 7) & 0x1);
+  long_sprites = static_cast<bool>(value & 0x20);
+  ppu_select = static_cast<bool>(value & 0x40);
+  generate_vblank_nmi = static_cast<bool>(value & 0x80);
   UpdateNmi();
 
   reg_T &= 0x73FF;
