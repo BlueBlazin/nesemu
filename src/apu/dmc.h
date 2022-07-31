@@ -22,6 +22,7 @@ class Dmc {
   bool dmc_interrupt = false;
   bool stall_cpu = false;
   bool silence = false;
+  uint16_t bytes_remaining = 0x0000;
 
  private:
   void ClockOutputCycle();
@@ -37,7 +38,6 @@ class Dmc {
   uint16_t sample_addr_raw = 0x0000;
   uint16_t sample_length_raw = 0x0000;
   uint16_t sample_addr = 0x0000;
-  uint16_t bytes_remaining = 0x0000;
   uint8_t sample_buffer = 0x00;
   bool sample_buffer_emptied = true;
   uint8_t shift_register = 0x00;

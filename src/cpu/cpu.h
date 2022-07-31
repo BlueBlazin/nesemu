@@ -413,7 +413,7 @@ class Cpu {
   uint8_t ReadMemory(uint16_t addr);
   void WriteMemory(uint16_t addr, uint8_t value);
 
-  void AddCycles(uint64_t n);
+  void AddCycle();
 
   /* Memory */
   memory::Memory mmu;

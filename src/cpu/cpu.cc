@@ -85,7 +85,7 @@ void Cpu::RunDma() {
     mmu.DmaTick();
   }
 
-  AddCycles(1);
+  AddCycle();
 }
 
 void Cpu::DecodeExecute(uint8_t opcode) {
@@ -1036,7 +1036,7 @@ void Cpu::LdaAbsoluteX() {
 void Cpu::LdaAbsoluteY() {
   uint16_t addr = AbsoluteY();
   if (addr > 0xFF) {
-    AddCycles(1);
+    AddCycle();
   }
   A = ReadMemory(addr);
   UpdateNZ(A);
@@ -1175,7 +1175,7 @@ void Cpu::StyAbsolute() {
 ******************************************************************/
 void Cpu::TaxImplied() {
   X = A;
-  AddCycles(1);
+  AddCycle();
   UpdateNZ(X);
 }
 
@@ -1184,7 +1184,7 @@ void Cpu::TaxImplied() {
 ******************************************************************/
 void Cpu::TayImplied() {
   Y = A;
-  AddCycles(1);
+  AddCycle();
   UpdateNZ(Y);
 }
 
@@ -1193,7 +1193,7 @@ void Cpu::TayImplied() {
 ******************************************************************/
 void Cpu::TsxImplied() {
   X = SP;
-  AddCycles(1);
+  AddCycle();
   UpdateNZ(X);
 }
 
@@ -1202,7 +1202,7 @@ void Cpu::TsxImplied() {
 ******************************************************************/
 void Cpu::TxaImplied() {
   A = X;
-  AddCycles(1);
+  AddCycle();
   UpdateNZ(A);
 }
 
@@ -1211,7 +1211,7 @@ void Cpu::TxaImplied() {
 ******************************************************************/
 void Cpu::TxsImplied() {
   SP = X;
-  AddCycles(1);
+  AddCycle();
 }
 
 /******************************************************************
@@ -1219,7 +1219,7 @@ void Cpu::TxsImplied() {
 ******************************************************************/
 void Cpu::TyaImplied() {
   A = Y;
-  AddCycles(1);
+  AddCycle();
   UpdateNZ(A);
 }
 
@@ -1227,7 +1227,7 @@ void Cpu::TyaImplied() {
   PHA
 ******************************************************************/
 void Cpu::PhaImplied() {
-  AddCycles(1);
+  AddCycle();
   Push(A);
 }
 
@@ -1235,7 +1235,7 @@ void Cpu::PhaImplied() {
   PHP
 ******************************************************************/
 void Cpu::PhpImplied() {
-  AddCycles(1);
+  AddCycle();
   Push((static_cast<uint8_t>(flag_N) << 7) |
        (static_cast<uint8_t>(flag_V) << 6) | (1 << 5) | (1 << 4) |
        (static_cast<uint8_t>(flag_D) << 3) |
@@ -1248,9 +1248,9 @@ void Cpu::PhpImplied() {
   PLA
 ******************************************************************/
 void Cpu::PlaImplied() {
-  AddCycles(1);
+  AddCycle();
   SP++;
-  AddCycles(1);
+  AddCycle();
   A = Pull(SP);
   UpdateNZ(A);
 }
@@ -1259,9 +1259,9 @@ void Cpu::PlaImplied() {
   PLP
 ******************************************************************/
 void Cpu::PlpImplied() {
-  AddCycles(1);
+  AddCycle();
   SP++;
-  AddCycles(1);
+  AddCycle();
   uint8_t status = Pull(SP);
   flag_N = static_cast<bool>((status >> 7) & 0x1);
   flag_V = static_cast<bool>((status >> 6) & 0x1);
@@ -1306,7 +1306,7 @@ void Cpu::Dec(uint16_t addr, uint8_t value) {
 ******************************************************************/
 void Cpu::DexImplied() {
   X--;
-  AddCycles(1);
+  AddCycle();
   UpdateNZ(X);
 }
 
@@ -1315,7 +1315,7 @@ void Cpu::DexImplied() {
 ******************************************************************/
 void Cpu::DeyImplied() {
   Y--;
-  AddCycles(1);
+  AddCycle();
   UpdateNZ(Y);
 }
 
@@ -1355,7 +1355,7 @@ void Cpu::Inc(uint16_t addr, uint8_t value) {
 ******************************************************************/
 void Cpu::InxImplied() {
   X++;
-  AddCycles(1);
+  AddCycle();
   UpdateNZ(X);
 }
 
@@ -1364,7 +1364,7 @@ void Cpu::InxImplied() {
 ******************************************************************/
 void Cpu::InyImplied() {
   Y++;
-  AddCycles(1);
+  AddCycle();
   UpdateNZ(Y);
 }
 
@@ -1608,7 +1608,7 @@ void Cpu::Ora(uint8_t value) {
 void Cpu::AslAccumulator() {
   flag_C = static_cast<bool>(A >> 7);
   A = (A << 1) & 0xFE;
-  AddCycles(1);
+  AddCycle();
   UpdateNZ(A);
 }
 
@@ -1646,7 +1646,7 @@ void Cpu::Asl(uint16_t addr, uint8_t value) {
 void Cpu::LsrAccumulator() {
   flag_C = static_cast<bool>(A & 0x1);
   A = (A >> 1) & 0x7F;
-  AddCycles(1);
+  AddCycle();
   UpdateNZ(A);
 }
 
@@ -1685,7 +1685,7 @@ void Cpu::RolAccumulator() {
   uint8_t old_C = static_cast<uint8_t>(flag_C);
   flag_C = static_cast<bool>(A >> 7);
   A = ((A << 1) & 0xFE) | old_C;
-  AddCycles(1);
+  AddCycle();
   UpdateNZ(A);
 }
 
@@ -1725,7 +1725,7 @@ void Cpu::RorAccumulator() {
   uint8_t old_C = static_cast<uint8_t>(flag_C);
   flag_C = static_cast<bool>(A & 0x1);
   A = ((A >> 1) & 0x7F) | (old_C << 7);
-  AddCycles(1);
+  AddCycle();
   UpdateNZ(A);
 }
 
@@ -1858,7 +1858,7 @@ void Cpu::SeiImplied() { UpdateFlag(flag_I, true); }
 
 void Cpu::UpdateFlag(bool& flag, bool value) {
   flag = value;
-  AddCycles(1);
+  AddCycle();
 }
 
 /*****************************************************************
@@ -1903,20 +1903,20 @@ void Cpu::JmpIndirect() {
 
 void Cpu::JsrAbsolute() {
   uint16_t lo = static_cast<uint16_t>(Fetch());
-  AddCycles(1);
+  AddCycle();
   Push(static_cast<uint8_t>((PC >> 8) & 0xFF));
   Push(static_cast<uint8_t>(PC & 0xFF));
   PC = (static_cast<uint16_t>(Fetch()) << 8) | lo;
 }
 
 void Cpu::RtsImplied() {
-  AddCycles(1);
+  AddCycle();
   SP++;
-  AddCycles(1);
+  AddCycle();
   PC = static_cast<uint16_t>(Pull(SP++)) & 0xFF;
   PC |= static_cast<uint16_t>(Pull(SP)) << 8;
   PC++;
-  AddCycles(1);
+  AddCycle();
 }
 
 /*****************************************************************
@@ -1942,9 +1942,9 @@ void Cpu::BrkImplied() {
 }
 
 void Cpu::RtiImplied() {
-  AddCycles(1);
+  AddCycle();
   SP++;
-  AddCycles(1);
+  AddCycle();
   uint8_t status = Pull(SP++);
   flag_N = static_cast<bool>((status >> 7) & 0x1);
   flag_V = static_cast<bool>((status >> 6) & 0x1);
@@ -1958,7 +1958,8 @@ void Cpu::RtiImplied() {
 }
 
 void Cpu::Interrupt(InterruptType type) {
-  AddCycles(2);
+  AddCycle();
+  AddCycle();
   Push(static_cast<uint8_t>((PC >> 8) & 0xFF));
   Push(static_cast<uint8_t>(PC & 0xFF));
   uint8_t SR = (static_cast<uint8_t>(flag_N) << 7) |
@@ -2259,7 +2260,7 @@ void Cpu::TasAbsoluteY() {
   WriteMemory(addr, A & X & (static_cast<uint8_t>(addr >> 8) + 1));
 }
 
-void Cpu::NopImplied() { AddCycles(1); }
+void Cpu::NopImplied() { AddCycle(); }
 
 void Cpu::NopImmediate() { Fetch(); }
 
@@ -2302,29 +2303,34 @@ void Cpu::UpdateNZ(uint8_t byte) {
 }
 
 uint8_t Cpu::ReadMemory(uint16_t addr) {
-  AddCycles(1);
+  AddCycle();
   return mmu.Read(addr);
 }
 
 void Cpu::WriteMemory(uint16_t addr, uint8_t value) {
-  AddCycles(1);
+  AddCycle();
   mmu.Write(addr, value);
 }
 
 uint8_t Cpu::Fetch() {
-  AddCycles(1);
+  AddCycle();
   return mmu.Read(PC++);
 }
 
-void Cpu::AddCycles(uint64_t n) {
+void Cpu::AddCycle() {
   if (mmu.StallCpu()) {
-    //
+    uint64_t n = mmu.InDma() ? 2 : 4;
+    cycles += n;
+    event_cycles += n;
+    mmu.PpuTick(3 * n);
+    mmu.ApuTick(n);
+    return;
   }
 
-  cycles += n;
-  event_cycles += n;
-  mmu.PpuTick(3 * n);
-  mmu.ApuTick(n);
+  cycles++;
+  event_cycles++;
+  mmu.PpuTick(3);
+  mmu.ApuTick(1);
 }
 
 }  // namespace cpu

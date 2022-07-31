@@ -172,13 +172,11 @@ uint8_t Apu::Read(uint16_t addr) {
     case 0x4015: {
       frame_interrupt = false;
 
-      // TODO: dmc read effects
-
       return 0x00 | (static_cast<uint8_t>(dmc.dmc_interrupt) << 7) |
              (static_cast<uint8_t>(frame_interrupt) << 6) |
-             (static_cast<uint8_t>(dmc_enabled) << 4) |
-             (/* noise length counter > 0 */ 0 << 3) |
-             (/* triangle length counter > 0 */ 0 << 2) |
+             (static_cast<uint8_t>(dmc.bytes_remaining > 0) << 4) |
+             (static_cast<uint8_t>(noise.length_counter.NonZero()) << 3) |
+             (static_cast<uint8_t>(triangle.length_counter.NonZero()) << 2) |
              (static_cast<uint8_t>(pulse2.length_counter.NonZero()) << 1) |
              (static_cast<uint8_t>(pulse1.length_counter.NonZero()) << 0);
     }
@@ -217,7 +215,7 @@ void Apu::Write(uint16_t addr, uint8_t value) {
     case 0x4011:
     case 0x4012:
     case 0x4013:
-      // DMC
+      dmc.Write(addr, value);
       break;
     case 0x4015: {
       dmc_enabled = static_cast<bool>(value & 0x10);
@@ -230,8 +228,7 @@ void Apu::Write(uint16_t addr, uint8_t value) {
       pulse2.length_counter.SetEnabled(pulse2_enabled);
       triangle.length_counter.SetEnabled(triangle_enabled);
       noise.length_counter.SetEnabled(noise_enabled);
-
-      // TODO: dmc write effects
+      dmc.SetEnabled(dmc_enabled);
 
       dmc.dmc_interrupt = false;
       break;
