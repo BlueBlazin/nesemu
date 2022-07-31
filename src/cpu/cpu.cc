@@ -2317,6 +2317,10 @@ uint8_t Cpu::Fetch() {
 }
 
 void Cpu::AddCycles(uint64_t n) {
+  if (mmu.StallCpu()) {
+    //
+  }
+
   cycles += n;
   event_cycles += n;
   mmu.PpuTick(3 * n);

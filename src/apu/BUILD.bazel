@@ -4,6 +4,7 @@ cc_library(
     name = "apu",
     srcs = [
         "apu.cc",
+        "dmc.cc",
         "envelope.cc",
         "length_counter.cc",
         "noise.cc",
@@ -13,8 +14,10 @@ cc_library(
     ],
     hdrs = [
         "apu.h",
+        "dmc.h",
         "envelope.h",
         "length_counter.h",
+        "mixer.h",
         "noise.h",
         "pulse.h",
         "pulse_channel.h",
@@ -23,5 +26,6 @@ cc_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
+        "//src/mappers",
     ],
 )

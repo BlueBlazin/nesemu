@@ -10,11 +10,11 @@
 namespace memory {
 
 Memory::Memory(const std::string& path, uint8_t& p1_input)
-    : apu(),
-      cartridge(mappers::ReadCartridge(path)),
+    : cartridge(mappers::ReadCartridge(path)),
       ppu(cartridge),
       ram(),
-      p1_input(p1_input) {
+      p1_input(p1_input),
+      apu(cartridge) {
   for (int i = 0; i < ram.size(); i++) {
     ram[i] = 0x00;
   }
@@ -76,20 +76,6 @@ uint8_t* Memory::GetPalettes() {
   ppu.UpdatePalettes();
   return ppu.palettes.data();
 }
-
-bool Memory::NmiPending() { return ppu.NmiOccured(); }
-
-void Memory::ClearNmi() { ppu.ClearNmi(); }
-
-bool Memory::InDma() { return in_dma; }
-
-bool Memory::VblankEvent() { return ppu.vblank_event; }
-
-void Memory::ClearVBlankEvent() { ppu.vblank_event = false; }
-
-bool Memory::IrqPending() { return apu.frame_interrupt; }
-
-void Memory::ClearIrq() { apu.frame_interrupt = false; }
 
 uint8_t Memory::Read(uint16_t addr) {
   if (addr <= 0x1FFF) {

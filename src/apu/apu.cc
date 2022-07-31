@@ -2,18 +2,20 @@
 
 #include <cstdint>
 #include <iostream>
+#include <memory>
 #include <utility>
 
 #include "src/apu/pulse.h"
 
 namespace audio {
 
-Apu::Apu()
+Apu::Apu(std::shared_ptr<mappers::Mapper> mapper)
     : audio_buffer(),
       pulse1(PulseChannel::Pulse1),
       pulse2(PulseChannel::Pulse2),
       triangle(),
-      noise() {}
+      noise(),
+      dmc(std::move(mapper)) {}
 
 void Apu::Tick(uint64_t cycles) {
   while (cycles > 0) {
@@ -25,6 +27,7 @@ void Apu::Tick(uint64_t cycles) {
     pulse2.Clock();
     triangle.Clock();
     noise.Clock();
+    dmc.Clock();
 
     ClockSequencer();
 
@@ -149,9 +152,10 @@ void Apu::Sample() {
   uint16_t pulse2_out = pulse2_enabled ? pulse2.Volume() : 0;
   uint16_t triangle_out = triangle_enabled ? triangle.Volume() : 0;
   uint16_t noise_out = noise_enabled ? noise.Volume() : 0;
+  uint16_t dmc_out = dmc.Volume();
 
   double pulse_out = MIXER_PULSE_TABLE[pulse1_out + pulse2_out];
-  double tnd_out = MIXER_TND_TABLE[3 * triangle_out + 2 * noise_out];
+  double tnd_out = MIXER_TND_TABLE[3 * triangle_out + 2 * noise_out + dmc_out];
   double output = pulse_out + tnd_out;
 
   audio_buffer.push_back(INT16_MAX * (output - 0.5));
@@ -168,7 +172,9 @@ uint8_t Apu::Read(uint16_t addr) {
     case 0x4015: {
       frame_interrupt = false;
 
-      return 0x00 | (static_cast<uint8_t>(dmc_interrupt) << 7) |
+      // TODO: dmc read effects
+
+      return 0x00 | (static_cast<uint8_t>(dmc.dmc_interrupt) << 7) |
              (static_cast<uint8_t>(frame_interrupt) << 6) |
              (static_cast<uint8_t>(dmc_enabled) << 4) |
              (/* noise length counter > 0 */ 0 << 3) |
@@ -225,9 +231,9 @@ void Apu::Write(uint16_t addr, uint8_t value) {
       triangle.length_counter.SetEnabled(triangle_enabled);
       noise.length_counter.SetEnabled(noise_enabled);
 
-      // TODO: check and reset length counters for other channels
+      // TODO: dmc write effects
 
-      dmc_interrupt = false;
+      dmc.dmc_interrupt = false;
       break;
     }
     case 0x4017: {

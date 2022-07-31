@@ -33,20 +33,27 @@ class Memory {
 
   uint8_t Read(uint16_t addr);
   void Write(uint16_t addr, uint8_t value);
-  bool NmiPending();
-  void ClearNmi();
-  bool InDma();
-  bool VblankEvent();
-  void ClearVBlankEvent();
-  bool IrqPending();
-  void ClearIrq();
+
+  bool NmiPending() { return ppu.NmiOccured(); }
+
+  void ClearNmi() { ppu.ClearNmi(); }
+
+  bool InDma() { return in_dma; }
+
+  bool VblankEvent() { return ppu.vblank_event; }
+
+  void ClearVBlankEvent() { ppu.vblank_event = false; }
+
+  bool IrqPending() { return apu.IrQPending(); }
+
+  void ClearIrq() { apu.ClearInterrupts(); }
+
+  bool StallCpu() { return apu.StallCpu(); }
 
   void UseFceuxPalette() { ppu.UseFceuxPalette(); }
   void UseNtscPalette() { ppu.UseNtscPalette(); }
   void PpuTick(uint64_t n) { ppu.Tick(n); }
   void ApuTick(uint64_t n) { apu.Tick(n); }
-
-  audio::Apu apu;
 
  private:
   std::shared_ptr<mappers::Mapper> cartridge;
@@ -61,6 +68,9 @@ class Memory {
   uint8_t& p1_input;
   bool strobe = false;
   uint8_t p1_data = 0x00;
+
+ public:
+  audio::Apu apu;
 };
 
 }  // namespace memory
