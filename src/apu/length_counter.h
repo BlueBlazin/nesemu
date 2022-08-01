@@ -23,7 +23,6 @@ class LengthCounter {
  private:
   bool enabled = false;
   bool halt = false;
-  uint8_t entry = 0x00;
   uint8_t length = 0x00;
 };
 

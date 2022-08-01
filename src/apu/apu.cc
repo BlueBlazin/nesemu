@@ -20,7 +20,8 @@ Apu::Apu(std::shared_ptr<mappers::Mapper> mapper)
 void Apu::Tick(uint64_t cycles) {
   while (cycles > 0) {
     cycles--;
-    half_cycles++;
+
+    ClockSequencer();
 
     // clock channels
     pulse1.Clock();
@@ -29,9 +30,7 @@ void Apu::Tick(uint64_t cycles) {
     noise.Clock();
     dmc.Clock();
 
-    ClockSequencer();
-
-    sample_counter += 1.0;
+    sample_counter += 1.0F;
     if (sample_counter >= SAMPLE_CLOCKS) {
       sample_counter -= SAMPLE_CLOCKS;
       Sample();
@@ -58,6 +57,8 @@ void Apu::ClockSequencer() {
   } else {
     ModeOneTick();
   }
+
+  half_cycles++;
 }
 
 void Apu::ModeZeroTick() {
@@ -170,15 +171,18 @@ std::vector<int16_t> Apu::GetAudioBuffer() {
 uint8_t Apu::Read(uint16_t addr) {
   switch (addr) {
     case 0x4015: {
-      frame_interrupt = false;
+      uint8_t value =
+          (static_cast<uint8_t>(dmc.dmc_interrupt) << 7) |
+          (static_cast<uint8_t>(frame_interrupt) << 6) |
+          /*                                 */ 0 << 5 |
+          (static_cast<uint8_t>(dmc.bytes_remaining > 0) << 4) |
+          (static_cast<uint8_t>(noise.length_counter.NonZero()) << 3) |
+          (static_cast<uint8_t>(triangle.length_counter.NonZero()) << 2) |
+          (static_cast<uint8_t>(pulse2.length_counter.NonZero()) << 1) |
+          (static_cast<uint8_t>(pulse1.length_counter.NonZero()) << 0);
 
-      return 0x00 | (static_cast<uint8_t>(dmc.dmc_interrupt) << 7) |
-             (static_cast<uint8_t>(frame_interrupt) << 6) |
-             (static_cast<uint8_t>(dmc.bytes_remaining > 0) << 4) |
-             (static_cast<uint8_t>(noise.length_counter.NonZero()) << 3) |
-             (static_cast<uint8_t>(triangle.length_counter.NonZero()) << 2) |
-             (static_cast<uint8_t>(pulse2.length_counter.NonZero()) << 1) |
-             (static_cast<uint8_t>(pulse1.length_counter.NonZero()) << 0);
+      frame_interrupt = false;
+      return value;
     }
     default:
       return 0x00;
@@ -235,7 +239,7 @@ void Apu::Write(uint16_t addr, uint8_t value) {
     }
     case 0x4017: {
       mode0 = (value >> 7) == 0;
-      interrupt_inhibit = static_cast<bool>((value >> 6) & 0x1);
+      interrupt_inhibit = static_cast<bool>(value & 0x40);
 
       if (half_cycles % 2 == 1) {
         frame_reset_delay = 3;
