@@ -5,8 +5,10 @@ namespace audio {
 LengthCounter::LengthCounter() {}
 
 void LengthCounter::Clock() {
-  if (length > 0 && !halt) {
-    length--;
+  if (enabled) {
+    if (length > 0 && !halt) {
+      length--;
+    }
   }
 }
 

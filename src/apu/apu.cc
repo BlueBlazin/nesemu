@@ -148,17 +148,25 @@ void Apu::ClockLengthAndSweep() {
   pulse2.sweep.Clock();
 }
 
+// void Apu::Sample() {
+//   uint16_t pulse1_out = pulse1_enabled ? pulse1.Volume() : 0;
+//   uint16_t pulse2_out = pulse2_enabled ? pulse2.Volume() : 0;
+//   uint16_t triangle_out = triangle_enabled ? triangle.Volume() : 0;
+//   uint16_t noise_out = noise_enabled ? noise.Volume() : 0;
+//   uint16_t dmc_out = dmc.Volume();
+
+//   double pulse_out = MIXER_PULSE_TABLE[pulse1_out + pulse2_out];
+//   double tnd_out = MIXER_TND_TABLE[3 * triangle_out + 2 * noise_out +
+//   dmc_out]; double output = pulse_out + tnd_out;
+
+//   audio_buffer.push_back(INT16_MAX * (output - 0.5));
+// }
+
+/* Debug Noise */
 void Apu::Sample() {
-  uint16_t pulse1_out = pulse1_enabled ? pulse1.Volume() : 0;
-  uint16_t pulse2_out = pulse2_enabled ? pulse2.Volume() : 0;
-  uint16_t triangle_out = triangle_enabled ? triangle.Volume() : 0;
   uint16_t noise_out = noise_enabled ? noise.Volume() : 0;
-  uint16_t dmc_out = dmc.Volume();
-
-  double pulse_out = MIXER_PULSE_TABLE[pulse1_out + pulse2_out];
-  double tnd_out = MIXER_TND_TABLE[3 * triangle_out + 2 * noise_out + dmc_out];
-  double output = pulse_out + tnd_out;
-
+  double tnd_out = MIXER_TND_TABLE[2 * noise_out];
+  double output = tnd_out;
   audio_buffer.push_back(INT16_MAX * (output - 0.5));
 }
 
