@@ -518,6 +518,10 @@ void Ppu::NextDot() {
   } else if (dot == 341) {
     dot = 0;
     NextScanline();
+    if (scanline_type == ScanlineType::Visible && frame % 2 == 0) {
+      dot = 1;
+      cycle_type = CycleType::NametableByte0;
+    }
   }
 }
 

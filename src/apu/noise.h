@@ -23,8 +23,8 @@ class Noise {
 
  private:
   bool mode = false;
-  uint8_t period = 0x00;
-  uint8_t timer = 0x00;
+  uint16_t period = 0x00;
+  uint16_t timer = 0x00;
   uint16_t shift_register = 0x0001;
 };
 

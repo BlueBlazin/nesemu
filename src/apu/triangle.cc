@@ -48,13 +48,11 @@ void Triangle::Write(uint16_t addr, uint8_t value) {
       break;
     }
     case 0x400A: {
-      timer = (timer & 0xFF00) | static_cast<uint16_t>(value);
-      period = timer;
+      period = (period & 0xFF00) | static_cast<uint16_t>(value);
       break;
     }
     case 0x400B: {
-      timer = (static_cast<uint16_t>(value & 0x7) << 8) | (timer & 0x00FF);
-      period = timer;
+      period = (static_cast<uint16_t>(value & 0x7) << 8) | (period & 0x00FF);
       length_counter.Write(value);
       counter_reload_flag = true;
       break;

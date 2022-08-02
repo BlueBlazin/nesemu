@@ -14,7 +14,7 @@ class Envelope {
   uint8_t Volume() { return const_volume ? volume : decay; }
   void Restart() { restart = true; }
 
-  bool restart = true;
+  bool restart = false;
 
  private:
   bool loop = false;

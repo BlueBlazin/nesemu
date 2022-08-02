@@ -31,7 +31,7 @@ void Envelope::Write(uint8_t value) {
   loop = static_cast<bool>(value & 0x20);
   const_volume = static_cast<bool>(value & 0x10);
   volume = value & 0xF;
-  period = volume;
+  period = static_cast<uint16_t>(volume);
 }
 
 }  // namespace audio
