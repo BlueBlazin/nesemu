@@ -274,6 +274,11 @@ cython_debug/
 # End of https://www.toptal.com/developers/gitignore/api/macos,visualstudiocode,c++,bazel
 
 *.nes
+/blargg
+/blargg_apu
+/apu_mixer
+/test_apu_2
+/vbl_nmi_timing
 blargg/
 blargg_apu/
 apu_mixer/
