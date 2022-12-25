@@ -1,5 +1,9 @@
 # NESEmu
 
+<p align="center">
+  <img width="400" height="351" alt="cover image showing prehistorik man" src="https://raw.githubusercontent.com/BlueBlazin/nesemu/master/screenshots/smb.png">
+</p>
+
 An NES emulator written in C++. Currently supports NROM and UxROM cartridges.
 
 ## Background
