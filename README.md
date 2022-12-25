@@ -42,5 +42,5 @@ Then, run your game, for example:
 That's it! Shoutout and big thanks to the 'NES Development Server' discord community!
 
 <p align="center">
-  <img width="450" height="475" alt="Contra loading screen running on NESEmu." src="https://raw.githubusercontent.com/BlueBlazin/nesemu/master/screenshots/contra.png">
+  <img width="400" height="422" alt="Contra loading screen running on NESEmu." src="https://raw.githubusercontent.com/BlueBlazin/nesemu/master/screenshots/contra.png">
 </p>
