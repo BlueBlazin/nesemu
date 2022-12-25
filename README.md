@@ -1,7 +1,7 @@
 # NESEmu
 
 <p align="center">
-  <img width="850" height="331" alt="Super Mario Bros. running on NESEmu along with debugger windows." src="https://raw.githubusercontent.com/BlueBlazin/nesemu/master/screenshots/smb.png">
+  <img width="900" height="350" alt="Super Mario Bros. running on NESEmu along with debugger windows." src="https://raw.githubusercontent.com/BlueBlazin/nesemu/master/screenshots/smb.png">
 </p>
 
 An NES emulator written in C++. Currently supports NROM and UxROM cartridges.
