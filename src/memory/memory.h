@@ -46,8 +46,6 @@ class Memory {
 
   bool IrqPending() { return apu.IrQPending(); }
 
-  void ClearIrq() { apu.ClearInterrupts(); }
-
   bool StallCpu() { return apu.StallCpu(); }
 
   void UseFceuxPalette() { ppu.UseFceuxPalette(); }

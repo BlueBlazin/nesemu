@@ -53,17 +53,6 @@ enum class CycleType {
 
 std::ostream& operator<<(std::ostream& os, const CycleType& cycle_type);
 
-// enum class SpriteFetchType {
-//   SecondaryOamInit0,
-//   SecondaryOamInit1,
-//   SpriteEval,
-//   SpriteFetch,
-//   RenderPipelineInit,
-// };
-
-// std::ostream& operator<<(std::ostream& os,
-//                          const SpriteFetchType& sprite_fetch_type);
-
 enum class Toggle {
   Write1,
   Write2,

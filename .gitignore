@@ -275,3 +275,9 @@ cython_debug/
 
 *.nes
 blargg/
+blargg_apu/
+apu_mixer/
+test_apu_2/
+vbl_nmi_timing/
+*.py
+*.log

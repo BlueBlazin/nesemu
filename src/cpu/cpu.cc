@@ -61,7 +61,6 @@ void Cpu::Tick() {
     mmu.ClearNmi();
     Interrupt(InterruptType::Nmi);
   } else if (!flag_I && IrqPending()) {
-    mmu.ClearIrq();
     Interrupt(InterruptType::Irq);
   } else {
     DecodeExecute(opcode = Fetch());
@@ -992,14 +991,6 @@ uint16_t Cpu::AbsoluteYW() {
   }
   return (static_cast<uint16_t>(hi) << 8) | static_cast<uint16_t>(lo);
 }
-
-// /* 2 cycles */
-// uint16_t Cpu::AbsoluteY() {
-//   uint16_t lo = static_cast<uint16_t>(Fetch());
-//   uint16_t hi = static_cast<uint16_t>(Fetch());
-
-//   return ((hi << 8) | lo) + static_cast<uint16_t>(Y);
-// }
 
 /******************************************************************
   LDA
@@ -2006,7 +1997,6 @@ void Cpu::AlrImmediate() {
 void Cpu::AncImmediate() {
   A &= Fetch();
   flag_C = static_cast<bool>((A >> 7) & 0x1);
-  // A = (A << 1) & 0xFE;
   UpdateNZ(A);
 }
 

@@ -4,7 +4,6 @@ cc_library(
     name = "nes",
     srcs = ["nes.cc"],
     hdrs = [
-        "audio_stream.h",
         "nes.h",
     ],
     visibility = ["//visibility:public"],

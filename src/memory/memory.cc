@@ -67,10 +67,7 @@ uint8_t* Memory::GetNametable(uint16_t addr) {
   }
 }
 
-uint8_t* Memory::GetSprites() {
-  // ppu.UpdateSprites();
-  return ppu.sprites.data();
-}
+uint8_t* Memory::GetSprites() { return ppu.sprites.data(); }
 
 uint8_t* Memory::GetPalettes() {
   ppu.UpdatePalettes();

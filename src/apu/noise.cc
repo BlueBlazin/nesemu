@@ -39,7 +39,6 @@ void Noise::Write(uint16_t addr, uint8_t value) {
     case 0x400E: {
       mode = static_cast<bool>(value & 0x80);
       period = PERIODS[value & 0xF];
-      // timer = period;
       break;
     }
     case 0x400F: {

@@ -42,10 +42,6 @@ class Apu {
 
   bool StallCpu() { return dmc.stall_cpu; }
   bool IrQPending() { return frame_interrupt || dmc.dmc_interrupt; }
-  void ClearInterrupts() {
-    // frame_interrupt = false;
-    // dmc.dmc_interrupt = false;
-  }
 
   bool frame_interrupt = false;
 

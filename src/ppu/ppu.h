@@ -157,7 +157,6 @@ class Ppu {
   // PPU state variants
   ScanlineType scanline_type = ScanlineType::PreRender;
   CycleType cycle_type = CycleType::Cycle0;
-  // SpriteFetchType sprite_fetch_type = SpriteFetchType::SecondaryOamInit0;
 
   // PPU state info
   uint64_t dot = 0;

@@ -16,7 +16,6 @@
 #include "src/cpu/cpu.h"
 #include "src/cpu/event.h"
 #include "src/mappers/mapper.h"
-#include "src/nes/audio_stream.h"
 
 namespace nes {
 
@@ -29,7 +28,6 @@ constexpr int PALETTES_WIDTH = 137;
 constexpr int PALETTES_HEIGHT = 35;
 // rough estimate of title bar height
 constexpr int TITLEBAR_HEIGHT = 65;
-// constexpr uint64_t MAX_CYCLES = 29815;
 constexpr uint64_t MAX_CYCLES = 29780;
 constexpr float TIME_PER_FRAME = 1.0 / 60.1;
 constexpr float SAMPLING_RATE = 44100.0F;
@@ -102,7 +100,6 @@ class Nes {
   sf::Sprite palettes_sprite;
 
   // audio
-  // AudioStream stream;
   SDL_AudioDeviceID audio_device;
   SDL_AudioSpec audio_spec;
 

@@ -162,16 +162,6 @@ void Apu::Sample() {
   audio_buffer.push_back(INT16_MAX * (output - 0.5));
 }
 
-/* Debug Noise */
-// void Apu::Sample() {
-//   uint16_t noise_out = noise_enabled ? noise.Volume() : 0;
-//   double tnd_out = MIXER_TND_TABLE[2 * noise_out];
-//   double output = tnd_out;
-
-//   // audio_buffer.push_back(INT16_MAX * (output - 0.09) / 0.045);
-//   audio_buffer.push_back(INT16_MAX * output);
-// }
-
 bool Apu::AudioBufferFull() { return audio_buffer.size() >= AUDIO_BUFFER_SIZE; }
 
 std::vector<int16_t> Apu::GetAudioBuffer() {
