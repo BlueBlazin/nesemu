@@ -8,7 +8,7 @@ An NES emulator written in C++. Currently supports NROM and UxROM cartridges.
 
 ## Background
 
-I mainly wrote this to learn C++. I started working on it around the June of 2022 and it took about 3 months to finish. I was completely new to C++ at the time so you find some quirky or weird usage of the language in this codebase.
+I mainly wrote this to learn C++. I started working on it around the June of 2022 and it took about 3 months to finish. I was completely new to C++ at the time so you might find some quirky or weird usage of the language in this codebase.
 
 ## Requirements
 
