@@ -1,7 +1,7 @@
 # NESEmu
 
 <p align="center">
-  <img width="900" height="350" alt="cover image showing prehistorik man" src="https://raw.githubusercontent.com/BlueBlazin/nesemu/master/screenshots/smb.png">
+  <img width="900" height="350" alt="Super Mario Bros. running on NESEmu along with debugger windows." src="https://raw.githubusercontent.com/BlueBlazin/nesemu/master/screenshots/smb.png">
 </p>
 
 An NES emulator written in C++. Currently supports NROM and UxROM cartridges.
@@ -40,3 +40,7 @@ Then, run your game, for example:
 ```
 
 That's it! Shoutout and big thanks to the 'NES Development Server' discord community!
+
+<p align="center">
+  <img width="650" height="685" alt="Contra loading screen running on NESEmu." src="https://raw.githubusercontent.com/BlueBlazin/nesemu/master/screenshots/contra.png">
+</p>
